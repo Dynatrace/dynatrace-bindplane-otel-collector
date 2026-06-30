@@ -1,7 +1,7 @@
 #!/bin/sh
-# observIQ OTEL daemon
+# DBDOT OTEL daemon
 # chkconfig: 2345 99 05
-# description: observIQ's distribution of the OpenTelemetry collector
+# description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
 # processname: dbdot-collector
 # pidfile: /var/run/dbdot-collector.pid
 

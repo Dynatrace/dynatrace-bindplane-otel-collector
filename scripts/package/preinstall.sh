@@ -16,7 +16,7 @@
 set -e
 
 # Read's optional package overrides. Users should deploy the override
-# file before installing BDOT for the first time. The override should
+# file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
 [ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
 [ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector

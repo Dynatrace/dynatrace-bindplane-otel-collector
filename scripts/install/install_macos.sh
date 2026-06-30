@@ -610,7 +610,7 @@ display_results()
     increase_indent
     info "$(fg_cyan "https://github.com/observIQ/bindplane-otel-collector/tree/main#bindplane-agent")$(reset)"
     decrease_indent
-    info "If you have any other questions please contact us at $(fg_cyan support@observiq.com)$(reset)"
+    info "If you have any other questions please contact us at $(fg_cyan TODO-DBDOT-SUPPORT-EMAIL)$(reset)"
     decrease_indent
 
     banner "$(fg_green Installation Complete!)"

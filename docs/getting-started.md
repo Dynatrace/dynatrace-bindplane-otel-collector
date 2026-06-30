@@ -101,7 +101,7 @@ To export the metrics to Google Cloud Operations, use the configurations outline
 
 After the installation, the config file for the agent can be found at:
 
-Windows: `C:\Program Files\observIQ OpenTelemetry Collector\config.yaml`
+Windows: `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\config.yaml`
 
 Linux: `/opt/dbdot-collector/config.yaml`
 

@@ -4,7 +4,7 @@ This file provides guidance to LLM agents when working with this repository.
 
 ## Repository Overview
 
-The Bindplane Distro for OpenTelemetry Collector (BDOT Collector) is Bindplane's distribution of the upstream OpenTelemetry Collector. This is a Go-based project that implements the Open Agent Management Protocol (OpAMP) and supports both standalone and managed modes.
+The Dynatrace Bindplane Distribution of OpenTelemetry Collector (DBDOT Collector) is Bindplane's distribution of the upstream OpenTelemetry Collector. This is a Go-based project that implements the Open Agent Management Protocol (OpAMP) and supports both standalone and managed modes.
 
 ## Pull Request Content
 

@@ -66,17 +66,17 @@ To read more about the generated connection configuration file see [OpAMP docs](
 
 After installing, the `dbdot-collector` service will be running and ready for configuration!
 
-The agent logs to `C:\Program Files\observIQ OpenTelemetry Collector\log\collector.log` by default.
+The agent logs to `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log\collector.log` by default.
 
-By default, the config file for the agent can be found at `C:\Program Files\observIQ OpenTelemetry Collector\config.yaml`. When changing the configuration, the agent service must be restarted in order for config changes to take effect.
+By default, the config file for the agent can be found at `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\config.yaml`. When changing the configuration, the agent service must be restarted in order for config changes to take effect.
 
 For more information on configuring the agent, see the [OpenTelemetry docs](https://opentelemetry.io/docs/collector/configuration/).
 
 **Logging**
 
-Logs from the agent will appear in `<install_dir>/log` (`C:\Program Files\observIQ OpenTelemetry Collector\log` by default).
+Logs from the agent will appear in `<install_dir>/log` (`C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log` by default).
 
-Stderr for the agent process can be found at `<install_dir>/log/dbdot_collector.err` (`C:\Program Files\observIQ OpenTelemetry Collector\log\dbdot_collector.err` by default).
+Stderr for the agent process can be found at `<install_dir>/log/dbdot_collector.err` (`C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log\dbdot_collector.err` by default).
 
 ## Restarting the Agent
 Restarting the agent may be done through the services dialog.
@@ -84,7 +84,7 @@ To access the services dialog, press Win + R, enter `services.msc` into the Run 
 
 ![The run dialog](./screenshots/windows/launch-services.png)
 
-Locate the "observIQ Distro for OpenTelemetry Collector" service, right click the entry, and click "Restart" to restart the agent.
+Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service, right click the entry, and click "Restart" to restart the agent.
 
 ![The services dialog](./screenshots/windows/stop-restart-service.png)
 
@@ -100,7 +100,7 @@ To access the services dialog, press Win + R, enter `services.msc` into the Run 
 
 ![The run dialog](./screenshots/windows/launch-services.png)
 
-Locate the "observIQ Distro for OpenTelemetry Collector" service, right click the entry, and click "Stop" to stop the agent.
+Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service, right click the entry, and click "Stop" to stop the agent.
 
 ![The services dialog](./screenshots/windows/stop-restart-service.png)
 
@@ -116,7 +116,7 @@ To access the services dialog, press Win + R, enter `services.msc` into the Run 
 
 ![The run dialog](./screenshots/windows/launch-services.png)
 
-Locate the "observIQ Distro for OpenTelemetry Collector" service, right click the entry, and click "Start" to start the agent.
+Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service, right click the entry, and click "Start" to start the agent.
 
 ![The services dialog](./screenshots/windows/start-service.png)
 
@@ -137,7 +137,7 @@ Alternatively, uninstall through the control panel via the "Uninstall a program"
 
 ![The control panel](./screenshots/windows/control-panel-uninstall.png)
 
-Locate the `"observIQ Distro for OpenTelemetry Collector"` entry, and select uninstall.
+Locate the `"Dynatrace Bindplane Distribution of OpenTelemetry Collector"` entry, and select uninstall.
 
 ![The uninstall or change a program dialog](./screenshots/windows/uninstall-collector.png)
 

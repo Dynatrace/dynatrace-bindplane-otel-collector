@@ -1,6 +1,6 @@
 d# ocb-Canonical Build — as built
 
-This describes the BDOT Collector build as it stands today. The OTel Collector Builder (ocb) compiles every binary from a manifest. The v1 runtime cluster (OpAMP client, collector lifecycle, package state, report manager, measurements) lives in a single internal Go module.
+This describes the DBDOT Collector build as it stands today. The OTel Collector Builder (ocb) compiles every binary from a manifest. The v1 runtime cluster (OpAMP client, collector lifecycle, package state, report manager, measurements) lives in a single internal Go module.
 
 ## What ocb owns
 
@@ -123,7 +123,7 @@ Done since this spec was written:
 
 Future work:
 
-- **v2 migrated.** BDOT v2 still exists on its own branch. Eventually we'll want to migrate it over to this branch. Will have separate manifests for v2 and v2-aix builds.
+- **v2 migrated.** DBDOT v2 still exists on its own branch. Eventually we'll want to migrate it over to this branch. Will have separate manifests for v2 and v2-aix builds.
 - **v2 release wiring.** `make agent-v2` / `agent-v2-aix` do not exist and v2 is not a part of CI or the release flow; v2 artifacts are not produced by the release flow.
 - **Dependabot.** Currently bumps `go.mod` files; needs to also bump versions inside `manifest.yaml`, which is now the source of truth for component versions.
 - **Docker image.** `docker/` references the compiled binary path; the `dist/collector_*` naming hasn't changed, but the end-to-end image build hasn't been re-verified.

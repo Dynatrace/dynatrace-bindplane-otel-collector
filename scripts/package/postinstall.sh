@@ -17,7 +17,7 @@
 set -e
 
 # Read's optional package overrides. Users should deploy the override
-# file before installing BDOT for the first time. The override should
+# file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
 [ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
 [ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
@@ -92,7 +92,7 @@ install_systemd_service() {
 
   cat << EOF > "$config_file"
 [Unit]
-Description=observIQ's distribution of the OpenTelemetry collector
+Description=Dynatrace Bindplane Distribution of OpenTelemetry Collector
 After=network.target
 StartLimitIntervalSec=120
 StartLimitBurst=5
@@ -151,9 +151,9 @@ install_initd_service() {
 
   cat << EOF > "$config_file"
 #!/bin/sh
-# observIQ OTEL daemon
+# DBDOT OTEL daemon
 # chkconfig: 2345 99 05
-# description: observIQ's distribution of the OpenTelemetry collector
+# description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
 # processname: dbdot-collector
 # pidfile: /var/run/dbdot-collector.pid
 
@@ -445,7 +445,7 @@ To restart the dbdot-collector service, run:
 To enable the service on startup, run:
   sudo systemctl enable dbdot-collector
 
-If you have any other questions please contact us at support@observiq.com
+If you have any other questions please contact us at TODO-DBDOT-SUPPORT-EMAIL
 EOF
 }
 

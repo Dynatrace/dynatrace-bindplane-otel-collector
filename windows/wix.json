@@ -1,20 +1,20 @@
 {
-  "product": "observIQ Distro for OpenTelemetry Collector",
-  "company": "observIQ, Inc.",
+  "product": "Dynatrace Bindplane Distribution of OpenTelemetry Collector",
+  "company": "TODO-DBDOT-VENDOR",
   "license": "./LICENSE.rtf",
   "info": {
     "help-link": "https://bindplane.com/contact/",
     "support-link": "https://bindplane.com/contact/"
   },
-  "upgrade-code": "D67CCA1A-6708-4096-8BDE-5069739FB861",
+  "upgrade-code": "CDE0E02B-C29C-43AA-A6A3-063A84DC7EDF",
   "files": [
     {
       "path": "dbdot-collector.exe",
       "service": {
         "name": "dbdot-collector",
         "start": "delayed",
-        "display-name": "observIQ Distro for OpenTelemetry Collector",
-        "description": "observIQ's distribution of the OpenTelemetry collector.",
+        "display-name": "Dynatrace Bindplane Distribution of OpenTelemetry Collector",
+        "description": "Dynatrace Bindplane Distribution of OpenTelemetry Collector.",
         "arguments": "--config &quot;[INSTALLDIR]config.yaml&quot; --logging &quot;[INSTALLDIR]logging.yaml&quot; --manager &quot;[INSTALLDIR]manager.yaml&quot;"
       }
     },
@@ -83,7 +83,7 @@
   ],
   "registries": [
     {
-      "path": "HKCU\\Software\\observiq\\observIQ OpenTelemetry Collector",
+      "path": "HKCU\\Software\\Dynatrace\\DBDOT",
       "values": [
         {
           "name": "Version",
@@ -96,7 +96,7 @@
       ]
     },
     {
-      "path": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\observIQ OpenTelemetry Collector",
+      "path": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Dynatrace Bindplane Distribution of OpenTelemetry Collector",
       "values": [
         {
           "name": "NoModify",

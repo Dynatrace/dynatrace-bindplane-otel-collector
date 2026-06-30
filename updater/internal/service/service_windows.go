@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	defaultProductName = "observIQ Distro for OpenTelemetry Collector"
+	defaultProductName = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 	defaultServiceName = "dbdot-collector"
 
 	// defaultRecoveryDelay is the duration in which to wait between service restarts due to failures

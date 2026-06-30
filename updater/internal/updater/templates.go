@@ -17,7 +17,7 @@ package updater
 
 // Constants for service file templates
 const systemdServiceTemplate = `[Unit]
-Description=observIQ's distribution of the OpenTelemetry collector
+Description=Dynatrace Bindplane Distribution of OpenTelemetry Collector
 After=network.target
 StartLimitIntervalSec=120
 StartLimitBurst=5
@@ -41,9 +41,9 @@ KillMode=process
 WantedBy=multi-user.target`
 
 const initScriptTemplate = `#!/bin/sh
-# observIQ OTEL daemon
+# DBDOT OTEL daemon
 # chkconfig: 2345 99 05
-# description: observIQ's distribution of the OpenTelemetry collector
+# description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
 # processname: dbdot-collector
 # pidfile: /var/run/dbdot-collector.pid
 

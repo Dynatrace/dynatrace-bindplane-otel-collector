@@ -13,19 +13,19 @@
 # limitations under the License.
 
 # Define the default directory for logs
-$registry_path = "Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\observIQ Distro for OpenTelemetry Collector"
+$registry_path = "Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 
 if (Test-Path $registry_path) {
     $collector_dir = (Get-ItemProperty -Path $registry_path -Name "InstallLocation").InstallLocation
 } else {
-    $collector_dir = "C:\Program Files\observIQ OpenTelemetry Collector"
-    Write-Host "observIQ OpenTelemetry Collector directory not found in the registry. Trying default location: $collector_dir"
+    $collector_dir = "C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector"
+    Write-Host "Dynatrace Bindplane Distribution of OpenTelemetry Collector directory not found in the registry. Trying default location: $collector_dir"
 }
 
 # Check if the directory exists
 if (!(Test-Path $collector_dir)) {
     Write-Host "Directory $collector_dir does not exist."
-    $collector_dir = Read-Host -Prompt "Please enter the directory for the observIQ OpenTelemetry Collector installation"
+    $collector_dir = Read-Host -Prompt "Please enter the directory for the Dynatrace Bindplane Distribution of OpenTelemetry Collector installation"
     if (!(Test-Path $collector_dir)) {
         Write-Host "Directory $collector_dir does not exist."
         exit

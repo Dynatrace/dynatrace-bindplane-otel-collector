@@ -15,11 +15,11 @@
 setlocal enabledelayedexpansion
 
 :: Default directory for logs
-FOR /F "tokens=2*" %%A IN ('reg query "HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall\observIQ Distro for OpenTelemetry Collector" /v "InstallLocation"') DO set "collector_dir=%%~B"
+FOR /F "tokens=2*" %%A IN ('reg query "HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall\Dynatrace Bindplane Distribution of OpenTelemetry Collector" /v "InstallLocation"') DO set "collector_dir=%%~B"
 
 :: Check if directory exists, and ask for it if not
 if not exist "%collector_dir%" (
-    echo observIQ OpenTelemetry Collector directory not found in the registry.
+    echo Dynatrace Bindplane Distribution of OpenTelemetry Collector directory not found in the registry.
     call :get_dir
 )
 
@@ -65,7 +65,7 @@ goto :eof
 
 :: Subroutine to get the directory from the user
 :get_dir
-set /p collector_dir=Please enter the directory for the observIQ OpenTelemetry Collector installation:
+set /p collector_dir=Please enter the directory for the Dynatrace Bindplane Distribution of OpenTelemetry Collector installation:
 if not exist "%collector_dir%" (
     echo Directory %collector_dir% does not exist.
     exit /b

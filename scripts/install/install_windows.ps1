@@ -14,7 +14,7 @@
 
 <#
 .SYNOPSIS
-    Installs or uninstalls the observIQ Distro for OpenTelemetry Collector on Windows.
+    Installs or uninstalls the Dynatrace Bindplane Distribution of OpenTelemetry Collector on Windows.
 
 .DESCRIPTION
     Downloads and installs the appropriate MSI (amd64 or arm64) for the current
@@ -118,9 +118,11 @@ $ErrorActionPreference = "Stop"
 $DOWNLOAD_BASE = "https://bdot.bindplane.com"
 $MSI_NAME_AMD64 = "dbdot-collector.msi"
 $MSI_NAME_ARM64 = "dbdot-collector-arm64.msi"
-$PRODUCT_DISPLAY_NAME = "observIQ Distro for OpenTelemetry Collector"
-# Stable across releases/renames; defined in windows/wix.json ("upgrade-code").
-$UPGRADE_CODE = "{D67CCA1A-6708-4096-8BDE-5069739FB861}"
+$PRODUCT_DISPLAY_NAME = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
+# DBDOT's own UpgradeCode, stable across DBDOT releases; defined in windows/wix.json
+# ("upgrade-code"). Distinct from the legacy observIQ/Bindplane code, so DBDOT is a
+# separate product with no in-place upgrade from a legacy MSI.
+$UPGRADE_CODE = "{CDE0E02B-C29C-43AA-A6A3-063A84DC7EDF}"
 
 # ---- Helpers -----------------------------------------------------------------
 
@@ -247,9 +249,8 @@ function Build-MsiexecArgs {
 
 function Get-ProductCode {
     # Resolve the installed ProductCode via the stable UpgradeCode rather than an
-    # exact display-name match. The display name has changed across releases (e.g.
-    # "observIQ Distro..." -> "BindPlane Distro... (BDOT)"), but the UpgradeCode is
-    # fixed, so this keeps working across renames. The Windows Installer COM API
+    # exact display-name match. The display name can change across releases, but the
+    # UpgradeCode is fixed, so this keeps working. The Windows Installer COM API
     # also avoids the slow, side-effecting Win32_Product WMI class.
     try {
         $installer = New-Object -ComObject WindowsInstaller.Installer
@@ -287,10 +288,10 @@ function Invoke-Uninstall {
         Fail "$PRODUCT_DISPLAY_NAME is not installed."
     }
 
-    # Report the name actually registered for the resolved product. The UpgradeCode
-    # also matches rebranded installs (e.g. the BDOT rename), so the installed name
-    # may differ from $PRODUCT_DISPLAY_NAME; show what is really there rather than
-    # claiming to act on a name the user may not have installed.
+    # Report the name actually registered for the resolved product. The installed
+    # name may differ from $PRODUCT_DISPLAY_NAME across DBDOT releases, so show what
+    # is really there rather than claiming to act on a name the user may not have
+    # installed.
     $installedName = Get-InstalledProductName -ProductCode $productCode
     if ($installedName) {
         Write-Info "Found '$installedName' ($productCode)"

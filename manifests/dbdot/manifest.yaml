@@ -1,6 +1,6 @@
 dist:
   name: dbdot-collector
-  description: Bindplane Distro for OpenTelemetry Collector
+  description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
   module: github.com/dynatrace/dbdot-collector/build
   version: 0.0.0
   output_path: ./build

@@ -21,7 +21,7 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-const defaultProductName = "observIQ Distro for OpenTelemetry Collector"
+const defaultProductName = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 
 // DefaultConfigOverrides is not used on Windows, but is required
 // by InstallDir.

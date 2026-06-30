@@ -16,7 +16,7 @@
 set -e
 
 # Reads optional package overrides. Users should deploy the override
-# file before installing BDOT for the first time. The override should
+# file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
 [ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
 [ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
@@ -66,7 +66,7 @@ offline_installation=false
 # The entries can be found by importing the revoked public key and then exploring the RPM database for the key.
 # rpm --import <revoked_public_key>.asc
 # rpm -q gpg-pubkey, it's one of these
-# rpm -q gpg-pubkey --info, go find the BDOT public key and use the version and release numbers from there.
+# rpm -q gpg-pubkey --info, go find the DBDOT public key and use the version and release numbers from there.
 RPM_GPG_KEYS_TO_REMOVE=[]
 
 # Colors
@@ -1222,7 +1222,7 @@ display_results()
     increase_indent
     info "$(fg_cyan "https://github.com/observIQ/bindplane-otel-collector/tree/main#bindplane-agent")$(reset)"
     decrease_indent
-    info "If you have any other questions please contact us at $(fg_cyan support@observiq.com)$(reset)"
+    info "If you have any other questions please contact us at $(fg_cyan TODO-DBDOT-SUPPORT-EMAIL)$(reset)"
     increase_indent
     decrease_indent
     decrease_indent

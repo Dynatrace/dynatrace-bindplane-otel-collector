@@ -1,4 +1,4 @@
-# observIQ manifests
+# DBDOT manifests
 
 Three manifests live here, all driving ocb builds:
 

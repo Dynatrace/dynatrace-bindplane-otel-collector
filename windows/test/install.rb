@@ -1,4 +1,4 @@
-collector_home="C:/Program Files/observIQ OpenTelemetry Collector"
+collector_home="C:/Program Files/Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 
 [
     "#{collector_home}/plugins",

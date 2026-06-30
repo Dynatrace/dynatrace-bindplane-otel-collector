@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main is the entry point for the ocb-built BDOT Collector. The
+// Package main is the entry point for the ocb-built DBDOT Collector. The
 // `agent` Make target copies this file over ocb's generated main.go after
 // `builder --skip-compilation` runs; `go build` then compiles it together
 // with ocb's components.go inside ./build/.

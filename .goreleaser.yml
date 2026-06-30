@@ -111,10 +111,10 @@ nfpms:
       - updater
     file_name_template: "{{ .PackageName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     package_name: dbdot-collector
-    vendor: observIQ, Inc
-    maintainer: observIQ <support@observiq.com>
-    description: observIQ's distribution of the OpenTelemetry collector
-    homepage: https://github.com/observIQ/bindplane-agent
+    vendor: TODO-DBDOT-VENDOR
+    maintainer: TODO-DBDOT-VENDOR <TODO-DBDOT-SUPPORT-EMAIL>
+    description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
+    homepage: https://github.com/dynatrace/dbdot-collector
     license: Apache 2.0
     formats:
       - rpm
