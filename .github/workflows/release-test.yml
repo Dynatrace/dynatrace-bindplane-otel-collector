@@ -226,7 +226,7 @@ jobs:
       - name: Upload Bindplane Linux AMD64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload devel-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_amd64.deb
@@ -234,7 +234,7 @@ jobs:
       - name: Upload Bindplane Linux AMD64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload devel-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_amd64.rpm
@@ -242,7 +242,7 @@ jobs:
       - name: Upload Bindplane Linux ARM64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload devel-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_arm64.deb
@@ -250,7 +250,7 @@ jobs:
       - name: Upload Bindplane Linux ARM64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload devel-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_arm64.rpm
@@ -258,7 +258,7 @@ jobs:
       - name: Upload Bindplane Linux ARM32 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload devel-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_arm.deb
@@ -266,7 +266,7 @@ jobs:
       - name: Upload Bindplane Linux ARM32 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload devel-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_arm.rpm
@@ -274,7 +274,7 @@ jobs:
       - name: Upload Bindplane Linux PPC64LE Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload devel-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_ppc64le.deb
@@ -282,7 +282,7 @@ jobs:
       - name: Upload Bindplane Linux PPC64LE RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload devel-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_ppc64le.rpm
@@ -290,7 +290,7 @@ jobs:
       - name: Upload Bindplane Linux PPC64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload devel-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_ppc64.deb
@@ -298,7 +298,7 @@ jobs:
       - name: Upload Bindplane Linux PPC64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload devel-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ env.VERSION }}_linux_ppc64.rpm

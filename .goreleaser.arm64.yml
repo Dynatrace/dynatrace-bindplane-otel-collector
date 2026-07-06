@@ -36,8 +36,8 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/bindplane-agent-arm64:{{ .Version }}"
-      - "observiq/bindplane-agent-arm64:latest"
+      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:{{ .Version }}"
+      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:latest"
     dockerfile: ./docker/Dockerfile.ubuntu
     use: buildx
     build_flag_templates:

@@ -34,14 +34,14 @@
 
 <!-- badges -->
 <p align="center">
-  <a href="https://github.com/observIQ/bindplane-otel-collector/actions">
-    <img src="https://github.com/observIQ/bindplane-otel-collector/workflows/Build/badge.svg" alt="Action Status">
+  <a href="https://github.com/dynatrace/dbdot-collector/actions">
+    <img src="https://github.com/dynatrace/dbdot-collector/workflows/Build/badge.svg" alt="Action Status">
   </a>
-  <a href="https://github.com/observIQ/bindplane-otel-collector/actions">
-    <img src="https://github.com/observIQ/bindplane-otel-collector/workflows/Tests/badge.svg" alt="Action Test Status">
+  <a href="https://github.com/dynatrace/dbdot-collector/actions">
+    <img src="https://github.com/dynatrace/dbdot-collector/workflows/Tests/badge.svg" alt="Action Test Status">
   </a>
-  <a href="https://goreportcard.com/report/github.com/observIQ/bindplane-otel-collector">
-    <img src="https://goreportcard.com/badge/github.com/observIQ/bindplane-otel-collector" alt="Go Report Card">
+  <a href="https://goreportcard.com/report/github.com/dynatrace/dbdot-collector">
+    <img src="https://goreportcard.com/badge/github.com/dynatrace/dbdot-collector" alt="Go Report Card">
   </a>
   <a href="https://opensource.org/licenses/Apache-2.0">
     <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
@@ -92,7 +92,7 @@ To continue with the quick start, follow along below.
 Install DBDOT Collector using the installation script below.
 
 ```sh
-sudo sh -c "$(curl -fsSlL https://bdot.bindplane.com/<version>/install_unix.sh)" install_unix.sh
+sudo sh -c "$(curl -fsSlL https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_unix.sh)" install_unix.sh
 ```
 
 To install directly with the appropriate package manager, and how to configure OpAMP, see [installing on Linux](/docs/installation-linux.md).
@@ -102,7 +102,7 @@ To install directly with the appropriate package manager, and how to configure O
 Install the DBDOT Collector using the PowerShell command below. The script automatically selects the correct MSI for the system architecture (amd64 or arm64).
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://bdot.bindplane.com/<version>/install_windows.ps1")))
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1")))
 ```
 
 For more installation information, and how to configure OpAMP, see [installing on Windows](/docs/installation-windows.md).
@@ -112,7 +112,7 @@ For more installation information, and how to configure OpAMP, see [installing o
 Install DBDOT Collector using the installation script below.
 
 ```sh
-sudo sh -c "$(curl -fsSlL https://bdot.bindplane.com/<version>/install_macos.sh)" install_macos.sh
+sudo sh -c "$(curl -fsSlL https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_macos.sh)" install_macos.sh
 ```
 
 For more installation information, and how to configure OpAMP, see [installing on macOS](/docs/installation-mac.md).
@@ -257,7 +257,7 @@ V1 distributions of the DBDOT Collector use a custom OpAMP manager built into th
 
 ### V2
 
-V2 is the latest major release of the DBDOT Collector. This version is currently in [Beta](https://github.com/observIQ/bindplane-otel-collector/releases/tag/v2.0.0-beta.12). V2 distributions of the DBDOT Collector use the [OpenTelemetry OpAMP supervisor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor) to interface between the OpenTelemetry Collector and the OpAMP server run by Bindplane. For more information, [see this documentation](https://github.com/observIQ/bindplane-otel-collector/blob/release/v2.0.0/docs/supervisor.md).
+V2 is the latest major release of the DBDOT Collector. This version is currently in [Beta](https://github.com/dynatrace/dbdot-collector/releases/tag/v2.0.0-beta.12). V2 distributions of the DBDOT Collector use the [OpenTelemetry OpAMP supervisor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor) to interface between the OpenTelemetry Collector and the OpAMP server run by Bindplane. For more information, [see this documentation](https://github.com/dynatrace/dbdot-collector/blob/release/v2.0.0/docs/supervisor.md).
 
 ## Community
 
@@ -265,7 +265,7 @@ Have an idea to improve the Dynatrace Bindplane Distribution of OpenTelemetry Co
 
 - Star this repo ⭐️ and follow us on [Twitter](https://x.com/bindplane).
 - Upvote issues with 👍 so we know what to prioritize in the road map.
-- [Create issues](https://github.com/observIQ/bindplane-otel-collector/issues) when you feel something is missing or wrong.
+- [Create issues](https://github.com/dynatrace/dbdot-collector/issues) when you feel something is missing or wrong.
 - Join our [Slack Community](https://www.launchpass.com/bindplane), and ask us any questions there.
 
 ## Contributing

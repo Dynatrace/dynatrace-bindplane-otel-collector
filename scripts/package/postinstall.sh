@@ -431,7 +431,7 @@ To view logs from the collector, run:
   sudo tail -F ${DBDOT_CONFIG_HOME}/log/collector.log
 
 For more information on configuring the collector, see the docs:
-  https://github.com/observIQ/bindplane-otel-collector/tree/main#observiq-opentelemetry-collector
+  https://github.com/dynatrace/dbdot-collector/tree/main#observiq-opentelemetry-collector
 
 To stop the dbdot-collector service, run:
   sudo systemctl stop dbdot-collector

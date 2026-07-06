@@ -17,7 +17,7 @@ set -e
 
 # Collector Constants
 SERVICE_NAME="com.dynatrace.dbdot.collector"
-DOWNLOAD_BASE="https://bdot.bindplane.com"
+DOWNLOAD_BASE="https://TODO-DBDOT-DOWNLOAD-HOST"
 
 # Script Constants
 PREREQS="printf sed uname tr find grep"
@@ -421,7 +421,7 @@ set_os_arch()
 
 # This will set the urls to use when downloading the agent and its plugins.
 # These urls are constructed based on the --version flag or COLLECTOR_VERSION env variable.
-# If not specified, the version defaults to whatever the latest release on bdot.bindplane.com is.
+# If not specified, the version defaults to whatever the latest release on TODO-DBDOT-DOWNLOAD-HOST is.
 set_download_urls()
 {
   if [ -z "$url" ] ; then
@@ -473,7 +473,7 @@ set_opamp_secret_key()
 # latest_version gets the tag of the latest release, without the v prefix.
 latest_version()
 {
-  curl -s https://bdot.bindplane.com/latest
+  curl -s https://TODO-DBDOT-DOWNLOAD-HOST/latest
 }
 
 # This will install the package by downloading & unpacking the tarball into the install directory
@@ -608,7 +608,7 @@ display_results()
     increase_indent
     info "For more information on configuring the agent, see the docs:"
     increase_indent
-    info "$(fg_cyan "https://github.com/observIQ/bindplane-otel-collector/tree/main#bindplane-agent")$(reset)"
+    info "$(fg_cyan "https://github.com/dynatrace/dbdot-collector/tree/main#bindplane-agent")$(reset)"
     decrease_indent
     info "If you have any other questions please contact us at $(fg_cyan TODO-DBDOT-SUPPORT-EMAIL)$(reset)"
     decrease_indent

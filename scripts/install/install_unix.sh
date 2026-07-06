@@ -30,7 +30,7 @@ set -e
 
 # Agent Constants
 PACKAGE_NAME="dbdot-collector"
-DOWNLOAD_BASE="https://bdot.bindplane.com"
+DOWNLOAD_BASE="https://TODO-DBDOT-DOWNLOAD-HOST"
 
 # Determine if we need service or systemctl for prereqs
 if command -v systemctl > /dev/null 2>&1; then
@@ -56,7 +56,7 @@ skip_gpg_check=false
 # package_out_file_path is the full path to the downloaded package (e.g. "/tmp/dbdot-collector_linux_amd64.deb")
 package_out_file_path="unknown"
 
-# gpg_tar_out_file_path is the full path to the downloaded GPG tar.gz file (e.g. "/tmp/bdot-gpg-keys.tar.gz")
+# gpg_tar_out_file_path is the full path to the downloaded GPG tar.gz file (e.g. "/tmp/dbdot-gpg-keys.tar.gz")
 gpg_tar_out_file_path="unknown"
 
 offline_installation=false
@@ -225,7 +225,7 @@ Usage:
   $(fg_yellow '-gl, --gpg-tar-url')
       Defines the URL that the GPG tar file will be downloaded from.
       If not provided, this will default to Bindplane Agent\'s GitHub releases.
-      Example: '-gl http://my.domain.org/bdot-gpg-keys.tar.gz' will download from there.
+      Example: '-gl http://my.domain.org/dbdot-gpg-keys.tar.gz' will download from there.
 
   $(fg_yellow '-b, --base-url')
       Defines the base of the download URL used in conjunction with the version to download the package and GPG tar file.
@@ -242,7 +242,7 @@ Usage:
 
   $(fg_yellow '-gf, --gpg-tar-file')
       Verify the Agent from a local GPG tar file instead of downloading from a URL.
-      Example: '-gf /path/to/bdot-gpg-keys.tar.gz' will verify from the local file.
+      Example: '-gf /path/to/dbdot-gpg-keys.tar.gz' will verify from the local file.
       Required if '--file' is specified.
 
   $(fg_yellow '-x, --proxy')
@@ -422,7 +422,7 @@ set_file_names() {
   fi
   package_out_file_path="$TMP_DIR/$package_file_name"
 
-  gpg_tar_out_file_path="$TMP_DIR/bdot-gpg-keys.tar.gz"
+  gpg_tar_out_file_path="$TMP_DIR/dbdot-gpg-keys.tar.gz"
 }
 
 set_proxy()
@@ -838,7 +838,7 @@ package_type_check()
 # latest_version gets the tag of the latest release, without the v prefix.
 latest_version()
 {
-  curl -s https://bdot.bindplane.com/latest
+  curl -s https://TODO-DBDOT-DOWNLOAD-HOST/latest
 }
 
 # This will install the package by downloading the archived agent,
@@ -1031,7 +1031,7 @@ verify_package_deb() {
     return 0
   fi
 
-  if ! GNUPGHOME="$TMP_DIR/gpg" gpg --import "$TMP_DIR/gpg/bdot-public-gpg-key.asc" > /dev/null 2>&1; then
+  if ! GNUPGHOME="$TMP_DIR/gpg" gpg --import "$TMP_DIR/gpg/dbdot-public-gpg-key.asc" > /dev/null 2>&1; then
     error "Failed to import public key"
     return 1
   fi
@@ -1086,7 +1086,7 @@ verify_package_deb() {
 verify_package_rpm() {
   set +e
   # Capture stderr from rpm --import
-  IMPORT_OUTPUT=$(rpm --import "$TMP_DIR/gpg/bdot-public-gpg-key.asc" 2>&1)
+  IMPORT_OUTPUT=$(rpm --import "$TMP_DIR/gpg/dbdot-public-gpg-key.asc" 2>&1)
   IMPORT_EXIT_CODE=$?
   set -e
 
@@ -1220,7 +1220,7 @@ display_results()
     increase_indent
     info "For more information on configuring the agent, see the docs:"
     increase_indent
-    info "$(fg_cyan "https://github.com/observIQ/bindplane-otel-collector/tree/main#bindplane-agent")$(reset)"
+    info "$(fg_cyan "https://github.com/dynatrace/dbdot-collector/tree/main#bindplane-agent")$(reset)"
     decrease_indent
     info "If you have any other questions please contact us at $(fg_cyan TODO-DBDOT-SUPPORT-EMAIL)$(reset)"
     increase_indent

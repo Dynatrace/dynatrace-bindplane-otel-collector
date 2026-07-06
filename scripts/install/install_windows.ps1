@@ -115,7 +115,7 @@ $ErrorActionPreference = "Stop"
 
 # ---- Constants ---------------------------------------------------------------
 
-$DOWNLOAD_BASE = "https://bdot.bindplane.com"
+$DOWNLOAD_BASE = "https://TODO-DBDOT-DOWNLOAD-HOST"
 $MSI_NAME_AMD64 = "dbdot-collector.msi"
 $MSI_NAME_ARM64 = "dbdot-collector-arm64.msi"
 $PRODUCT_DISPLAY_NAME = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
@@ -173,11 +173,11 @@ function Get-LatestVersion {
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $wc = New-Object System.Net.WebClient
-        $version = $wc.DownloadString("https://bdot.bindplane.com/latest")
+        $version = $wc.DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/latest")
         return $version.Trim()
     }
     catch {
-        Fail "Failed to retrieve latest version from https://bdot.bindplane.com/latest: $_"
+        Fail "Failed to retrieve latest version from https://TODO-DBDOT-DOWNLOAD-HOST/latest: $_"
     }
 }
 

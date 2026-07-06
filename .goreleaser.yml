@@ -355,10 +355,10 @@ release:
     - glob: "./scripts/install/install_windows.ps1"
     - glob: "./release_deps/gpg-keys.tar.gz"
 
-# https://console.cloud.google.com/storage/browser/bdot-release
+# https://console.cloud.google.com/storage/browser/TODO-DBDOT-RELEASE-BUCKET
 blobs:
   - provider: gs
-    bucket: bdot-release
+    bucket: TODO-DBDOT-RELEASE-BUCKET
     directory: "v{{ .Version }}"
     extra_files:
       - glob: "./dbdot-collector*.msi"

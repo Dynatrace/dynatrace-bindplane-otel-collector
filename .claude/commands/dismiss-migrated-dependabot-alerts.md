@@ -12,7 +12,7 @@ PREFIXES=$(sed 's|/$||' migrated-modules.txt | grep -v '^[[:space:]]*$')
 # Note: use --jq inline to avoid jq parse errors from control chars in advisory text
 echo "Fetching open Dependabot alerts..."
 ALERT_LINES=$(gh api --paginate --jq '.[] | "\(.number)\t\(.dependency.manifest_path)\t\(.dependency.package.name)"' \
-  'repos/observIQ/bindplane-otel-collector/dependabot/alerts?state=open&per_page=100')
+  'repos/dynatrace/dbdot-collector/dependabot/alerts?state=open&per_page=100')
 
 # Find alert numbers where manifest_path matches a migrated module prefix
 TO_DISMISS=$(echo "$ALERT_LINES" | \
@@ -37,7 +37,7 @@ echo ""
 
 echo "$TO_DISMISS" | while read -r num manifest pkg; do
   echo "Dismissing alert #$num ($pkg in $manifest)..."
-  gh api --method PATCH "repos/observIQ/bindplane-otel-collector/dependabot/alerts/$num" \
+  gh api --method PATCH "repos/dynatrace/dbdot-collector/dependabot/alerts/$num" \
     -f state=dismissed \
     -f dismissed_reason=not_used \
     -f dismissed_comment="Dismissing: this alert is for a module listed in migrated-modules.txt. Dependencies for migrated modules are managed independently in their own repositories." \

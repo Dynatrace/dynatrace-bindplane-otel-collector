@@ -198,22 +198,22 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.ORG_COSIGN_PWD }}
       - name: Upload Latest Install Scripts
         run: |
-          gsutil cp ./scripts/install/install_unix.sh gs://bdot-release/latest/install_unix.sh
-          gsutil cp ./scripts/install/install_macos.sh gs://bdot-release/latest/install_macos.sh
-          gsutil cp ./scripts/install/install_windows.ps1 gs://bdot-release/latest/install_windows.ps1
-          gsutil cp ./release_deps/gpg-keys.tar.gz gs://bdot-release/latest/gpg-keys.tar.gz
+          gsutil cp ./scripts/install/install_unix.sh gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_unix.sh
+          gsutil cp ./scripts/install/install_macos.sh gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_macos.sh
+          gsutil cp ./scripts/install/install_windows.ps1 gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_windows.ps1
+          gsutil cp ./release_deps/gpg-keys.tar.gz gs://TODO-DBDOT-RELEASE-BUCKET/latest/gpg-keys.tar.gz
       - name: Upload artifact bundle to release
         uses: AButler/upload-release-assets@v2.0
         with:
           repo-token: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
           files: "dbdot-collector-${{ github.ref_name }}-artifacts.tar.gz*"
           release-tag: ${{ github.ref_name }}
-      # Trigger installation tests in otel-collector-installer-testing
+      # Trigger installation tests in TODO-DBDOT-INSTALLER-TESTING-REPO
       - name: Trigger Installation Testing
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
-          repository: observIQ/otel-collector-installer-testing
+          repository: TODO-DBDOT-INSTALLER-TESTING-REPO
           event-type: upstream_prerelease
           client-payload: '{ "version": "${{ github.ref_name }}" }'
 
@@ -231,7 +231,7 @@ jobs:
       - name: Upload Bindplane Linux AMD64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_amd64.deb
@@ -239,7 +239,7 @@ jobs:
       - name: Upload Bindplane Linux AMD64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_amd64.rpm
@@ -247,7 +247,7 @@ jobs:
       - name: Upload Bindplane Linux ARM64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_arm64.deb
@@ -255,7 +255,7 @@ jobs:
       - name: Upload Bindplane Linux ARM64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_arm64.rpm
@@ -263,7 +263,7 @@ jobs:
       - name: Upload Bindplane Linux ARM32 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_arm.deb
@@ -271,7 +271,7 @@ jobs:
       - name: Upload Bindplane Linux ARM32 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_arm.rpm
@@ -279,7 +279,7 @@ jobs:
       - name: Upload Bindplane Linux PPC64LE Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_ppc64le.deb
@@ -287,7 +287,7 @@ jobs:
       - name: Upload Bindplane Linux PPC64LE RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_ppc64le.rpm
@@ -295,7 +295,7 @@ jobs:
       - name: Upload Bindplane Linux PPC64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_ppc64.deb
@@ -303,7 +303,7 @@ jobs:
       - name: Upload Bindplane Linux PPC64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
             --source dist/dbdot-collector_${{ github.ref_name }}_linux_ppc64.rpm
