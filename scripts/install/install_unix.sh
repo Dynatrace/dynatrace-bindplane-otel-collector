@@ -827,7 +827,7 @@ package_type_check()
 # latest_version gets the tag of the latest release, without the v prefix.
 latest_version()
 {
-  curl -s https://TODO-DBDOT-DOWNLOAD-HOST/latest
+  curl -s "$DOWNLOAD_BASE/latest"
 }
 
 # This will install the package by downloading the archived agent,

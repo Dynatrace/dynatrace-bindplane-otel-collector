@@ -21,7 +21,10 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-const defaultProductName = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
+// ProductName is the product name the MSI installer registers on Windows. It must match
+// the "product" field in windows/wix.json byte-for-byte, since it names the registry keys
+// the updater reads and the service entry it manages.
+const ProductName = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 
 // DefaultConfigOverrides is not used on Windows, but is required
 // by InstallDir.
@@ -53,5 +56,5 @@ func installDirFromRegistry(logger *zap.Logger, productName string) (string, err
 
 // InstallDir returns the filepath to the install directory
 func InstallDir(logger *zap.Logger, _ []string) (string, error) {
-	return installDirFromRegistry(logger, defaultProductName)
+	return installDirFromRegistry(logger, ProductName)
 }

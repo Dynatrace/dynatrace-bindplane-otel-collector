@@ -421,7 +421,7 @@ set_os_arch()
 
 # This will set the urls to use when downloading the agent and its plugins.
 # These urls are constructed based on the --version flag or COLLECTOR_VERSION env variable.
-# If not specified, the version defaults to whatever the latest release on TODO-DBDOT-DOWNLOAD-HOST is.
+# If not specified, the version defaults to whatever the latest release on the download host is.
 set_download_urls()
 {
   if [ -z "$url" ] ; then
@@ -473,7 +473,7 @@ set_opamp_secret_key()
 # latest_version gets the tag of the latest release, without the v prefix.
 latest_version()
 {
-  curl -s https://TODO-DBDOT-DOWNLOAD-HOST/latest
+  curl -s "$DOWNLOAD_BASE/latest"
 }
 
 # This will install the package by downloading & unpacking the tarball into the install directory

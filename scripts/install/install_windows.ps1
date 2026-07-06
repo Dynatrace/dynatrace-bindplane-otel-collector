@@ -173,11 +173,11 @@ function Get-LatestVersion {
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $wc = New-Object System.Net.WebClient
-        $version = $wc.DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/latest")
+        $version = $wc.DownloadString("$DOWNLOAD_BASE/latest")
         return $version.Trim()
     }
     catch {
-        Fail "Failed to retrieve latest version from https://TODO-DBDOT-DOWNLOAD-HOST/latest: $_"
+        Fail "Failed to retrieve latest version from $DOWNLOAD_BASE/latest: $_"
     }
 }
 

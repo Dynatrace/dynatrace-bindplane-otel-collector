@@ -33,7 +33,6 @@ import (
 )
 
 const (
-	defaultProductName = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 	defaultServiceName = "dbdot-collector"
 
 	// defaultRecoveryDelay is the duration in which to wait between service restarts due to failures
@@ -57,7 +56,7 @@ func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	winSvc := &windowsService{
 		newServiceFilePath: filepath.Join(path.ServiceFileDir(installDir), "windows_service.json"),
 		serviceName:        defaultServiceName,
-		productName:        defaultProductName,
+		productName:        path.ProductName,
 		installDir:         installDir,
 		logger:             logger.Named("windows-service"),
 	}
