@@ -38,7 +38,7 @@ docker run -d \
     --volume="$(pwd)/credentials.json:/etc/otel/credentials.json" \
     -e "GOOGLE_APPLICATION_CREDENTIALS=/etc/otel/credentials.json" \
     -e "DOCKER_AGENT_HOSTNAME=$(hostname)" \
-    observiq/bindplane-agent:v1.30.0
+    TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest
 ```
 
 Run with Docker Compose
@@ -51,7 +51,7 @@ services:
     # Run as root if using a configuration that requires
     # root privileges.
     #user: root
-    image: observiq/bindplane-agent:v1.30.0
+    image: TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest
     restart: always
     deploy:
       resources:

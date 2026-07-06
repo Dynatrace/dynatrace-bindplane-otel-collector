@@ -4,7 +4,7 @@ This file provides guidance to LLM agents when working with this repository.
 
 ## Repository Overview
 
-The Dynatrace Bindplane Distribution of OpenTelemetry Collector (DBDOT Collector) is Bindplane's distribution of the upstream OpenTelemetry Collector. This is a Go-based project that implements the Open Agent Management Protocol (OpAMP) and supports both standalone and managed modes.
+The Dynatrace Bindplane Distribution of OpenTelemetry Collector (DBDOT Collector) is a distribution of the upstream OpenTelemetry Collector, designed to be managed by Bindplane. This is a Go-based project that implements the Open Agent Management Protocol (OpAMP) and supports both standalone and managed modes.
 
 ## Pull Request Content
 
@@ -83,17 +83,13 @@ The project is structured as an OpenTelemetry Collector distribution with custom
 
 ### Component Organization
 
-Custom components are organized by type:
-- **receiver/** - Custom receivers (AWS S3, M365, Okta, SAP NetWeaver, etc.)
-- **processor/** - Custom processors (metric extraction, sampling, masking, etc.)
-- **exporter/** - Custom exporters (Azure Blob, Chronicle, Google Cloud, Snowflake, etc.)
-- **extension/** - Custom extensions (AWS S3 event, Bindplane extension)
+Custom components (receivers, processors, exporters, extensions) live in the external `github.com/observiq/bindplane-otel-contrib` repository and are pulled in as dependencies via the manifest. There are no in-tree component directories; the directories listed in `migrated-modules.txt` must not be recreated here (CI enforces this).
 
 ### Key Architectural Patterns
 
 1. **Dual Mode Operation**: The collector can run in standalone mode (using local config) or managed mode (via OpAMP)
 2. **Manifest-Driven Assembly**: Components are assembled by ocb from `manifests/dbdot/manifest.yaml`, which generates the factory wiring (`components.go`) in `./build/`; there is no hand-maintained factories package
-3. **Module Structure**: Each component is a separate Go module with its own go.mod
+3. **Module Structure**: Each in-tree module (updater, opampconnectionextension, snapshotprocessor, report) is a separate Go module with its own go.mod
 4. **Interface Abstraction**: Core collector functionality is abstracted behind interfaces for testability
 
 ### Configuration Management
@@ -106,7 +102,7 @@ Custom components are organized by type:
 ### Build System
 
 The project uses a Makefile-based build system with:
-- **`make agent` runs ocb** against `manifests/dbdot/manifest.yaml`, overlays `internal/extension/opampconnectionextension/cmd/main/main.go`, and compiles. Build flag: `-tags bindplane` (enables Bindplane registry wiring in `topologyprocessor` and `throughputmeasurementprocessor`).
+- **`make agent` runs ocb** against `manifests/dbdot/manifest.yaml`, overlays `internal/extension/opampconnectionextension/cmd/main/main.go`, and compiles. Build tags: `bindplane embed_library` (see `AGENT_BUILD_TAGS` in the Makefile; `bindplane` enables Bindplane registry wiring in `topologyprocessor` and `throughputmeasurementprocessor`).
 - `make verify-manifest` is the CI gate for manifest correctness — regenerate sources + compile to `/dev/null`.
 - There's no top-level `go.mod`. ocb generates a per-build `go.mod` inside `./build/`.
 - Multi-platform cross-compilation support

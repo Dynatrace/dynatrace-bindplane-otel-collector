@@ -27,9 +27,6 @@ set -e
 : "${DBDOT_USER:=dbdot}"
 : "${DBDOT_GROUP:=dbdot}"
 
-# The collectors installation directory
-: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
-
 # Install creates the user and group for the collector
 # service. This function is idempotent and safe to call
 # multiple times.
@@ -67,15 +64,4 @@ install_user() {
     fi
 }
 
-# Collector version v1.86.1 or older did not perform cleanup
-# on uninstall, leaving this file behind.
-cleanup_package_statuses() {
-    package_statuses_file="${DBDOT_CONFIG_HOME}/package_statuses.json"
-    if [ -f "$package_statuses_file" ]; then
-        echo "Cleaning up previous package statuses file: $package_statuses_file"
-        rm -f "$package_statuses_file"
-    fi
-}
-
-cleanup_package_statuses
 install

@@ -42,7 +42,6 @@ fi
 # Script Constants
 COLLECTOR_USER="${DBDOT_USER}"
 COLLECTOR_GROUP="${DBDOT_GROUP}"
-COLLECTOR_USER_LEGACY="dbdot-collector"
 TMP_DIR=${TMPDIR:-"/tmp"} # Allow this to be overriden by cannonical TMPDIR env var
 MANAGEMENT_YML_PATH="${DBDOT_CONFIG_HOME}/manager.yaml"
 PREREQS="curl printf $SVC_PRE sed uname cut"
@@ -801,23 +800,13 @@ user_check()
     return 0
   fi
 
-  info "DBDOT_SKIP_RUNTIME_USER_CREATION is set to true, checking for existing collector users..."
-
-  user_exists=false
+  info "DBDOT_SKIP_RUNTIME_USER_CREATION is set to true, checking for existing collector user..."
 
   if id "$COLLECTOR_USER" >/dev/null 2>&1; then
-    user_exists=true
     info "Found collector user: $COLLECTOR_USER"
-  fi
-
-  if id "$COLLECTOR_USER_LEGACY" >/dev/null 2>&1; then
-    user_exists=true
-    info "Found legacy collector user: $COLLECTOR_USER_LEGACY"
-  fi
-
-  if [ "$user_exists" = "false" ]; then
+  else
     failed
-    error_exit "$LINENO" "DBDOT_SKIP_RUNTIME_USER_CREATION is set to true, but neither collector user ($COLLECTOR_USER) nor legacy collector user ($COLLECTOR_USER_LEGACY) exists on the system."
+    error_exit "$LINENO" "DBDOT_SKIP_RUNTIME_USER_CREATION is set to true, but collector user ($COLLECTOR_USER) does not exist on the system."
   fi
 
   succeeded
@@ -1220,7 +1209,7 @@ display_results()
     increase_indent
     info "For more information on configuring the agent, see the docs:"
     increase_indent
-    info "$(fg_cyan "https://github.com/dynatrace/dbdot-collector/tree/main#bindplane-agent")$(reset)"
+    info "$(fg_cyan "https://github.com/dynatrace/dbdot-collector/tree/main")$(reset)"
     decrease_indent
     info "If you have any other questions please contact us at $(fg_cyan TODO-DBDOT-SUPPORT-EMAIL)$(reset)"
     increase_indent

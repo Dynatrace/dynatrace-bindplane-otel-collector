@@ -25,9 +25,6 @@ parameters:
       # Excludes logs for the collector
       - "/var/log/containers/dbdot-collector-*"
       - "/var/log/containers/dbdot-*-collector-*"
-      # Excludes logs for legacy observIQ/Bindplane collectors that may run alongside DBDOT
-      - "/var/log/containers/observiq-*-collector-*"
-      - "/var/log/containers/bindplane-*-agent-*"
   - name: body_json_parsing
     type: bool
     description: If the application log is detected as json, parse the values into the log entry's body.

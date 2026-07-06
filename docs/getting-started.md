@@ -46,7 +46,7 @@ In this example, the key is placed at `/opt/dbdot-collector/sa.json` and its per
 
 ```shell
 sudo cp sa.json /opt/dbdot-collector/sa.json
-sudo chown dbdot-collector: /opt/dbdot-collector/sa.json
+sudo chown dbdot: /opt/dbdot-collector/sa.json
 sudo chmod 0400 /opt/dbdot-collector/sa.json
 ```
  

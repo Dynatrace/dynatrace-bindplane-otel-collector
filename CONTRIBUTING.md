@@ -1,23 +1,23 @@
-# Contributing to bindplane-agent
+# Contributing to dbdot-collector
 
 ## Pull Requests
 
 ### How to Submit Pull Requests
 
-Everyone is welcome to contribute code to `bindplane-agent` via GitHub pull requests (PRs).
+Everyone is welcome to contribute code to `dbdot-collector` via GitHub pull requests (PRs).
 
 To create a new PR, fork the project in GitHub and clone the upstream repo:
 
 ```sh
-$ git clone https://github.com/observIQ/bindplane-agent
+$ git clone https://github.com/dynatrace/dbdot-collector
 ```
 
-This would put the project in the `bindplane-agent` directory in current working directory.
+This would put the project in the `dbdot-collector` directory in current working directory.
 
 Enter the newly created directory and add your fork as a new remote:
 
 ```sh
-$ git remote add <YOUR_FORK> git@github.com:<YOUR_GITHUB_USERNAME>/bindplane-agent
+$ git remote add <YOUR_FORK> git@github.com:<YOUR_GITHUB_USERNAME>/dbdot-collector
 ```
 
 Check out a new branch, make modifications, run linters and tests, and push the branch to your fork:
@@ -31,7 +31,7 @@ $ git commit
 $ git push --set-upstream <YOUR_FORK> <YOUR_BRANCH_NAME>
 ```
 
-Open a pull request from your fork and feature branch to the main branch of the `bindplane-agent` repo.
+Open a pull request from your fork and feature branch to the main branch of the `dbdot-collector` repo.
 
 **Note**: If the PR is not ready for review, mark it as [`draft`](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
 

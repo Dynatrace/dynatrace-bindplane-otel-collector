@@ -33,9 +33,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-amd64:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-amd64:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-amd64:{{ .Version }}-minimal"
+      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -60,9 +60,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-arm64:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-arm64:{{ .Version }}-minimal"
+      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -87,9 +87,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-ppc64le:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-ppc64le:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-ppc64le:{{ .Version }}-minimal"
+      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -122,12 +122,6 @@ dockers:
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:latest"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:{{ .Version }}"
       # Bindplane Agent Containers
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-amd64:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-amd64:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-amd64:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-amd64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-amd64:latest"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-amd64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.ubuntu
     use: buildx
     build_flag_templates:
@@ -159,12 +153,6 @@ dockers:
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:latest"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}"
       # Bindplane Agent Containers
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-arm64:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-arm64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-arm64:latest"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-arm64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.ubuntu
     use: buildx
     build_flag_templates:
@@ -196,12 +184,6 @@ dockers:
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:latest"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}"
       # Bindplane Agent Containers
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-ppc64le:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-ppc64le:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-ppc64le:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-ppc64le:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-ppc64le:latest"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-ppc64le:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.ubuntu
     use: buildx
     build_flag_templates:
@@ -231,9 +213,6 @@ dockers:
       - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}-jmx"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:{{ .Version }}-jmx"
       # Bindplane Agent Containers
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-amd64:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-amd64:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-amd64:{{ .Version }}-jmx"
     dockerfile: ./docker/Dockerfile.jmx
     use: buildx
     build_flag_templates:
@@ -263,9 +242,6 @@ dockers:
       - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}-jmx"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}-jmx"
       # Bindplane Agent Containers
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-arm64:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-arm64:{{ .Version }}-jmx"
     dockerfile: ./docker/Dockerfile.jmx
     use: buildx
     build_flag_templates:
@@ -295,9 +271,6 @@ dockers:
       - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}-jmx"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}-jmx"
       # Bindplane Agent Containers
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-ppc64le:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-ppc64le:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-ppc64le:{{ .Version }}-jmx"
     dockerfile: ./docker/Dockerfile.jmx
     use: buildx
     build_flag_templates:
@@ -315,23 +288,23 @@ dockers:
       - release_deps/opentelemetry-java-contrib-jmx-metrics.jar
 
 docker_manifests:
-  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent:{{ .Version }}-minimal"
+  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:{{ .Version }}-minimal"
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-amd64:{{ .Version }}-minimal"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:{{ .Version }}-minimal"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-ppc64le:{{ .Version }}-minimal"
+      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:{{ .Version }}-minimal"
     skip_push: false
-  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent:{{ .Version }}-minimal"
+  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector:{{ .Version }}-minimal"
     image_templates:
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-amd64:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-arm64:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-ppc64le:{{ .Version }}-minimal"
+      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}-minimal"
     skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent:{{ .Version }}-minimal"
+  - name_template: "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector:{{ .Version }}-minimal"
     image_templates:
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-amd64:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-arm64:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-ppc64le:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}-minimal"
     skip_push: false
   - name_template: "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest"
     image_templates:
@@ -370,43 +343,6 @@ docker_manifests:
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}"
     skip_push: false
   # Bindplane Agent Manifests
-  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent:latest"
-    image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-amd64:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-ppc64le:latest"
-    skip_push: false
-  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent:{{ .Version }}"
-    image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-amd64:{{ .Version }}"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:{{ .Version }}"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-ppc64le:{{ .Version }}"
-    skip_push: false
-  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent:latest"
-    image_templates:
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-amd64:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-arm64:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-ppc64le:latest"
-    skip_push: false
-  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent:{{ .Version }}"
-    image_templates:
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-amd64:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-arm64:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-ppc64le:{{ .Version }}"
-    skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent:latest"
-    image_templates:
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-amd64:latest"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-arm64:latest"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-ppc64le:latest"
-    skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent:{{ .Version }}"
-    image_templates:
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-amd64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-arm64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-ppc64le:{{ .Version }}"
-    skip_push: false
-  # JMX Manifests
   - name_template: "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:{{ .Version }}-jmx"
     image_templates:
       - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}-jmx"
@@ -425,42 +361,6 @@ docker_manifests:
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}-jmx"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}-jmx"
     skip_push: false
-  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent:{{ .Version }}-jmx"
-    image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-amd64:{{ .Version }}-jmx"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-arm64:{{ .Version }}-jmx"
-      - "TODO-DBDOT-DOCKERHUB-ORG/bindplane-agent-ppc64le:{{ .Version }}-jmx"
-    skip_push: false
-  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent:{{ .Version }}-jmx"
-    image_templates:
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-amd64:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-arm64:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/bindplane-agent-ppc64le:{{ .Version }}-jmx"
-    skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent:{{ .Version }}-jmx"
-    image_templates:
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-amd64:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-arm64:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/agent/bindplane-agent-ppc64le:{{ .Version }}-jmx"
-    skip_push: false
-
-# TODO(dakota): commented out because it is causing release to fail with goreleaser v2... not sure why though
-# https://goreleaser.com/customization/docker_sign/
-# Uses Cosign by default, signs images and manifests.
-# docker_signs:
-#   - artifacts: all
-#     stdin: "{{ .Env.COSIGN_PWD }}"
-#     args: [
-#       # Default options
-#       "sign",
-#       "--key=cosign.key",
-#       "${artifact}",
-#       "--yes",
-#       # Additional options
-#       "--recursive"
-#     ]
-#     output: true
-
 changelog:
   # Set this to true if you don't want any changelog at all.
   #
