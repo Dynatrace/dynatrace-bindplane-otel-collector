@@ -23,6 +23,9 @@ parameters:
     description: A list of file glob patterns to exclude from reading
     default:
       # Excludes logs for the collector
+      - "/var/log/containers/dbdot-collector-*"
+      - "/var/log/containers/dbdot-*-collector-*"
+      # Excludes logs for legacy observIQ/Bindplane collectors that may run alongside DBDOT
       - "/var/log/containers/observiq-*-collector-*"
       - "/var/log/containers/bindplane-*-agent-*"
   - name: body_json_parsing
