@@ -73,6 +73,14 @@ if is_uninstall "$1"; then
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/updater"
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/dbdot-collector"
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/install"
+
+    # Remove the service definitions written by postinstall.sh.
+    remove_file_or_dir "/usr/lib/systemd/system/dbdot-collector.service"
+    remove_file_or_dir "/etc/systemd/system/dbdot-collector.service.d"
+    remove_file_or_dir "/etc/init.d/dbdot-collector"
+    if command -v systemctl > /dev/null 2>&1; then
+        systemctl daemon-reload || true
+    fi
 else
     echo "Upgrade detected, skipping cleanup"
 fi
