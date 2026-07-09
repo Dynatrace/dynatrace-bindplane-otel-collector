@@ -4,7 +4,7 @@ This describes the BDOT Collector build as it stands today. The OTel Collector B
 
 ## What ocb owns
 
-1. Reads `manifests/observIQ/manifest.yaml` (or one of the v2 variants).
+1. Reads `manifests/dbdot/manifest.yaml` (or one of the v2 variants).
 2. Generates `./build/components.go` and `./build/go.mod` (v1) or `./builder/...` (v2).
 3. For v1: a Make step copies `internal/extension/opampconnectionextension/cmd/main/main.go` over ocb's generated `main.go`, runs `go mod tidy`, then `go build`.
 4. For v2: ocb's generated `main.go` is used as-is; ocb runs `go build` itself.

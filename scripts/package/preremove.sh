@@ -16,7 +16,7 @@
 
 set -e
 
-service_name="observiq-otel-collector"
+service_name="dbdot-collector"
 
 # Check if this is an uninstall or an upgrade
 # RPM: $1 is the number of packages remaining that provide this package

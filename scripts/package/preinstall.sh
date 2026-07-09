@@ -18,8 +18,8 @@ set -e
 # Read's optional package overrides. Users should deploy the override
 # file before installing BDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/observiq-otel-collector ] && . /etc/default/observiq-otel-collector
-[ -f /etc/sysconfig/observiq-otel-collector ] && . /etc/sysconfig/observiq-otel-collector
+[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
+[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 : "${BDOT_SKIP_RUNTIME_USER_CREATION:=false}"
 
@@ -28,10 +28,10 @@ set -e
 : "${BDOT_GROUP:=bdot}"
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/observiq-otel-collector}"
+: "${BDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
-legacy_username="observiq-otel-collector"
-service_name="observiq-otel-collector"
+legacy_username="dbdot-collector"
+service_name="dbdot-collector"
 
 # Install creates the user and group for the collector
 # service. This function is idempotent and safe to call

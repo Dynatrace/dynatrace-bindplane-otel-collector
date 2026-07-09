@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.observiq.collector</string>
+    <string>com.dynatrace.dbdot.collector</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>OIQ_OTEL_COLLECTOR_HOME</key>
@@ -15,7 +15,7 @@
     </dict>
     <key>ProgramArguments</key>
     <array>
-        <string>[INSTALLDIR]observiq-otel-collector</string>
+        <string>[INSTALLDIR]dbdot-collector</string>
         <string>--config</string>
         <string>[INSTALLDIR]config.yaml</string>
         <string>--logging</string>
@@ -32,6 +32,6 @@
     <key>ExitTimeOut</key>
     <integer>20</integer>
     <key>StandardErrorPath</key>
-    <string>/var/log/observiq_collector.err</string>
+    <string>/var/log/dbdot_collector.err</string>
 </dict>
 </plist>

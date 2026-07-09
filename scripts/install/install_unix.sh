@@ -18,18 +18,18 @@ set -e
 # Reads optional package overrides. Users should deploy the override
 # file before installing BDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/observiq-otel-collector ] && . /etc/default/observiq-otel-collector
-[ -f /etc/sysconfig/observiq-otel-collector ] && . /etc/sysconfig/observiq-otel-collector
+[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
+[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/observiq-otel-collector}"
+: "${BDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
 # Allow configurable runtime user/group (used for permissions and manager.yaml)
 : "${BDOT_USER:=bdot}"
 : "${BDOT_GROUP:=bdot}"
 
 # Agent Constants
-PACKAGE_NAME="observiq-otel-collector"
+PACKAGE_NAME="dbdot-collector"
 DOWNLOAD_BASE="https://bdot.bindplane.com"
 
 # Determine if we need service or systemctl for prereqs
@@ -42,7 +42,7 @@ fi
 # Script Constants
 COLLECTOR_USER="${BDOT_USER}"
 COLLECTOR_GROUP="${BDOT_GROUP}"
-COLLECTOR_USER_LEGACY="observiq-otel-collector"
+COLLECTOR_USER_LEGACY="dbdot-collector"
 TMP_DIR=${TMPDIR:-"/tmp"} # Allow this to be overriden by cannonical TMPDIR env var
 MANAGEMENT_YML_PATH="${BDOT_CONFIG_HOME}/manager.yaml"
 PREREQS="curl printf $SVC_PRE sed uname cut"
@@ -53,7 +53,7 @@ non_interactive=false
 error_mode=false
 skip_gpg_check=false
 
-# package_out_file_path is the full path to the downloaded package (e.g. "/tmp/observiq-otel-collector_linux_amd64.deb")
+# package_out_file_path is the full path to the downloaded package (e.g. "/tmp/dbdot-collector_linux_amd64.deb")
 package_out_file_path="unknown"
 
 # gpg_tar_out_file_path is the full path to the downloaded GPG tar.gz file (e.g. "/tmp/bdot-gpg-keys.tar.gz")
@@ -220,7 +220,7 @@ Usage:
   $(fg_yellow '-l, --url')
       Defines the URL that the components will be downloaded from.
       If not provided, this will default to Bindplane Agent\'s GitHub releases.
-      Example: '-l http://my.domain.org/observiq-otel-collector' will download from there.
+      Example: '-l http://my.domain.org/dbdot-collector' will download from there.
 
   $(fg_yellow '-gl, --gpg-tar-url')
       Defines the URL that the GPG tar file will be downloaded from.
@@ -233,11 +233,11 @@ Usage:
       and
       '{base_url}/v{version}/gpg-keys.tar.gz'
       If not provided, this will default to '$DOWNLOAD_BASE'.
-      Example: '-b http://my.domain.org/observiq-otel-collector/binaries' will be used as the base of the download URL.
+      Example: '-b http://my.domain.org/dbdot-collector/binaries' will be used as the base of the download URL.
 
   $(fg_yellow '-f, --file')
       Install Agent from a local file instead of downloading from a URL.
-      Example: '-f /path/to/observiq-otel-collector_v1.2.12_linux_amd64.deb' will install from the local file.
+      Example: '-f /path/to/dbdot-collector_v1.2.12_linux_amd64.deb' will install from the local file.
       Required if '--gpg-tar-file' is specified.
 
   $(fg_yellow '-gf, --gpg-tar-file')
@@ -880,7 +880,7 @@ install_package()
   # if target install directory doesn't exist and we're using dpkg ensure a clean state 
   # by checking for the package and running purge if it exists.
   if [ ! -d "${BDOT_CONFIG_HOME}" ] && [ "$package_type" = "deb" ]; then
-    dpkg -s "observiq-otel-collector" > /dev/null 2>&1 && dpkg --purge "observiq-otel-collector" > /dev/null 2>&1
+    dpkg -s "dbdot-collector" > /dev/null 2>&1 && dpkg --purge "dbdot-collector" > /dev/null 2>&1
   fi
 
   # Verify the package signature, with optional user override on failure
@@ -950,31 +950,31 @@ install_package()
   fi
 
   if [ "$SVC_PRE" = "systemctl" ]; then
-    if [ "$(systemctl is-enabled observiq-otel-collector)" = "enabled" ]; then
+    if [ "$(systemctl is-enabled dbdot-collector)" = "enabled" ]; then
       # The unit is already enabled; It may be running, too, if this was an upgrade.
       # We'll want to restart, which will start it if it wasn't running already,
       # and restart in the case that this was an upgrade on a running agent.
       info "Restarting service..."
-      systemctl restart observiq-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
+      systemctl restart dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
       succeeded
     else
       info "Enabling service..."
-      systemctl enable --now observiq-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
+      systemctl enable --now dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
       succeeded
     fi
   else
-    case "$(service observiq-otel-collector status)" in
+    case "$(service dbdot-collector status)" in
       *running*)
         # The service is running.
         # We'll want to restart.
         info "Restarting service..."
-        service observiq-otel-collector restart > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
+        service dbdot-collector restart > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
         succeeded
         ;;
       *)
         info "Enabling and starting service..."
-        chkconfig observiq-otel-collector on > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
-        service observiq-otel-collector start > /dev/null 2>&1 || error_exit "$LINENO" "Failed to start service"
+        chkconfig dbdot-collector on > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
+        service dbdot-collector start > /dev/null 2>&1 || error_exit "$LINENO" "Failed to start service"
         succeeded
         ;;
     esac
@@ -1204,13 +1204,13 @@ display_results()
     info "Agent Home:         $(fg_cyan "${BDOT_CONFIG_HOME}")$(reset)"
     info "Agent Config:       $(fg_cyan "${BDOT_CONFIG_HOME}/config.yaml")$(reset)"
     if [ "$SVC_PRE" = "systemctl" ]; then
-      info "Start Command:      $(fg_cyan "sudo systemctl start observiq-otel-collector")$(reset)"
-      info "Stop Command:       $(fg_cyan "sudo systemctl stop observiq-otel-collector")$(reset)"
-      info "Status Command:     $(fg_cyan "sudo systemctl status observiq-otel-collector")$(reset)"
+      info "Start Command:      $(fg_cyan "sudo systemctl start dbdot-collector")$(reset)"
+      info "Stop Command:       $(fg_cyan "sudo systemctl stop dbdot-collector")$(reset)"
+      info "Status Command:     $(fg_cyan "sudo systemctl status dbdot-collector")$(reset)"
     else
-      info "Start Command:      $(fg_cyan "sudo service observiq-otel-collector start")$(reset)"
-      info "Stop Command:       $(fg_cyan "sudo service observiq-otel-collector stop")$(reset)"
-      info "Status Command:     $(fg_cyan "sudo service observiq-otel-collector status")$(reset)"
+      info "Start Command:      $(fg_cyan "sudo service dbdot-collector start")$(reset)"
+      info "Stop Command:       $(fg_cyan "sudo service dbdot-collector stop")$(reset)"
+      info "Status Command:     $(fg_cyan "sudo service dbdot-collector status")$(reset)"
     fi
     info "Logs Command:       $(fg_cyan "sudo tail -F ${BDOT_CONFIG_HOME}/log/collector.log")$(reset)"
     info "Uninstall Command:  $(fg_cyan "sudo sh -c \"\$(curl -fsSlL ${DOWNLOAD_BASE}/v${version}/install_unix.sh)\" install_unix.sh -r")$(reset)"
@@ -1235,10 +1235,10 @@ uninstall_package()
 {
   case "$package_type" in
     deb)
-      dpkg -r "observiq-otel-collector" > /dev/null 2>&1
+      dpkg -r "dbdot-collector" > /dev/null 2>&1
       ;;
     rpm)
-      rpm -e "observiq-otel-collector" > /dev/null 2>&1
+      rpm -e "dbdot-collector" > /dev/null 2>&1
       ;;
     *)
       error "Unrecognized package type"
@@ -1260,20 +1260,20 @@ uninstall()
 
   if [ "$SVC_PRE" = "systemctl" ]; then
     info "Stopping service..."
-    systemctl stop observiq-otel-collector > /dev/null || error_exit "$LINENO" "Failed to stop service"
+    systemctl stop dbdot-collector > /dev/null || error_exit "$LINENO" "Failed to stop service"
     succeeded
 
     info "Disabling service..."
-    systemctl disable observiq-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to disable service"
+    systemctl disable dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to disable service"
     succeeded
   else
     info "Stopping service..."
-    service observiq-otel-collector stop
+    service dbdot-collector stop
     succeeded
 
     info "Disabling service..."
-    chkconfig observiq-otel-collector on
-    # rm -f /etc/init.d/observiq-otel-collector
+    chkconfig dbdot-collector on
+    # rm -f /etc/init.d/dbdot-collector
     succeeded
   fi
 

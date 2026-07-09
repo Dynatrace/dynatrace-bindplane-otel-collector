@@ -44,11 +44,11 @@ ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
 ENV OIQ_OTEL_COLLECTOR_STORAGE=/etc/otel/storage
 
 RUN mkdir /licenses
-COPY LICENSE /licenses/observiq-otel-collector.license
+COPY LICENSE /licenses/dbdot-collector.license
 
 COPY release_deps/VERSION.txt /etc/otel/VERSION.txt
 
-COPY observiq-otel-collector /collector/observiq-otel-collector
+COPY dbdot-collector /collector/dbdot-collector
 COPY release_deps/plugins /etc/otel/plugins
 
 COPY config/logging.stdout.yaml /etc/otel/logging.yaml
@@ -70,4 +70,4 @@ WORKDIR /etc/otel
 
 # User should mount /etc/otel/config.yaml at runtime using docker volumes / k8s configmap unless
 # connecting to an OpAMP platform.
-ENTRYPOINT [ "/collector/observiq-otel-collector" ]
+ENTRYPOINT [ "/collector/dbdot-collector" ]

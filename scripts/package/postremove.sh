@@ -19,11 +19,11 @@ set -e
 # Read's optional package overrides. Users should deploy the override
 # file before installing BDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/observiq-otel-collector ] && . /etc/default/observiq-otel-collector
-[ -f /etc/sysconfig/observiq-otel-collector ] && . /etc/sysconfig/observiq-otel-collector
+[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
+[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/observiq-otel-collector}"
+: "${BDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
 # Check if this is an uninstall or an upgrade
 # RPM: $1 is the number of packages remaining that provide this package
@@ -71,7 +71,7 @@ if is_uninstall "$1"; then
     remove_file_or_dir "${BDOT_CONFIG_HOME}/log"
     remove_file_or_dir "${BDOT_CONFIG_HOME}/VERSION.txt"
     remove_file_or_dir "${BDOT_CONFIG_HOME}/updater"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/observiq-otel-collector"
+    remove_file_or_dir "${BDOT_CONFIG_HOME}/dbdot-collector"
     remove_file_or_dir "${BDOT_CONFIG_HOME}/install"
 else
     echo "Upgrade detected, skipping cleanup"

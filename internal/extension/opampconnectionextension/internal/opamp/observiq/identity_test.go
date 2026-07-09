@@ -64,7 +64,7 @@ func Test_newIdentity(t *testing.T) {
 	require.NotEmpty(t, got.mac)
 
 	// Check hardcoded/fields from runtime and other packages
-	require.Equal(t, got.serviceName, "com.observiq.collector")
+	require.Equal(t, got.serviceName, "com.dynatrace.dbdot.collector")
 	require.Equal(t, got.version, expectedVersion)
 	require.Equal(t, got.oSArch, runtime.GOARCH)
 	require.Equal(t, got.oSFamily, runtime.GOOS)
@@ -83,7 +83,7 @@ func TestToAgentDescription(t *testing.T) {
 			ident: &identity{
 				agentID:     testAgentID,
 				agentName:   nil,
-				serviceName: "com.observiq.collector",
+				serviceName: "com.dynatrace.dbdot.collector",
 				version:     "v1.2.3",
 				labels:      nil,
 				oSArch:      "amd64",
@@ -95,7 +95,7 @@ func TestToAgentDescription(t *testing.T) {
 			expected: &protobufs.AgentDescription{
 				IdentifyingAttributes: []*protobufs.KeyValue{
 					opamp.StringKeyValue("service.instance.id", testAgentID.String()),
-					opamp.StringKeyValue("service.name", "com.observiq.collector"),
+					opamp.StringKeyValue("service.name", "com.dynatrace.dbdot.collector"),
 					opamp.StringKeyValue("service.version", "v1.2.3"),
 					opamp.StringKeyValue("service.instance.name", "my-linux-box"),
 				},
@@ -114,7 +114,7 @@ func TestToAgentDescription(t *testing.T) {
 			ident: &identity{
 				agentID:     testAgentID,
 				agentName:   &agentNameContents,
-				serviceName: "com.observiq.collector",
+				serviceName: "com.dynatrace.dbdot.collector",
 				version:     "v1.2.3",
 				labels:      &labelsContents,
 				oSArch:      "amd64",
@@ -126,7 +126,7 @@ func TestToAgentDescription(t *testing.T) {
 			expected: &protobufs.AgentDescription{
 				IdentifyingAttributes: []*protobufs.KeyValue{
 					opamp.StringKeyValue("service.instance.id", testAgentID.String()),
-					opamp.StringKeyValue("service.name", "com.observiq.collector"),
+					opamp.StringKeyValue("service.name", "com.dynatrace.dbdot.collector"),
 					opamp.StringKeyValue("service.version", "v1.2.3"),
 					opamp.StringKeyValue("service.instance.name", agentNameContents),
 				},
@@ -158,7 +158,7 @@ func Test_identityCopy(t *testing.T) {
 	ident := &identity{
 		agentID:     testAgentID,
 		agentName:   &agentNameContents,
-		serviceName: "com.observiq.collector",
+		serviceName: "com.dynatrace.dbdot.collector",
 		version:     "v1.2.3",
 		labels:      &labelsContents,
 		oSArch:      "amd64",

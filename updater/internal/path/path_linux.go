@@ -26,20 +26,20 @@ import (
 )
 
 // DefaultLinuxInstallDir is the install directory of the collector on linux.
-const DefaultLinuxInstallDir = "/opt/observiq-otel-collector"
+const DefaultLinuxInstallDir = "/opt/dbdot-collector"
 
 // SystemdFilePath is the path for systemd service
-const SystemdFilePath = "/usr/lib/systemd/system/observiq-otel-collector.service"
+const SystemdFilePath = "/usr/lib/systemd/system/dbdot-collector.service"
 
 // SysVFilePath is the path for sysv service
-const SysVFilePath = "/etc/init.d/observiq-otel-collector"
+const SysVFilePath = "/etc/init.d/dbdot-collector"
 
 // DefaultConfigOverrides is a list of config files that can be used to override
 // package installation behavior. The updater needs to respect these config
 // options, such as BDOT_CONFIG_HOME
 var DefaultConfigOverrides = []string{
-	"/etc/default/observiq-otel-collector",
-	"/etc/sysconfig/observiq-otel-collector",
+	"/etc/default/dbdot-collector",
+	"/etc/sysconfig/dbdot-collector",
 }
 
 const (

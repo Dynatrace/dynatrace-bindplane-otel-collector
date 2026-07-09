@@ -183,7 +183,7 @@ func checkIsService() (bool, error) {
 	return isWindowsService, nil
 }
 
-// redirectStderr redirects stderr so that panic information is output to $INSTALL_DIR/log/observiq_collector.err,
+// redirectStderr redirects stderr so that panic information is output to $INSTALL_DIR/log/dbdot_collector.err,
 // instead of it being dropped by Windows services.
 // Most output should go through the zap logger instead of to stderr.
 func redirectStderr() error {
@@ -192,7 +192,7 @@ func redirectStderr() error {
 		return errors.New("OIQ_OTEL_COLLECTOR_HOME environment variable not set")
 	}
 
-	path := filepath.Join(homeDir, "log", "observiq_collector.err")
+	path := filepath.Join(homeDir, "log", "dbdot_collector.err")
 	f, err := os.OpenFile(filepath.Clean(path), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0660)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)

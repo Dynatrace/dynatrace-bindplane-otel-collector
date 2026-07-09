@@ -43,7 +43,7 @@ The script accepts the following parameters:
 
 ### Manual Installation
 
-For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://bdot.bindplane.com/v<version>/observiq-otel-collector.msi` (or `observiq-otel-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
+For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://bdot.bindplane.com/v<version>/dbdot-collector.msi` (or `dbdot-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
 
 ### Signature Verification
 
@@ -64,7 +64,7 @@ To read more about the generated connection configuration file see [OpAMP docs](
 
 ## Configuring the Agent
 
-After installing, the `observiq-otel-collector` service will be running and ready for configuration!
+After installing, the `dbdot-collector` service will be running and ready for configuration!
 
 The agent logs to `C:\Program Files\observIQ OpenTelemetry Collector\log\collector.log` by default.
 
@@ -76,7 +76,7 @@ For more information on configuring the agent, see the [OpenTelemetry docs](http
 
 Logs from the agent will appear in `<install_dir>/log` (`C:\Program Files\observIQ OpenTelemetry Collector\log` by default).
 
-Stderr for the agent process can be found at `<install_dir>/log/observiq_collector.err` (`C:\Program Files\observIQ OpenTelemetry Collector\log\observiq_collector.err` by default).
+Stderr for the agent process can be found at `<install_dir>/log/dbdot_collector.err` (`C:\Program Files\observIQ OpenTelemetry Collector\log\dbdot_collector.err` by default).
 
 ## Restarting the Agent
 Restarting the agent may be done through the services dialog.
@@ -90,7 +90,7 @@ Locate the "observIQ Distro for OpenTelemetry Collector" service, right click th
 
 Alternatively, the PowerShell command below may be run to restart the agent service.
 ```pwsh
-Restart-Service -Name "observiq-otel-collector"
+Restart-Service -Name "dbdot-collector"
 ```
 
 ## Stopping the Agent
@@ -106,7 +106,7 @@ Locate the "observIQ Distro for OpenTelemetry Collector" service, right click th
 
 Alternatively, the PowerShell command below may be run to stop the agent service.
 ```pwsh
-Stop-Service -Name "observiq-otel-collector"
+Stop-Service -Name "dbdot-collector"
 ```
 
 ## Starting the Agent
@@ -122,7 +122,7 @@ Locate the "observIQ Distro for OpenTelemetry Collector" service, right click th
 
 Alternatively, the PowerShell command below may be run to start the agent service.
 ```pwsh
-Start-Service -Name "observiq-otel-collector"
+Start-Service -Name "dbdot-collector"
 ```
 
 ## Uninstalling

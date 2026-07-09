@@ -404,7 +404,7 @@ func TestClientConnect(t *testing.T) {
 
 				expectedHeaders := http.Header{
 					"Authorization":               []string{fmt.Sprintf("Secret-Key %s", c.currentConfig.GetSecretKey())},
-					"User-Agent":                  []string{fmt.Sprintf("observiq-otel-collector/%s", version.Version())},
+					"User-Agent":                  []string{fmt.Sprintf("dbdot-collector/%s", version.Version())},
 					"Opamp-Version":               []string{opamp.Version()},
 					"Agent-Id":                    []string{c.ident.agentID.String()},
 					"Agent-Version":               []string{version.Version()},

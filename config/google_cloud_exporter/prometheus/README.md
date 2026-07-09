@@ -54,9 +54,9 @@ receivers:
 
 ### Deploy
 
-1. Copy [config.yaml](./config.yaml) to `/opt/observiq-otel-collector/config.yaml`
+1. Copy [config.yaml](./config.yaml) to `/opt/dbdot-collector/config.yaml`
 2. Modify the configuration to reflect your environment (See [Usage](./README.md#usage))
-3. Restart the agent: `sudo systemctl restart observiq-otel-collector`
+3. Restart the agent: `sudo systemctl restart dbdot-collector`
 
 You can search for metrics under the "Generic Node" section
 with the prefix `workload.googleapis.com`.

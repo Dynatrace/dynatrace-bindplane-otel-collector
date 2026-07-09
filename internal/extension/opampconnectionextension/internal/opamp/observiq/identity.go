@@ -54,7 +54,7 @@ func newIdentity(logger *zap.Logger, config opamp.Config, version string) *ident
 	return &identity{
 		agentID:     config.AgentID,
 		agentName:   config.AgentName,
-		serviceName: "com.observiq.collector", // Hardcoded defines this type of agent to the server
+		serviceName: "com.dynatrace.dbdot.collector", // Hardcoded defines this type of agent to the server
 		version:     version,
 		labels:      config.Labels,
 		oSArch:      runtime.GOARCH,

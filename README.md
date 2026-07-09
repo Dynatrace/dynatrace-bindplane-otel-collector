@@ -125,9 +125,9 @@ With the BDOT Collector installed, it will start collecting basic metrics about 
 
 | OS      | Default Location                                                |
 | :------ | :-------------------------------------------------------------- |
-| Linux   | `/opt/observiq-otel-collector/config.yaml`                      |
+| Linux   | `/opt/dbdot-collector/config.yaml`                      |
 | Windows | `C:\Program Files\observIQ OpenTelemetry Collector\config.yaml` |
-| macOS   | `/opt/observiq-otel-collector/config.yaml`                      |
+| macOS   | `/opt/dbdot-collector/config.yaml`                      |
 
 For more information on configuration see the [Configuration section](#configuration).
 
@@ -212,7 +212,7 @@ service:
 Starting in v1.80.2 of the BDOT collector, OpenTelemetry feature gates can be configured at run time using a program argument or environment variable. To configure via a run time argument, you can do the following:
 
 ```sh
-./observiq-otel-collector --config ./path/to/config.yaml --feature-gates otel.SomeFeature,-otel.OtherFeature
+./dbdot-collector --config ./path/to/config.yaml --feature-gates otel.SomeFeature,-otel.OtherFeature
 ```
 
 This would enable the `otel.SomeFeature` feature gate and disable the `otel.OtherFeature` feature gate.

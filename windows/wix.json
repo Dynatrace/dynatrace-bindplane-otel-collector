@@ -9,9 +9,9 @@
   "upgrade-code": "D67CCA1A-6708-4096-8BDE-5069739FB861",
   "files": [
     {
-      "path": "observiq-otel-collector.exe",
+      "path": "dbdot-collector.exe",
       "service": {
-        "name": "observiq-otel-collector",
+        "name": "dbdot-collector",
         "start": "delayed",
         "display-name": "observIQ Distro for OpenTelemetry Collector",
         "description": "observIQ's distribution of the OpenTelemetry collector.",

@@ -107,25 +107,25 @@ func TestGetOutputFilePath(t *testing.T) {
 	}{
 		{
 			name:     "Input url is valid zip",
-			basepath: filepath.Join("/", "tmp", "observiq-otel-collector-update"),
+			basepath: filepath.Join("/", "tmp", "dbdot-collector-update"),
 			url:      "http://example.com/some-file.zip",
-			out:      filepath.Join("/", "tmp", "observiq-otel-collector-update", "some-file.zip"),
+			out:      filepath.Join("/", "tmp", "dbdot-collector-update", "some-file.zip"),
 		},
 		{
 			name:     "Input url is valid tar",
-			basepath: filepath.Join("/", "tmp", "observiq-otel-collector-update"),
+			basepath: filepath.Join("/", "tmp", "dbdot-collector-update"),
 			url:      "http://example.com/some-file.tar.gz",
-			out:      filepath.Join("/", "tmp", "observiq-otel-collector-update", "some-file.tar.gz"),
+			out:      filepath.Join("/", "tmp", "dbdot-collector-update", "some-file.tar.gz"),
 		},
 		{
 			name:        "Input url is invalid",
-			basepath:    filepath.Join("/", "tmp", "observiq-otel-collector-update"),
+			basepath:    filepath.Join("/", "tmp", "dbdot-collector-update"),
 			url:         "http://local\thost/some-file.zip",
 			expectedErr: "cannot parse url",
 		},
 		{
 			name:        "Input url has no path",
-			basepath:    filepath.Join("/", "tmp", "observiq-otel-collector-update"),
+			basepath:    filepath.Join("/", "tmp", "dbdot-collector-update"),
 			url:         "http://example.com",
 			expectedErr: `input url "http://example.com" must have path`,
 		},

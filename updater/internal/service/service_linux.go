@@ -41,7 +41,7 @@ func WithServiceFile(svcFilePath string) Option {
 	}
 }
 
-// NewService returns an instance of the Service interface for managing the observiq-otel-collector service on the current OS.
+// NewService returns an instance of the Service interface for managing the dbdot-collector service on the current OS.
 func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	// Get some information from the environment
 	_, svcFileName := filepath.Split(path.LinuxServiceFilePath())

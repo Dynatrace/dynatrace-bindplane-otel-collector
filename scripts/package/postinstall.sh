@@ -19,11 +19,11 @@ set -e
 # Read's optional package overrides. Users should deploy the override
 # file before installing BDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/observiq-otel-collector ] && . /etc/default/observiq-otel-collector
-[ -f /etc/sysconfig/observiq-otel-collector ] && . /etc/sysconfig/observiq-otel-collector
+[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
+[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/observiq-otel-collector}"
+: "${BDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
 # Whether or not to run the collector as an unprivileged user.
 : "${BDOT_UNPRIVILEGED:=false}"
@@ -38,12 +38,12 @@ install() {
     chmod 0755 "${BDOT_CONFIG_HOME}"
     chown "$BDOT_USER:$BDOT_GROUP" "${BDOT_CONFIG_HOME}"
 
-    share_dir="/usr/share/observiq-otel-collector"
-    stage_dir="${share_dir}/stage/observiq-otel-collector"
+    share_dir="/usr/share/dbdot-collector"
+    stage_dir="${share_dir}/stage/dbdot-collector"
 
     # Rename binaries in staging directory to avoid Linux binary locking issues
     # during copy operation
-    mv "${stage_dir}/observiq-otel-collector" "${stage_dir}/observiq-otel-collector.new"
+    mv "${stage_dir}/dbdot-collector" "${stage_dir}/dbdot-collector.new"
 
     # Prepare staged files with runtime ownership so destination does not need
     # post-copy ownership changes. This helps to ensure permissions do not flap
@@ -66,7 +66,7 @@ install() {
       "${BDOT_CONFIG_HOME}"
 
     # Perform atomic moves for binary files to replace running binaries
-    mv "${BDOT_CONFIG_HOME}/observiq-otel-collector.new" "${BDOT_CONFIG_HOME}/observiq-otel-collector"
+    mv "${BDOT_CONFIG_HOME}/dbdot-collector.new" "${BDOT_CONFIG_HOME}/dbdot-collector"
 
     rm -rf "$share_dir"
 }
@@ -80,7 +80,7 @@ install_service() {
 }
 
 install_systemd_service() {
-  config_file="/usr/lib/systemd/system/observiq-otel-collector.service"
+  config_file="/usr/lib/systemd/system/dbdot-collector.service"
 
   if [ ! -f "$config_file" ]; then
     echo "Installing systemd service to $config_file"
@@ -105,7 +105,7 @@ Environment=OIQ_OTEL_COLLECTOR_HOME=${BDOT_CONFIG_HOME}
 Environment=BINDPLANE_COLLECTOR_HOME=${BDOT_CONFIG_HOME}
 Environment=OIQ_OTEL_COLLECTOR_STORAGE=${BDOT_CONFIG_HOME}/storage
 WorkingDirectory=${BDOT_CONFIG_HOME}
-ExecStart=${BDOT_CONFIG_HOME}/observiq-otel-collector --config config.yaml
+ExecStart=${BDOT_CONFIG_HOME}/dbdot-collector --config config.yaml
 LimitNOFILE=65000
 SuccessExitStatus=0
 TimeoutSec=20
@@ -121,7 +121,7 @@ EOF
   chmod 0640 "$config_file"
 
   # Ensure the override dir exists.
-  override_dir="/etc/systemd/system/observiq-otel-collector.service.d"
+  override_dir="/etc/systemd/system/dbdot-collector.service.d"
   if [ ! -d "$override_dir" ]; then
     mkdir -p "$override_dir"
     echo "Created systemd override directory at $override_dir"
@@ -140,7 +140,7 @@ EOF
 }
 
 install_initd_service() {
-  config_file="/etc/init.d/observiq-otel-collector"
+  config_file="/etc/init.d/dbdot-collector"
 
   if [ ! -f "$config_file" ]; then
     echo "Installing init.d service to $config_file"
@@ -155,17 +155,17 @@ install_initd_service() {
 # observIQ OTEL daemon
 # chkconfig: 2345 99 05
 # description: observIQ's distribution of the OpenTelemetry collector
-# processname: observiq-otel-collector
-# pidfile: /var/run/observiq-otel-collector.pid
+# processname: dbdot-collector
+# pidfile: /var/run/dbdot-collector.pid
 
 ### BEGIN INIT INFO
-# Provides: observiq-otel-collector
+# Provides: dbdot-collector
 # Required-Start:
 # Required-Stop:
 # Should-Start:
 # Default-Start: 3 5
 # Default-Stop: 0 1 2 6  
-# Description: Start the observiq-otel-collector service
+# Description: Start the dbdot-collector service
 ### END INIT INFO
 
 # Source function library.
@@ -215,7 +215,7 @@ fi
 # with force-reload (in case signalling is not supported) are
 # considered a success.
 
-BINARY=observiq-otel-collector
+BINARY=dbdot-collector
 PROGRAM=${BDOT_CONFIG_HOME}/"\$BINARY"
 START_CMD="nohup ${BDOT_CONFIG_HOME}/\$BINARY > /dev/null 2>&1 &"
 LOCKFILE=/var/lock/"\$BINARY"
@@ -414,8 +414,8 @@ EOF
 
 manage_systemd_service() {
   # Ensure sysv script isn't present, and if it is remove it
-  if [ -f /etc/init.d/observiq-otel-collector ]; then
-    rm -f /etc/init.d/observiq-otel-collector
+  if [ -f /etc/init.d/dbdot-collector ]; then
+    rm -f /etc/init.d/dbdot-collector
   fi
 
   systemctl daemon-reload
@@ -424,7 +424,7 @@ manage_systemd_service() {
 
   cat << EOF
 
-The "observiq-otel-collector" service has been configured!
+The "dbdot-collector" service has been configured!
 
 The collector's config file can be found here: 
   ${BDOT_CONFIG_HOME}/config.yaml
@@ -435,24 +435,24 @@ To view logs from the collector, run:
 For more information on configuring the collector, see the docs:
   https://github.com/observIQ/bindplane-otel-collector/tree/main#observiq-opentelemetry-collector
 
-To stop the observiq-otel-collector service, run:
-  sudo systemctl stop observiq-otel-collector
+To stop the dbdot-collector service, run:
+  sudo systemctl stop dbdot-collector
 
-To start the observiq-otel-collector service, run:
-  sudo systemctl start observiq-otel-collector
+To start the dbdot-collector service, run:
+  sudo systemctl start dbdot-collector
 
-To restart the observiq-otel-collector service, run:
-  sudo systemctl restart observiq-otel-collector
+To restart the dbdot-collector service, run:
+  sudo systemctl restart dbdot-collector
 
 To enable the service on startup, run:
-  sudo systemctl enable observiq-otel-collector
+  sudo systemctl enable dbdot-collector
 
 If you have any other questions please contact us at support@observiq.com
 EOF
 }
 
 manage_sysv_service() {
-  chmod 755 /etc/init.d/observiq-otel-collector
+  chmod 755 /etc/init.d/dbdot-collector
   echo "configured sysv service"
 }
 
@@ -486,13 +486,13 @@ manage_service() {
 
 finish_permissions() {
   # Goreleaser does not set plugin file permissions, so do them here
-  # We also change the owner of the binary to observiq-otel-collector
-  chown -R "$BDOT_USER:$BDOT_GROUP" ${BDOT_CONFIG_HOME}/observiq-otel-collector ${BDOT_CONFIG_HOME}/plugins/*
+  # We also change the owner of the binary to dbdot-collector
+  chown -R "$BDOT_USER:$BDOT_GROUP" ${BDOT_CONFIG_HOME}/dbdot-collector ${BDOT_CONFIG_HOME}/plugins/*
   chmod 0640 ${BDOT_CONFIG_HOME}/plugins/*
 
-  # Initialize the log file to ensure it is owned by observiq-otel-collector.
+  # Initialize the log file to ensure it is owned by dbdot-collector.
   # This prevents the service (running as root) from assigning ownership to
-  # the root user. By doing so, we allow the user to switch to observiq-otel-collector
+  # the root user. By doing so, we allow the user to switch to dbdot-collector
   # user for 'non root' installs.
   touch ${BDOT_CONFIG_HOME}/log/collector.log
   chown "$BDOT_USER:$BDOT_GROUP" ${BDOT_CONFIG_HOME}/log/collector.log

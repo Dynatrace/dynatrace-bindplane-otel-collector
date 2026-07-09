@@ -250,7 +250,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	// Use HeaderFunc to dynamically set headers, allowing them to update when agent ID changes
 	headerFunc := func(header http.Header) http.Header {
 		header.Set("Authorization", fmt.Sprintf("Secret-Key %s", c.currentConfig.GetSecretKey()))
-		header.Set("User-Agent", fmt.Sprintf("observiq-otel-collector/%s", version.Version()))
+		header.Set("User-Agent", fmt.Sprintf("dbdot-collector/%s", version.Version()))
 		header.Set("OpAMP-Version", opamp.Version())
 		header.Set("Agent-ID", c.ident.agentID.String())
 		header.Set("Agent-Version", version.Version())

@@ -116,8 +116,8 @@ $ErrorActionPreference = "Stop"
 # ---- Constants ---------------------------------------------------------------
 
 $DOWNLOAD_BASE = "https://bdot.bindplane.com"
-$MSI_NAME_AMD64 = "observiq-otel-collector.msi"
-$MSI_NAME_ARM64 = "observiq-otel-collector-arm64.msi"
+$MSI_NAME_AMD64 = "dbdot-collector.msi"
+$MSI_NAME_ARM64 = "dbdot-collector-arm64.msi"
 $PRODUCT_DISPLAY_NAME = "observIQ Distro for OpenTelemetry Collector"
 # Stable across releases/renames; defined in windows/wix.json ("upgrade-code").
 $UPGRADE_CODE = "{D67CCA1A-6708-4096-8BDE-5069739FB861}"
@@ -327,7 +327,7 @@ function Main {
     }
 
     $tmpDir = [System.IO.Path]::GetTempPath()
-    $logPath = Join-Path $tmpDir "observiq-otel-collector-install.log"
+    $logPath = Join-Path $tmpDir "dbdot-collector-install.log"
     $cleanupMsi = $false
 
     if ($MsiFile) {

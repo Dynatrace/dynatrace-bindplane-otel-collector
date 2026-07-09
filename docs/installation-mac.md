@@ -24,19 +24,19 @@ To read more about the generated connection configuration file see [OpAMP docs](
 
 ## Configuring the Agent
 
-After installing the `observiq-otel-collector` you can change the configuration file printed out at the end of the installation.
+After installing the `dbdot-collector` you can change the configuration file printed out at the end of the installation.
 
-The default configuration file can be found at `/opt/observiq-otel-collector/config.yaml`.
+The default configuration file can be found at `/opt/dbdot-collector/config.yaml`.
 
-After changing the configuration file run `sudo launchctl unload /Library/LaunchDaemons/com.observiq.collector.plist; sudo launchctl load /Library/LaunchDaemons/com.observiq.collector.plist` for the changes to take effect.
+After changing the configuration file run `sudo launchctl unload /Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist; sudo launchctl load /Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist` for the changes to take effect.
 
 For more information on configuring the agent, see the [OpenTelemetry docs](https://opentelemetry.io/docs/collector/configuration/).
 
 **Logging**
 
-Logs from the agent will appear in `/opt/observiq-otel-collector/log`. You may run `sudo tail -F /opt/observiq-otel-collector/log/collector.log` to view them.
+Logs from the agent will appear in `/opt/dbdot-collector/log`. You may run `sudo tail -F /opt/dbdot-collector/log/collector.log` to view them.
 
-Stderr for the agent process can be found at `/var/log/observiq_collector.err`.
+Stderr for the agent process can be found at `/var/log/dbdot_collector.err`.
 
 ## Agent Services Commands
 
@@ -44,10 +44,10 @@ The agent uses `launchctl` to control the agent lifecycle using the following co
 
 ```sh
 # Start the agent
-sudo launchctl load /Library/LaunchDaemons/com.observiq.collector.plist
+sudo launchctl load /Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist
 
 # Stop the agent
-sudo launchctl unload /Library/LaunchDaemons/com.observiq.collector.plist
+sudo launchctl unload /Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist
 ```
 
 ## Uninstalling
