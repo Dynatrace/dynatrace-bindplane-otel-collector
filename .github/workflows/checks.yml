@@ -44,7 +44,8 @@ jobs:
         id: filter
         with:
           # These filters are based on picomatch syntax https://github.com/micromatch/picomatch#
-          # Components list should be based on source of truth 'migrated-modules.txt' in root of repo
+          # The components list names directories whose contents live in the
+          # bindplane-otel-contrib repository and must not be recreated here.
           filters: |
             checks:
               - '.github/workflows/checks.yml'

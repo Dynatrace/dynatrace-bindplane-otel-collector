@@ -33,23 +33,14 @@ jobs:
 
 
       # There is no root Go module (the collector is assembled by ocb from
-      # the manifest), so scan each module in the repo, skipping the ones
-      # migrated to the contrib repo. A scan error fails the job rather
-      # than silently reporting a clean result.
+      # the manifest), so scan each module in the repo. A scan error fails
+      # the job rather than silently reporting a clean result.
       - name: Run govulncheck across all modules
         timeout-minutes: 30
         run: |
           : > govulncheck-results.json
           failed=0
           for dir in $(find . -type f -name go.mod -not -path "./build/*" -exec dirname {} \; | sort); do
-            skip=false
-            while IFS= read -r pattern; do
-              case "${dir}" in "./${pattern}"*) skip=true; break;; esac
-            done < migrated-modules.txt
-            if [ "${skip}" = "true" ]; then
-              echo "Skipping migrated module: ${dir}"
-              continue
-            fi
             echo "Scanning module: ${dir}"
             if ! (cd "${dir}" && govulncheck -format json ./...) >> govulncheck-results.json; then
               echo "::error::govulncheck failed for ${dir}"
