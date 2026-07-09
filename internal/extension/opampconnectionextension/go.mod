@@ -3,9 +3,9 @@ module github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionex
 go 1.26.4
 
 require (
+	github.com/dynatrace/dbdot-collector/internal/report v1.103.0
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
-	github.com/dynatrace/dbdot-collector/internal/report v1.103.0
 	github.com/observiq/bindplane-otel-contrib/extension/pebbleextension v1.9.0
 	github.com/observiq/bindplane-otel-contrib/pkg/measurements v1.9.0
 	github.com/observiq/bindplane-otel-contrib/pkg/osinfo v1.9.0
