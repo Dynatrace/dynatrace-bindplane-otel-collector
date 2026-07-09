@@ -187,9 +187,9 @@ func checkIsService() (bool, error) {
 // instead of it being dropped by Windows services.
 // Most output should go through the zap logger instead of to stderr.
 func redirectStderr() error {
-	homeDir, ok := os.LookupEnv("DBDOT_OTEL_COLLECTOR_HOME")
+	homeDir, ok := os.LookupEnv("BINDPLANE_COLLECTOR_HOME")
 	if !ok {
-		return errors.New("DBDOT_OTEL_COLLECTOR_HOME environment variable not set")
+		return errors.New("BINDPLANE_COLLECTOR_HOME environment variable not set")
 	}
 
 	path := filepath.Join(homeDir, "log", "dbdot_collector.err")

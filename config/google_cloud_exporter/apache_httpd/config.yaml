@@ -6,7 +6,7 @@ receivers:
       insecure: true
 
   plugin:
-    path: $DBDOT_OTEL_COLLECTOR_HOME/plugins/apache_http_logs.yaml
+    path: $BINDPLANE_COLLECTOR_HOME/plugins/apache_http_logs.yaml
     parameters:
       access_log_path:
         - /var/log/apache2/access.log

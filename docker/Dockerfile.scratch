@@ -39,7 +39,7 @@ COPY --from=stage --chown=otel:otel /etc/otel/storage /etc/otel/storage
 
 COPY dbdot-collector /collector/dbdot-collector
 
-ENV DBDOT_OTEL_COLLECTOR_HOME=/etc/otel
+ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
 ENV DBDOT_OTEL_COLLECTOR_STORAGE=/etc/otel/storage
 
 USER otel

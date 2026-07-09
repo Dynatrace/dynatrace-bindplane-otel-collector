@@ -6,7 +6,7 @@
     <string>com.dynatrace.dbdot.collector</string>
     <key>EnvironmentVariables</key>
     <dict>
-        <key>DBDOT_OTEL_COLLECTOR_HOME</key>
+        <key>BINDPLANE_COLLECTOR_HOME</key>
         <string>[INSTALLDIR]</string>
         <key>DBDOT_OTEL_COLLECTOR_STORAGE</key>
         <string>[INSTALLDIR]storage</string>

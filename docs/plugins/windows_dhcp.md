@@ -8,7 +8,7 @@ Log parser for Windows DHCP
 |:-- |:-- |:-- |:-- |:-- |:-- |
 | file_path | <nil> | []string | `[C:/Windows/System32/dhcp/DhcpSrvLog-*.log]` | false |  |
 | start_at | <nil> | string | `end` | false | `beginning`, `end` |
-| offset_storage_dir | The directory that the offset storage file will be created | string | `${env:DBDOT_OTEL_COLLECTOR_HOME}/storage` | false |  |
+| offset_storage_dir | The directory that the offset storage file will be created | string | `${env:BINDPLANE_COLLECTOR_HOME}/storage` | false |  |
 | save_log_record_original | Enable to preserve the original log message in a `log.record.original` key. | bool | `false` | false |  |
 | parse | When enabled, parses the log fields into structured attributes. When disabled, sends the raw log message in the body field. | bool | `true` | false |  |
 
@@ -23,7 +23,7 @@ receivers:
     parameters:
       file_path: [C:/Windows/System32/dhcp/DhcpSrvLog-*.log]
       start_at: end
-      offset_storage_dir: ${env:DBDOT_OTEL_COLLECTOR_HOME}/storage
+      offset_storage_dir: ${env:BINDPLANE_COLLECTOR_HOME}/storage
       save_log_record_original: false
       parse: true
 ```
