@@ -55,9 +55,9 @@ AGENT_BUILD_TAGS = bindplane embed_library
 
 # UPDATER_LDFLAGS stamps the same values into the updater binary.
 UPDATER_LDFLAGS = -s -w \
-	-X github.com/observiq/bindplane-otel-collector/updater/internal/version.version=$(VERSION) \
-	-X github.com/observiq/bindplane-otel-collector/updater/internal/version.gitHash=$(GIT_HASH) \
-	-X github.com/observiq/bindplane-otel-collector/updater/internal/version.date=$(BUILD_DATE)
+	-X github.com/dynatrace/dbdot-collector/updater/internal/version.version=$(VERSION) \
+	-X github.com/dynatrace/dbdot-collector/updater/internal/version.gitHash=$(GIT_HASH) \
+	-X github.com/dynatrace/dbdot-collector/updater/internal/version.date=$(BUILD_DATE)
 
 .PHONY: version
 version:
@@ -307,8 +307,8 @@ gosec:
 ci-checks: check-fmt check-license check-mod-paths check-dependabot misspell lint gosec test
 
 # This target checks that every go.mod has the correct module path.
-# Root must be github.com/observiq/bindplane-otel-collector.
-# Subdirectories must be github.com/observiq/bindplane-otel-collector/<relative-path>.
+# Root must be github.com/dynatrace/dbdot-collector.
+# Subdirectories must be github.com/dynatrace/dbdot-collector/<relative-path>.
 # Modules with legacy paths that cannot be renamed are excluded.
 MOD_PATH_EXCLUDES := ./cmd/plugindocgen
 .PHONY: check-mod-paths
@@ -323,10 +323,10 @@ check-mod-paths:
 		case " $(MOD_PATH_EXCLUDES) " in *" $${dir} "*) continue ;; esac; \
 		MOD=$$(head -1 "$${dir}/go.mod" | sed 's/^module //'); \
 		if [ "$${dir}" = "." ]; then \
-			EXPECTED="github.com/observiq/bindplane-otel-collector"; \
+			EXPECTED="github.com/dynatrace/dbdot-collector"; \
 		else \
 			RELPATH=$$(echo "$${dir}" | sed 's|^\./||'); \
-			EXPECTED="github.com/observiq/bindplane-otel-collector/$${RELPATH}"; \
+			EXPECTED="github.com/dynatrace/dbdot-collector/$${RELPATH}"; \
 		fi; \
 		if [ "$${MOD}" != "$${EXPECTED}" ]; then \
 			echo "MISMATCH: $${dir}/go.mod"; \

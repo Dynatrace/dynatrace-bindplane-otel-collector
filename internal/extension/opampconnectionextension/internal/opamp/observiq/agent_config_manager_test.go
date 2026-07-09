@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
+	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/opamp"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

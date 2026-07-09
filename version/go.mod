@@ -1,4 +1,4 @@
-module github.com/observiq/bindplane-otel-collector/version
+module github.com/dynatrace/dbdot-collector/version
 
 go 1.25.7
 

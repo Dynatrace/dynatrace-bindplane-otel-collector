@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/service/mocks"
+	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/service/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"

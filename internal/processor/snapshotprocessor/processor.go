@@ -24,7 +24,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/observiq/bindplane-otel-collector/internal/report"
+	"github.com/dynatrace/dbdot-collector/internal/report"
 	"github.com/observiq/bindplane-otel-contrib/pkg/snapshot"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"

@@ -19,8 +19,8 @@ import (
 	"errors"
 	"testing"
 
-	colmocks "github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector/mocks"
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/mocks"
+	colmocks "github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/collector/mocks"
+	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/opamp/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

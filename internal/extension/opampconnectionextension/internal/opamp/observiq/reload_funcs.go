@@ -21,9 +21,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/logging"
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
-	"github.com/observiq/bindplane-otel-collector/internal/report"
+	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/logging"
+	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/opamp"
+	"github.com/dynatrace/dbdot-collector/internal/report"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )

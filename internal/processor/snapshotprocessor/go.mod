@@ -1,4 +1,4 @@
-module github.com/observiq/bindplane-otel-collector/internal/processor/snapshotprocessor
+module github.com/dynatrace/dbdot-collector/internal/processor/snapshotprocessor
 
 go 1.26.4
 
@@ -6,7 +6,7 @@ replace github.com/mattn/go-ieproxy => github.com/mattn/go-ieproxy v0.0.1
 
 replace github.com/cilium/ebpf => github.com/cilium/ebpf v0.11.0
 
-replace github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension => ../../extension/opampconnectionextension
+replace github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension => ../../extension/opampconnectionextension
 
 require (
 	github.com/observiq/bindplane-otel-contrib/pkg/snapshot v1.9.0
@@ -34,7 +34,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
-	github.com/observiq/bindplane-otel-collector/internal/report v1.103.0
+	github.com/dynatrace/dbdot-collector/internal/report v1.103.0
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/collector/featuregate v1.61.0 // indirect
@@ -50,4 +50,4 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
-replace github.com/observiq/bindplane-otel-collector/internal/report => ../../report
+replace github.com/dynatrace/dbdot-collector/internal/report => ../../report

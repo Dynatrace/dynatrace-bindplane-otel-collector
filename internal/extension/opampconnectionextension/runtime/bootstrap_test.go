@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
+	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/opamp"
 	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
