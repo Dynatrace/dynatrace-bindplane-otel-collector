@@ -390,6 +390,6 @@ func TestReadGroupFromSystemdFile(t *testing.T) {
 
 		group, err := u.readGroupFromSystemdFile()
 		require.NoError(t, err)
-		require.Equal(t, "bdot", group)
+		require.Equal(t, "dbdot", group)
 	})
 }

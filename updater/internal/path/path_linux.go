@@ -36,14 +36,14 @@ const SysVFilePath = "/etc/init.d/dbdot-collector"
 
 // DefaultConfigOverrides is a list of config files that can be used to override
 // package installation behavior. The updater needs to respect these config
-// options, such as BDOT_CONFIG_HOME
+// options, such as DBDOT_CONFIG_HOME
 var DefaultConfigOverrides = []string{
 	"/etc/default/dbdot-collector",
 	"/etc/sysconfig/dbdot-collector",
 }
 
 const (
-	configHomeOverrideKey = "BDOT_CONFIG_HOME"
+	configHomeOverrideKey = "DBDOT_CONFIG_HOME"
 )
 
 // InstallDir returns the filepath to the install directory

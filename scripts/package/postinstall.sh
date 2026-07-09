@@ -23,20 +23,20 @@ set -e
 [ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/dbdot-collector}"
+: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
 # Whether or not to run the collector as an unprivileged user.
-: "${BDOT_UNPRIVILEGED:=false}"
+: "${DBDOT_UNPRIVILEGED:=false}"
 
 # Configurable runtime user/group
-: "${BDOT_USER:=bdot}"
-: "${BDOT_GROUP:=bdot}"
+: "${DBDOT_USER:=dbdot}"
+: "${DBDOT_GROUP:=dbdot}"
 
 
 install() {
-    mkdir -p "${BDOT_CONFIG_HOME}"
-    chmod 0755 "${BDOT_CONFIG_HOME}"
-    chown "$BDOT_USER:$BDOT_GROUP" "${BDOT_CONFIG_HOME}"
+    mkdir -p "${DBDOT_CONFIG_HOME}"
+    chmod 0755 "${DBDOT_CONFIG_HOME}"
+    chown "$DBDOT_USER:$DBDOT_GROUP" "${DBDOT_CONFIG_HOME}"
 
     share_dir="/usr/share/dbdot-collector"
     stage_dir="${share_dir}/stage/dbdot-collector"
@@ -48,7 +48,7 @@ install() {
     # Prepare staged files with runtime ownership so destination does not need
     # post-copy ownership changes. This helps to ensure permissions do not flap
     # between root and the runtime user.
-    chown -R "$BDOT_USER:$BDOT_GROUP" "$stage_dir"
+    chown -R "$DBDOT_USER:$DBDOT_GROUP" "$stage_dir"
 
     # Ensure updater is owned by root.
     chown root:root "$stage_dir/updater"
@@ -56,17 +56,17 @@ install() {
     # Seed default configs only when absent so upgrades/reinstalls preserve
     # user edits. The stage dir is ephemeral, so pruning it here is safe.
     for cfg in config.yaml logging.yaml; do
-        if [ -f "${BDOT_CONFIG_HOME}/${cfg}" ]; then
+        if [ -f "${DBDOT_CONFIG_HOME}/${cfg}" ]; then
             rm -f "${stage_dir}/${cfg}"
         fi
     done
 
     cp -r --preserve \
       "$stage_dir"/* \
-      "${BDOT_CONFIG_HOME}"
+      "${DBDOT_CONFIG_HOME}"
 
     # Perform atomic moves for binary files to replace running binaries
-    mv "${BDOT_CONFIG_HOME}/dbdot-collector.new" "${BDOT_CONFIG_HOME}/dbdot-collector"
+    mv "${DBDOT_CONFIG_HOME}/dbdot-collector.new" "${DBDOT_CONFIG_HOME}/dbdot-collector"
 
     rm -rf "$share_dir"
 }
@@ -99,13 +99,12 @@ StartLimitBurst=5
 [Service]
 Type=simple
 User=root
-Group=${BDOT_GROUP}
+Group=${DBDOT_GROUP}
 Environment=PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
-Environment=OIQ_OTEL_COLLECTOR_HOME=${BDOT_CONFIG_HOME}
-Environment=BINDPLANE_COLLECTOR_HOME=${BDOT_CONFIG_HOME}
-Environment=OIQ_OTEL_COLLECTOR_STORAGE=${BDOT_CONFIG_HOME}/storage
-WorkingDirectory=${BDOT_CONFIG_HOME}
-ExecStart=${BDOT_CONFIG_HOME}/dbdot-collector --config config.yaml
+Environment=DBDOT_OTEL_COLLECTOR_HOME=${DBDOT_CONFIG_HOME}
+Environment=DBDOT_OTEL_COLLECTOR_STORAGE=${DBDOT_CONFIG_HOME}/storage
+WorkingDirectory=${DBDOT_CONFIG_HOME}
+ExecStart=${DBDOT_CONFIG_HOME}/dbdot-collector --config config.yaml
 LimitNOFILE=65000
 SuccessExitStatus=0
 TimeoutSec=20
@@ -127,15 +126,15 @@ EOF
     echo "Created systemd override directory at $override_dir"
   fi
 
-  # If BDOT_UNPRIVILEGED is true, add an override to run the service as the
+  # If DBDOT_UNPRIVILEGED is true, add an override to run the service as the
   # unprivileged user.
   override_user_path="${override_dir}/10-package-customizations-username.conf"
-  if [ "${BDOT_UNPRIVILEGED}" = "true" ]; then
+  if [ "${DBDOT_UNPRIVILEGED}" = "true" ]; then
     cat << EOF > "${override_user_path}"
 [Service]
-User=${BDOT_USER}
+User=${DBDOT_USER}
 EOF
-    echo "Configured systemd service to run as ${BDOT_USER} user in ${override_user_path}"
+    echo "Configured systemd service to run as ${DBDOT_USER} user in ${override_user_path}"
   fi
 }
 
@@ -216,15 +215,14 @@ fi
 # considered a success.
 
 BINARY=dbdot-collector
-PROGRAM=${BDOT_CONFIG_HOME}/"\$BINARY"
-START_CMD="nohup ${BDOT_CONFIG_HOME}/\$BINARY > /dev/null 2>&1 &"
+PROGRAM=${DBDOT_CONFIG_HOME}/"\$BINARY"
+START_CMD="nohup ${DBDOT_CONFIG_HOME}/\$BINARY > /dev/null 2>&1 &"
 LOCKFILE=/var/lock/"\$BINARY"
 PIDFILE=/var/run/"\$BINARY".pid
 
 # Exported variables are used by the collector process.
-export OIQ_OTEL_COLLECTOR_HOME=${BDOT_CONFIG_HOME}
-export BINDPLANE_COLLECTOR_HOME=${BDOT_CONFIG_HOME}
-export OIQ_OTEL_COLLECTOR_STORAGE=${BDOT_CONFIG_HOME}/storage
+export DBDOT_OTEL_COLLECTOR_HOME=${DBDOT_CONFIG_HOME}
+export DBDOT_OTEL_COLLECTOR_STORAGE=${DBDOT_CONFIG_HOME}/storage
 
 RETVAL=0
 start() {
@@ -359,7 +357,7 @@ otel_status() {
   echo
 }
 
-cd "\$OIQ_OTEL_COLLECTOR_HOME" || exit 1
+cd "\$DBDOT_OTEL_COLLECTOR_HOME" || exit 1
 case "\$1" in
   # Start the service
   start)
@@ -427,10 +425,10 @@ manage_systemd_service() {
 The "dbdot-collector" service has been configured!
 
 The collector's config file can be found here: 
-  ${BDOT_CONFIG_HOME}/config.yaml
+  ${DBDOT_CONFIG_HOME}/config.yaml
 
 To view logs from the collector, run:
-  sudo tail -F ${BDOT_CONFIG_HOME}/log/collector.log
+  sudo tail -F ${DBDOT_CONFIG_HOME}/log/collector.log
 
 For more information on configuring the collector, see the docs:
   https://github.com/observIQ/bindplane-otel-collector/tree/main#observiq-opentelemetry-collector
@@ -487,15 +485,15 @@ manage_service() {
 finish_permissions() {
   # Goreleaser does not set plugin file permissions, so do them here
   # We also change the owner of the binary to dbdot-collector
-  chown -R "$BDOT_USER:$BDOT_GROUP" ${BDOT_CONFIG_HOME}/dbdot-collector ${BDOT_CONFIG_HOME}/plugins/*
-  chmod 0640 ${BDOT_CONFIG_HOME}/plugins/*
+  chown -R "$DBDOT_USER:$DBDOT_GROUP" ${DBDOT_CONFIG_HOME}/dbdot-collector ${DBDOT_CONFIG_HOME}/plugins/*
+  chmod 0640 ${DBDOT_CONFIG_HOME}/plugins/*
 
   # Initialize the log file to ensure it is owned by dbdot-collector.
   # This prevents the service (running as root) from assigning ownership to
   # the root user. By doing so, we allow the user to switch to dbdot-collector
   # user for 'non root' installs.
-  touch ${BDOT_CONFIG_HOME}/log/collector.log
-  chown "$BDOT_USER:$BDOT_GROUP" ${BDOT_CONFIG_HOME}/log/collector.log
+  touch ${DBDOT_CONFIG_HOME}/log/collector.log
+  chown "$DBDOT_USER:$DBDOT_GROUP" ${DBDOT_CONFIG_HOME}/log/collector.log
 }
 
 install

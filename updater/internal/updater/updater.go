@@ -113,7 +113,7 @@ func (u *Updater) generateLinuxServiceFiles() error {
 	}
 
 	// Get the install directory from path package. This will default
-	// to /opt/dbdot-collector unless BDOT_CONFIG_HOME is set
+	// to /opt/dbdot-collector unless DBDOT_CONFIG_HOME is set
 	// in a package config file such as /etc/default/dbdot-collector
 	// or /etc/sysconfig/dbdot-collector.
 	installDir, err := path.InstallDir(u.logger, path.DefaultConfigOverrides)

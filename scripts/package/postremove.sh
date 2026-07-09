@@ -23,7 +23,7 @@ set -e
 [ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/dbdot-collector}"
+: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
 # Check if this is an uninstall or an upgrade
 # RPM: $1 is the number of packages remaining that provide this package
@@ -66,13 +66,13 @@ remove_file_or_dir() {
 
 # Only perform cleanup on uninstall, not on upgrade
 if is_uninstall "$1"; then
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/package_statuses.json"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/plugins"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/log"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/VERSION.txt"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/updater"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/dbdot-collector"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/install"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/package_statuses.json"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/plugins"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/log"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/VERSION.txt"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/updater"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/dbdot-collector"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/install"
 else
     echo "Upgrade detected, skipping cleanup"
 fi

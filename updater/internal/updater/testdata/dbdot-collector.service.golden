@@ -6,10 +6,10 @@ StartLimitBurst=5
 [Service]
 Type=simple
 User=root
-Group=bdot
+Group=dbdot
 Environment=PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
-Environment=OIQ_OTEL_COLLECTOR_HOME=/opt/dbdot-collector
-Environment=OIQ_OTEL_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
+Environment=DBDOT_OTEL_COLLECTOR_HOME=/opt/dbdot-collector
+Environment=DBDOT_OTEL_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
 WorkingDirectory=/opt/dbdot-collector
 ExecStart=/opt/dbdot-collector/dbdot-collector --config config.yaml
 LimitNOFILE=65000

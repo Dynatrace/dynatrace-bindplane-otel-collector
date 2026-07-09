@@ -22,11 +22,11 @@ set -e
 [ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/dbdot-collector}"
+: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
 # Allow configurable runtime user/group (used for permissions and manager.yaml)
-: "${BDOT_USER:=bdot}"
-: "${BDOT_GROUP:=bdot}"
+: "${DBDOT_USER:=dbdot}"
+: "${DBDOT_GROUP:=dbdot}"
 
 # Agent Constants
 PACKAGE_NAME="dbdot-collector"
@@ -40,11 +40,11 @@ elif command -v service > /dev/null 2>&1; then
 fi
 
 # Script Constants
-COLLECTOR_USER="${BDOT_USER}"
-COLLECTOR_GROUP="${BDOT_GROUP}"
+COLLECTOR_USER="${DBDOT_USER}"
+COLLECTOR_GROUP="${DBDOT_GROUP}"
 COLLECTOR_USER_LEGACY="dbdot-collector"
 TMP_DIR=${TMPDIR:-"/tmp"} # Allow this to be overriden by cannonical TMPDIR env var
-MANAGEMENT_YML_PATH="${BDOT_CONFIG_HOME}/manager.yaml"
+MANAGEMENT_YML_PATH="${DBDOT_CONFIG_HOME}/manager.yaml"
 PREREQS="curl printf $SVC_PRE sed uname cut"
 SCRIPT_NAME="$0"
 INDENT_WIDTH='  '
@@ -793,15 +793,15 @@ dependencies_check()
   succeeded
 }
 
-# This will check if the required collector user exists when BDOT_SKIP_RUNTIME_USER_CREATION is set to true.
+# This will check if the required collector user exists when DBDOT_SKIP_RUNTIME_USER_CREATION is set to true.
 user_check()
 {
-  if [ "$BDOT_SKIP_RUNTIME_USER_CREATION" != "true" ]; then
+  if [ "$DBDOT_SKIP_RUNTIME_USER_CREATION" != "true" ]; then
     succeeded
     return 0
   fi
 
-  info "BDOT_SKIP_RUNTIME_USER_CREATION is set to true, checking for existing collector users..."
+  info "DBDOT_SKIP_RUNTIME_USER_CREATION is set to true, checking for existing collector users..."
 
   user_exists=false
 
@@ -817,7 +817,7 @@ user_check()
 
   if [ "$user_exists" = "false" ]; then
     failed
-    error_exit "$LINENO" "BDOT_SKIP_RUNTIME_USER_CREATION is set to true, but neither collector user ($COLLECTOR_USER) nor legacy collector user ($COLLECTOR_USER_LEGACY) exists on the system."
+    error_exit "$LINENO" "DBDOT_SKIP_RUNTIME_USER_CREATION is set to true, but neither collector user ($COLLECTOR_USER) nor legacy collector user ($COLLECTOR_USER_LEGACY) exists on the system."
   fi
 
   succeeded
@@ -879,7 +879,7 @@ install_package()
   info "Installing package..."
   # if target install directory doesn't exist and we're using dpkg ensure a clean state 
   # by checking for the package and running purge if it exists.
-  if [ ! -d "${BDOT_CONFIG_HOME}" ] && [ "$package_type" = "deb" ]; then
+  if [ ! -d "${DBDOT_CONFIG_HOME}" ] && [ "$package_type" = "deb" ]; then
     dpkg -s "dbdot-collector" > /dev/null 2>&1 && dpkg --purge "dbdot-collector" > /dev/null 2>&1
   fi
 
@@ -1201,8 +1201,8 @@ display_results()
 {
     banner 'Information'
     increase_indent
-    info "Agent Home:         $(fg_cyan "${BDOT_CONFIG_HOME}")$(reset)"
-    info "Agent Config:       $(fg_cyan "${BDOT_CONFIG_HOME}/config.yaml")$(reset)"
+    info "Agent Home:         $(fg_cyan "${DBDOT_CONFIG_HOME}")$(reset)"
+    info "Agent Config:       $(fg_cyan "${DBDOT_CONFIG_HOME}/config.yaml")$(reset)"
     if [ "$SVC_PRE" = "systemctl" ]; then
       info "Start Command:      $(fg_cyan "sudo systemctl start dbdot-collector")$(reset)"
       info "Stop Command:       $(fg_cyan "sudo systemctl stop dbdot-collector")$(reset)"
@@ -1212,7 +1212,7 @@ display_results()
       info "Stop Command:       $(fg_cyan "sudo service dbdot-collector stop")$(reset)"
       info "Status Command:     $(fg_cyan "sudo service dbdot-collector status")$(reset)"
     fi
-    info "Logs Command:       $(fg_cyan "sudo tail -F ${BDOT_CONFIG_HOME}/log/collector.log")$(reset)"
+    info "Logs Command:       $(fg_cyan "sudo tail -F ${DBDOT_CONFIG_HOME}/log/collector.log")$(reset)"
     info "Uninstall Command:  $(fg_cyan "sudo sh -c \"\$(curl -fsSlL ${DOWNLOAD_BASE}/v${version}/install_unix.sh)\" install_unix.sh -r")$(reset)"
     decrease_indent
 

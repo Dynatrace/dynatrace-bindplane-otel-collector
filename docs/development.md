@@ -46,9 +46,9 @@ The steps are as follows:
 
 3. Run:
     ```sh
-    ./scripts/update-docs.sh {COLLECTOR_VERSION} {CONTRIB_VERSION} {BDOT_CONTRIB_VERSION}
+    ./scripts/update-docs.sh {COLLECTOR_VERSION} {CONTRIB_VERSION} {DBDOT_CONTRIB_VERSION}
     ```
-    The collector and contrib versions should be the same as in step 1. The `BDOT_CONTRIB_VERSION` is the latest release version of [bindplane-otel-contrib](https://github.com/observiq/bindplane-otel-contrib).
+    The collector and contrib versions should be the same as in step 1. The `DBDOT_CONTRIB_VERSION` is the latest release version of [bindplane-otel-contrib](https://github.com/observiq/bindplane-otel-contrib).
 
 4. Run `make install-tools`
 
@@ -68,7 +68,7 @@ When [bindplane-otel-contrib](https://github.com/observiq/bindplane-otel-contrib
 
 1. Run:
     ```sh
-    make update-contrib BDOT_CONTRIB_VERSION=vx.x.x
+    make update-contrib DBDOT_CONTRIB_VERSION=vx.x.x
     ```
     where `vx.x.x` is the new version of bindplane-otel-contrib.
 
