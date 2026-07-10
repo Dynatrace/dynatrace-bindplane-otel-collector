@@ -17,6 +17,7 @@ package service
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	colmocks "github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/collector/mocks"
@@ -128,4 +129,27 @@ func TestManageCollectorServiceError(t *testing.T) {
 	m := &ManagedCollectorService{}
 	errChan := m.Error()
 	require.NotNil(t, errChan)
+}
+
+func TestSetLegacyHomeEnv(t *testing.T) {
+	t.Run("sets legacy var from BINDPLANE_COLLECTOR_HOME", func(t *testing.T) {
+		t.Setenv("BINDPLANE_COLLECTOR_HOME", "/opt/dbdot-collector")
+		t.Setenv("OIQ_OTEL_COLLECTOR_HOME", "")
+		require.NoError(t, setLegacyHomeEnv())
+		require.Equal(t, "/opt/dbdot-collector", os.Getenv("OIQ_OTEL_COLLECTOR_HOME"))
+	})
+
+	t.Run("does not clobber an existing legacy var", func(t *testing.T) {
+		t.Setenv("BINDPLANE_COLLECTOR_HOME", "/opt/dbdot-collector")
+		t.Setenv("OIQ_OTEL_COLLECTOR_HOME", "/custom/home")
+		require.NoError(t, setLegacyHomeEnv())
+		require.Equal(t, "/custom/home", os.Getenv("OIQ_OTEL_COLLECTOR_HOME"))
+	})
+
+	t.Run("no-op when BINDPLANE_COLLECTOR_HOME is unset", func(t *testing.T) {
+		t.Setenv("BINDPLANE_COLLECTOR_HOME", "")
+		t.Setenv("OIQ_OTEL_COLLECTOR_HOME", "")
+		require.NoError(t, setLegacyHomeEnv())
+		require.Empty(t, os.Getenv("OIQ_OTEL_COLLECTOR_HOME"))
+	})
 }
