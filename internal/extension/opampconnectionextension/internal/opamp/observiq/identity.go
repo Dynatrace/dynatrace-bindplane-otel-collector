@@ -33,7 +33,7 @@ type identity struct {
 	labels      *string
 	oSArch      string
 	oSDetails   string
-	oSFamily    string
+	oSType    string
 	hostname    string
 	mac         string
 }
@@ -59,7 +59,7 @@ func newIdentity(logger *zap.Logger, config opamp.Config, version string) *ident
 		labels:      config.Labels,
 		oSArch:      runtime.GOARCH,
 		oSDetails:   name,
-		oSFamily:    runtime.GOOS,
+		oSType:    runtime.GOOS,
 		hostname:    hostname,
 		mac:         osinfo.MACAddress(),
 	}
@@ -73,7 +73,7 @@ func (i identity) Copy() *identity {
 		version:     i.version,
 		oSArch:      i.oSArch,
 		oSDetails:   i.oSDetails,
-		oSFamily:    i.oSFamily,
+		oSType:    i.oSType,
 		hostname:    i.hostname,
 		mac:         i.mac,
 	}
@@ -107,7 +107,7 @@ func (i *identity) ToAgentDescription() *protobufs.AgentDescription {
 	nonIdentifyingAttributes := []*protobufs.KeyValue{
 		opamp.StringKeyValue("os.arch", i.oSArch),
 		opamp.StringKeyValue("os.details", i.oSDetails),
-		opamp.StringKeyValue("os.family", i.oSFamily),
+		opamp.StringKeyValue("os.type", i.oSType),
 		opamp.StringKeyValue("host.name", i.hostname),
 		opamp.StringKeyValue("host.mac_address", i.mac),
 	}

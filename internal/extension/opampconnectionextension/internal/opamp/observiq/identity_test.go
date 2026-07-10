@@ -67,7 +67,7 @@ func Test_newIdentity(t *testing.T) {
 	require.Equal(t, got.serviceName, "com.dynatrace.dbdot.collector")
 	require.Equal(t, got.version, expectedVersion)
 	require.Equal(t, got.oSArch, runtime.GOARCH)
-	require.Equal(t, got.oSFamily, runtime.GOOS)
+	require.Equal(t, got.oSType, runtime.GOOS)
 }
 
 func TestToAgentDescription(t *testing.T) {
@@ -88,7 +88,7 @@ func TestToAgentDescription(t *testing.T) {
 				labels:      nil,
 				oSArch:      "amd64",
 				oSDetails:   "os details",
-				oSFamily:    "linux",
+				oSType:    "linux",
 				hostname:    "my-linux-box",
 				mac:         "68-C7-B4-EB-A8-D2",
 			},
@@ -102,7 +102,7 @@ func TestToAgentDescription(t *testing.T) {
 				NonIdentifyingAttributes: []*protobufs.KeyValue{
 					opamp.StringKeyValue("os.arch", "amd64"),
 					opamp.StringKeyValue("os.details", "os details"),
-					opamp.StringKeyValue("os.family", "linux"),
+					opamp.StringKeyValue("os.type", "linux"),
 					opamp.StringKeyValue("host.name", "my-linux-box"),
 					opamp.StringKeyValue("host.mac_address", "68-C7-B4-EB-A8-D2"),
 					opamp.StringKeyValue("service.key", "test-key"),
@@ -119,7 +119,7 @@ func TestToAgentDescription(t *testing.T) {
 				labels:      &labelsContents,
 				oSArch:      "amd64",
 				oSDetails:   "os details",
-				oSFamily:    "linux",
+				oSType:    "linux",
 				hostname:    "my-linux-box",
 				mac:         "68-C7-B4-EB-A8-D2",
 			},
@@ -133,7 +133,7 @@ func TestToAgentDescription(t *testing.T) {
 				NonIdentifyingAttributes: []*protobufs.KeyValue{
 					opamp.StringKeyValue("os.arch", "amd64"),
 					opamp.StringKeyValue("os.details", "os details"),
-					opamp.StringKeyValue("os.family", "linux"),
+					opamp.StringKeyValue("os.type", "linux"),
 					opamp.StringKeyValue("host.name", "my-linux-box"),
 					opamp.StringKeyValue("host.mac_address", "68-C7-B4-EB-A8-D2"),
 					opamp.StringKeyValue("service.labels", labelsContents),
@@ -163,7 +163,7 @@ func Test_identityCopy(t *testing.T) {
 		labels:      &labelsContents,
 		oSArch:      "amd64",
 		oSDetails:   "os details",
-		oSFamily:    "linux",
+		oSType:    "linux",
 		hostname:    "my-linux-box",
 		mac:         "68-C7-B4-EB-A8-D2",
 	}
