@@ -37,10 +37,10 @@ services:
     - /var/lib/docker/:/var/lib/docker:ro
 
   agent:
-    image: observiq/bindplane-agent:1.30.0
+    image: TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest
     restart: always
-    container_name: bindplane-agent
-    hostname: bindplane-agent
+    container_name: dbdot-collector
+    hostname: dbdot-collector
     deploy:
       resources:
         limits:

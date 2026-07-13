@@ -64,13 +64,10 @@
       <Property Id="INSTALLDIR">
           <RegistrySearch Id='LOADINSTALLDIR' Type='raw'
             Root='HKLM' Key='Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName]' Name='InstallLocation' />
-          <!-- Load up the install dir form the previous ProductName if it exists there, instead.-->
-          <RegistrySearch Id='LOADINSTALLDIROLD' Type='raw'
-            Root='HKLM' Key='Software\Microsoft\Windows\CurrentVersion\Uninstall\observIQ OpenTelemetry Collector' Name='InstallLocation' />
       </Property>
       
-      <!-- Set default install dir to be "C:\Program Files\observIQ OpenTelemetry Collector" instead of "C:\Program Files\[ProductName]"-->
-      <SetProperty Id="INSTALLDIR" Value="[$(var.Program_Files)]\observIQ OpenTelemetry Collector" Before="CostInitialize">
+      <!-- Set default install dir to be "C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector" instead of "C:\Program Files\[ProductName]"-->
+      <SetProperty Id="INSTALLDIR" Value="[$(var.Program_Files)]\Dynatrace Bindplane Distribution of OpenTelemetry Collector" Before="CostInitialize">
         <![CDATA[NOT INSTALLDIR]]>
       </SetProperty>
 
@@ -82,11 +79,11 @@
       <Directory Id="TARGETDIR" Name="SourceDir">
 
         <Directory Id="$(var.Program_Files)">
-            <Directory Id="INSTALLDIR" Name="observIQ OpenTelemetry Collector">
+            <Directory Id="INSTALLDIR" Name="Dynatrace Bindplane Distribution of OpenTelemetry Collector">
                 <Component Id="ProductFolder" Guid="f8525e78-62c7-4665-81ad-f27e936edc88">
                     <CreateFolder>
                         <Permission User="Administrators" GenericAll="yes" />
-                        <Permission User="[OIQ_USER_GROUP_NAME]" GenericAll="no" />
+                        <Permission User="[DBDOT_USER_GROUP_NAME]" GenericAll="no" />
                     </CreateFolder>
                 </Component>
                 {{define "FILES"}}
@@ -152,11 +149,6 @@
         </Component>
         {{end}}
         <Component Id="RegistryEntriesARP" Guid="*">
-            <!-- 
-                Remove old registry key; This one sticks around for some reason after upgrading to the new product name, which is a problem,
-                since this registry key is the one that makes it show up in the "Uninstall a program" dialog.
-            -->
-            <RemoveRegistryKey Action="removeOnInstall" Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\observIQ OpenTelemetry Collector"/>
             <RegistryKey Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName]">
                 <RegistryValue Type="string" Name="AuthorizedCDFPrefix" Value=""/>
                 <RegistryValue Type="string" Name="Comments" Value="{{.Info.Comments}}"/>

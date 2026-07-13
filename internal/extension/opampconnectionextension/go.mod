@@ -1,11 +1,11 @@
-module github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension
+module github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension
 
 go 1.26.4
 
 require (
+	github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report v1.103.0
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
-	github.com/observiq/bindplane-otel-collector/internal/report v1.103.0
 	github.com/observiq/bindplane-otel-contrib/extension/pebbleextension v1.9.0
 	github.com/observiq/bindplane-otel-contrib/pkg/measurements v1.9.0
 	github.com/observiq/bindplane-otel-contrib/pkg/osinfo v1.9.0
@@ -268,4 +268,4 @@ replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza => 
 
 replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/macosunifiedloggingreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/macosunifiedloggingreceiver v0.0.0-20260708173836-48836fd1d949
 
-replace github.com/observiq/bindplane-otel-collector/internal/report => ../../../internal/report
+replace github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report => ../../../internal/report

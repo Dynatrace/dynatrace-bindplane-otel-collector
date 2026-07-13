@@ -1,4 +1,4 @@
-module github.com/observiq/bindplane-otel-collector/plugindocgen
+module github.com/dynatrace/dynatrace-bindplane-otel-collector/plugindocgen
 
 go 1.26.4
 

@@ -1,10 +1,10 @@
 d# ocb-Canonical Build — as built
 
-This describes the BDOT Collector build as it stands today. The OTel Collector Builder (ocb) compiles every binary from a manifest. The v1 runtime cluster (OpAMP client, collector lifecycle, package state, report manager, measurements) lives in a single internal Go module.
+This describes the DBDOT Collector build as it stands today. The OTel Collector Builder (ocb) compiles every binary from a manifest. The v1 runtime cluster (OpAMP client, collector lifecycle, package state, report manager, measurements) lives in a single internal Go module.
 
 ## What ocb owns
 
-1. Reads `manifests/observIQ/manifest.yaml` (or one of the v2 variants).
+1. Reads `manifests/dbdot/manifest.yaml` (or one of the v2 variants).
 2. Generates `./build/components.go` and `./build/go.mod` (v1) or `./builder/...` (v2).
 3. For v1: a Make step copies `internal/extension/opampconnectionextension/cmd/main/main.go` over ocb's generated `main.go`, runs `go mod tidy`, then `go build`.
 4. For v2: ocb's generated `main.go` is used as-is; ocb runs `go build` itself.
@@ -52,7 +52,7 @@ bindplane-otel-collector/
 │   │       │
 │   │       ├── collector/               # otelcol lifecycle wrapper
 │   │       ├── opamp/                   # OpAMP types + client interface
-│   │       │   └── observiq/            # default Bindplane client implementation
+│   │       │   └── bindplane/           # default Bindplane client implementation
 │   │       ├── packagestate/            # package-install state machine
 │   │       ├── report/                  # snapshot/measurements/topology senders
 │   │       ├── measurements/            # throughput measurements registry
@@ -123,7 +123,7 @@ Done since this spec was written:
 
 Future work:
 
-- **v2 migrated.** BDOT v2 still exists on its own branch. Eventually we'll want to migrate it over to this branch. Will have separate manifests for v2 and v2-aix builds.
+- **v2 migrated.** DBDOT v2 still exists on its own branch. Eventually we'll want to migrate it over to this branch. Will have separate manifests for v2 and v2-aix builds.
 - **v2 release wiring.** `make agent-v2` / `agent-v2-aix` do not exist and v2 is not a part of CI or the release flow; v2 artifacts are not produced by the release flow.
 - **Dependabot.** Currently bumps `go.mod` files; needs to also bump versions inside `manifest.yaml`, which is now the source of truth for component versions.
 - **Docker image.** `docker/` references the compiled binary path; the `dist/collector_*` naming hasn't changed, but the end-to-end image build hasn't been re-verified.

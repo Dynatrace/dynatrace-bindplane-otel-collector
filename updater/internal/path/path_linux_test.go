@@ -31,7 +31,7 @@ func TestInstallDir(t *testing.T) {
 		{
 			name:            "default install dir when no config files exist",
 			configOverrides: []string{"nonexistent1.conf", "nonexistent2.conf"},
-			expectedDir:     "/opt/observiq-otel-collector",
+			expectedDir:     "/opt/dbdot-collector",
 		},
 		{
 			name:            "custom install dir",

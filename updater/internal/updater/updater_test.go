@@ -23,13 +23,13 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/action"
-	install_mocks "github.com/observiq/bindplane-otel-collector/updater/internal/install/mocks"
-	rollback_mocks "github.com/observiq/bindplane-otel-collector/updater/internal/rollback/mocks"
-	service_mocks "github.com/observiq/bindplane-otel-collector/updater/internal/service/mocks"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/state"
-	state_mocks "github.com/observiq/bindplane-otel-collector/updater/internal/state/mocks"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
+	install_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/install/mocks"
+	rollback_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/rollback/mocks"
+	service_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/service/mocks"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/state"
+	state_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/state/mocks"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -77,7 +77,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		svc.On("Stop").Times(1).Return(nil)
@@ -105,7 +105,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		svc.On("Stop").Times(1).Return(errors.New("insufficient permissions"))
@@ -129,7 +129,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -159,7 +159,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -189,7 +189,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -220,7 +220,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -251,7 +251,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -283,7 +283,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -315,7 +315,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		svc.On("Stop").Times(1).Return(nil)
@@ -343,7 +343,7 @@ func TestGenerateLinuxServiceFiles(t *testing.T) {
 		u := &Updater{
 			installDir:               installDir,
 			logger:                   logger,
-			installedSystemdUnitPath: filepath.Join("testdata", "observiq-otel-collector.service.golden"),
+			installedSystemdUnitPath: filepath.Join("testdata", "dbdot-collector.service.golden"),
 		}
 
 		// Cleanup the directory after test
@@ -353,11 +353,11 @@ func TestGenerateLinuxServiceFiles(t *testing.T) {
 		require.NoError(t, err)
 
 		// Compare the generated files with golden files
-		compareFiles(t, filepath.Join(installDir, "install", "observiq-otel-collector.service"), u.installedSystemdUnitPath)
+		compareFiles(t, filepath.Join(installDir, "install", "dbdot-collector.service"), u.installedSystemdUnitPath)
 
 		// Check file permissions
-		checkFilePermissions(t, filepath.Join(installDir, "install", "observiq-otel-collector.service"), 0640)
-		checkFilePermissions(t, filepath.Join(installDir, "install", "observiq-otel-collector"), 0755)
+		checkFilePermissions(t, filepath.Join(installDir, "install", "dbdot-collector.service"), 0640)
+		checkFilePermissions(t, filepath.Join(installDir, "install", "dbdot-collector"), 0755)
 	})
 }
 
@@ -385,11 +385,11 @@ func checkFilePermissions(t *testing.T, filePath string, expectedPerm os.FileMod
 func TestReadGroupFromSystemdFile(t *testing.T) {
 	t.Run("Extract Group from systemd unit file", func(t *testing.T) {
 		u := &Updater{
-			installedSystemdUnitPath: "testdata/observiq-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/dbdot-collector.service.golden",
 		}
 
 		group, err := u.readGroupFromSystemdFile()
 		require.NoError(t, err)
-		require.Equal(t, "bdot", group)
+		require.Equal(t, "dbdot", group)
 	})
 }

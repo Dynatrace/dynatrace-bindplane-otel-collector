@@ -1,4 +1,4 @@
-collector_home="C:/Program Files/observIQ OpenTelemetry Collector"
+collector_home="C:/Program Files/Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 
 [
     "#{collector_home}/plugins",
@@ -11,7 +11,7 @@ collector_home="C:/Program Files/observIQ OpenTelemetry Collector"
 end
 
 [
-    "#{collector_home}/observiq-otel-collector.exe",
+    "#{collector_home}/dbdot-collector.exe",
     "#{collector_home}/config.yaml",
     "#{collector_home}/plugins/elasticsearch_logs.yaml",
     "#{collector_home}/plugins/mysql_logs.yaml",
@@ -23,7 +23,7 @@ end
     end
 end
 
-describe service('observiq-otel-collector') do
+describe service('dbdot-collector') do
     it { should be_installed }
     it { should be_enabled }
     it { should be_running }

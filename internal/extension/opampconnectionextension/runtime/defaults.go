@@ -15,7 +15,7 @@
 package runtime
 
 import (
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/logging"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/logging"
 )
 
 // DefaultLoggingPath is the path at which the runtime expects a YAML zap

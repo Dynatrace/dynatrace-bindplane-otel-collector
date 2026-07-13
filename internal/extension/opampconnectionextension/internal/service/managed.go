@@ -18,13 +18,14 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/observiq/bindplane-otel-contrib/pkg/measurements"
 	"github.com/observiq/bindplane-otel-contrib/processor/topologyprocessor"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/observiq"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/bindplane"
 	"github.com/observiq/bindplane-otel-contrib/pkg/version"
 	"go.uber.org/zap"
 )
@@ -40,15 +41,33 @@ type ManagedCollectorService struct {
 	loggerConfigPath    string
 }
 
+// setLegacyHomeEnv sets the legacy OIQ_OTEL_COLLECTOR_HOME env var to the value of
+// BINDPLANE_COLLECTOR_HOME. Configurations rendered by Bindplane may still reference
+// the legacy variable, so it must resolve when running in managed mode. An existing
+// OIQ_OTEL_COLLECTOR_HOME value is left untouched.
+func setLegacyHomeEnv() error {
+	if os.Getenv("OIQ_OTEL_COLLECTOR_HOME") != "" {
+		return nil
+	}
+	if home := os.Getenv("BINDPLANE_COLLECTOR_HOME"); home != "" {
+		return os.Setenv("OIQ_OTEL_COLLECTOR_HOME", home)
+	}
+	return nil
+}
+
 // NewManagedCollectorService creates a new ManagedCollectorService
 func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, managerConfigPath, collectorConfigPath, loggerConfigPath string) (*ManagedCollectorService, error) {
+	if err := setLegacyHomeEnv(); err != nil {
+		return nil, fmt.Errorf("set legacy home env var: %w", err)
+	}
+
 	opampConfig, err := opamp.ParseConfig(managerConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse manager config: %w", err)
 	}
 
 	// Create client Args
-	clientArgs := &observiq.NewClientArgs{
+	clientArgs := &bindplane.NewClientArgs{
 		DefaultLogger:        logger,
 		Config:               *opampConfig,
 		Collector:            col,
@@ -62,9 +81,9 @@ func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, man
 	}
 
 	// Create new client
-	client, err := observiq.NewClient(clientArgs)
+	client, err := bindplane.NewClient(clientArgs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create observIQ client: %w", err)
+		return nil, fmt.Errorf("failed to create bindplane client: %w", err)
 	}
 
 	return &ManagedCollectorService{

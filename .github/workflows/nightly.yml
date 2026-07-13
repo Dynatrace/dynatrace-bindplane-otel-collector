@@ -1,0 +1,54 @@
+name: Nightly Build
+
+# Nightly test builds of the collector binary for all release platforms.
+# Artifacts stay on GitHub (workflow artifacts, 2-day retention); no
+# updater, packaging, signing, or publishing to external infrastructure.
+on:
+  schedule:
+    # 06:00 UTC daily; scheduled runs always use the default branch.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest-32-cores
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # version ldflags derive from git tags
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: internal/extension/opampconnectionextension/go.mod
+          cache: false
+
+      - name: Cache Go modules
+        uses: actions/cache@v6
+        with:
+          path: /home/runner/go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+
+      - name: Install ocb
+        run: make install-ocb
+
+      - name: Build collector for all platforms
+        run: make build-all-agent
+
+      - name: Upload nightly binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-binaries-${{ github.sha }}
+          path: dist/
+          retention-days: 2
+          if-no-files-found: error

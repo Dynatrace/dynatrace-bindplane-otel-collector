@@ -27,13 +27,13 @@ import (
 
 	"path/filepath"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/action"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/install"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/path"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/rollback"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/service"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/state"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/install"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/rollback"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/service"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/state"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"go.uber.org/zap"
 )
@@ -41,7 +41,7 @@ import (
 const (
 	// DefaultSystemdUnitFilePath is the default path to the systemd unit file
 	// for the collector service.
-	DefaultSystemdUnitFilePath = "/usr/lib/systemd/system/observiq-otel-collector.service"
+	DefaultSystemdUnitFilePath = "/usr/lib/systemd/system/dbdot-collector.service"
 )
 
 // Updater is a struct that can be used to perform a collector update
@@ -98,8 +98,8 @@ func (u *Updater) readGroupFromSystemdFile() (string, error) {
 // generateLinuxServiceFiles writes necessary service files to the install directory
 // to be copied to their final locations by the updater.
 func (u *Updater) generateLinuxServiceFiles() error {
-	systemdServiceFilePath := filepath.Join(u.installDir, "install", "observiq-otel-collector.service")
-	initServiceFilePath := filepath.Join(u.installDir, "install", "observiq-otel-collector")
+	systemdServiceFilePath := filepath.Join(u.installDir, "install", "dbdot-collector.service")
+	initServiceFilePath := filepath.Join(u.installDir, "install", "dbdot-collector")
 
 	// Install dir needs to be pre-created if it does not exist already.
 	if err := os.MkdirAll(filepath.Dir(systemdServiceFilePath), 0750); err != nil {
@@ -113,9 +113,9 @@ func (u *Updater) generateLinuxServiceFiles() error {
 	}
 
 	// Get the install directory from path package. This will default
-	// to /opt/observiq-otel-collector unless BDOT_CONFIG_HOME is set
-	// in a package config file such as /etc/default/observiq-otel-collector
-	// or /etc/sysconfig/observiq-otel-collector.
+	// to /opt/dbdot-collector unless DBDOT_CONFIG_HOME is set
+	// in a package config file such as /etc/default/dbdot-collector
+	// or /etc/sysconfig/dbdot-collector.
 	installDir, err := path.InstallDir(u.logger, path.DefaultConfigOverrides)
 	if err != nil {
 		return fmt.Errorf("read working directory from systemd file %s: %w", u.installedSystemdUnitPath, err)

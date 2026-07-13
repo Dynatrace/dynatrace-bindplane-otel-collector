@@ -1,6 +1,6 @@
 version: 2
 
-project_name: observiq-otel-collector
+project_name: dbdot-collector
 
 before:
   hooks:
@@ -17,7 +17,7 @@ after:
 builds:
   - id: collector
     builder: prebuilt
-    binary: observiq-otel-collector
+    binary: dbdot-collector
     goos:
       - linux
     goarch:
@@ -36,8 +36,8 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/bindplane-agent-arm64:{{ .Version }}"
-      - "observiq/bindplane-agent-arm64:latest"
+      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}"
+      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:latest"
     dockerfile: ./docker/Dockerfile.ubuntu
     use: buildx
     build_flag_templates:

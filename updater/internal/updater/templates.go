@@ -17,7 +17,7 @@ package updater
 
 // Constants for service file templates
 const systemdServiceTemplate = `[Unit]
-Description=observIQ's distribution of the OpenTelemetry collector
+Description=Dynatrace Bindplane Distribution of OpenTelemetry Collector
 After=network.target
 StartLimitIntervalSec=120
 StartLimitBurst=5
@@ -26,11 +26,10 @@ Type=simple
 User=root
 Group={{.Group}}
 Environment=PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
-Environment=OIQ_OTEL_COLLECTOR_HOME={{.InstallDir}}
 Environment=BINDPLANE_COLLECTOR_HOME={{.InstallDir}}
-Environment=OIQ_OTEL_COLLECTOR_STORAGE={{.InstallDir}}/storage
+Environment=BINDPLANE_COLLECTOR_STORAGE={{.InstallDir}}/storage
 WorkingDirectory={{.InstallDir}}
-ExecStart={{.InstallDir}}/observiq-otel-collector --config config.yaml
+ExecStart={{.InstallDir}}/dbdot-collector --config config.yaml
 LimitNOFILE=65000
 SuccessExitStatus=0
 TimeoutSec=20
@@ -42,20 +41,20 @@ KillMode=process
 WantedBy=multi-user.target`
 
 const initScriptTemplate = `#!/bin/sh
-# observIQ OTEL daemon
+# DBDOT OTEL daemon
 # chkconfig: 2345 99 05
-# description: observIQ's distribution of the OpenTelemetry collector
-# processname: observiq-otel-collector
-# pidfile: /var/run/observiq-otel-collector.pid
+# description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
+# processname: dbdot-collector
+# pidfile: /var/run/dbdot-collector.pid
 
 ### BEGIN INIT INFO
-# Provides: observiq-otel-collector
+# Provides: dbdot-collector
 # Required-Start: 
 # Required-Stop: 
 # Should-Start: 
 # Default-Start: 3 5
 # Default-Stop: 0 1 2 6  
-# Description: Start the observiq-otel-collector service
+# Description: Start the dbdot-collector service
 ### END INIT INFO
 
 # Source function library.
@@ -105,16 +104,15 @@ fi
 # with force-reload (in case signalling is not supported) are
 # considered a success.
 
-BINARY=observiq-otel-collector
-PROGRAM=/opt/observiq-otel-collector/"$BINARY"
-START_CMD="nohup /opt/observiq-otel-collector/$BINARY > /dev/null 2>&1 &"
+BINARY=dbdot-collector
+PROGRAM=/opt/dbdot-collector/"$BINARY"
+START_CMD="nohup /opt/dbdot-collector/$BINARY > /dev/null 2>&1 &"
 LOCKFILE=/var/lock/"$BINARY"
 PIDFILE=/var/run/"$BINARY".pid
 
 # Exported variables are used by the collector process.
-export OIQ_OTEL_COLLECTOR_HOME=/opt/observiq-otel-collector
-export BINDPLANE_COLLECTOR_HOME=/opt/observiq-otel-collector
-export OIQ_OTEL_COLLECTOR_STORAGE=/opt/observiq-otel-collector/storage
+export BINDPLANE_COLLECTOR_HOME=/opt/dbdot-collector
+export BINDPLANE_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
 
 RETVAL=0
 start() {
@@ -249,7 +247,7 @@ otel_status() {
   echo
 }
 
-cd "$OIQ_OTEL_COLLECTOR_HOME" || exit 1
+cd "$BINDPLANE_COLLECTOR_HOME" || exit 1
 case "$1" in
   # Start the service
   start)

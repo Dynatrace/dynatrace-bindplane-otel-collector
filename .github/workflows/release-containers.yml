@@ -34,18 +34,18 @@ jobs:
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
-          project_id: ${{ secrets.BDOT_GCS_RELEASE_BUCKET_PROJECT_ID }}
-          credentials_json: ${{ secrets.BDOT_GCS_RELEASE_BUCKET_CREDENTIALS }}
+          project_id: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_PROJECT_ID }}
+          credentials_json: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_CREDENTIALS }}
       - name: Download Linux Binaries from GCS
         run: |
           mkdir -p tmp
           VERSION=${{ github.event.inputs.version }}
           for ARCH in amd64 arm64 ppc64le; do
-            ARCHIVE="observiq-otel-collector-${VERSION}-linux-${ARCH}.tar.gz"
-            gsutil cp "gs://bdot-release/${VERSION}/${ARCHIVE}" tmp/
+            ARCHIVE="dbdot-collector-${VERSION}-linux-${ARCH}.tar.gz"
+            gsutil cp "gs://TODO-DBDOT-RELEASE-BUCKET/${VERSION}/${ARCHIVE}" tmp/
             mkdir -p "tmp/${ARCH}"
-            tar -xzf "tmp/${ARCHIVE}" -C "tmp/${ARCH}" observiq-otel-collector
-            mv "tmp/${ARCH}/observiq-otel-collector" "tmp/collector_linux_${ARCH}"
+            tar -xzf "tmp/${ARCHIVE}" -C "tmp/${ARCH}" dbdot-collector
+            mv "tmp/${ARCH}/dbdot-collector" "tmp/collector_linux_${ARCH}"
           done
       - name: Set up Docker Buildx
         id: buildx
@@ -68,7 +68,7 @@ jobs:
         with:
           registry: us-central1-docker.pkg.dev
           username: _json_key
-          password: ${{ secrets.ORG_OBSERVIQ_PUBLIC_GCR_JSON_KEY }}
+          password: ${{ secrets.TODO_DBDOT_GCR_JSON_KEY }}
       # - name: Install cosign
       #   run: go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
       # - name: Build cosign key file

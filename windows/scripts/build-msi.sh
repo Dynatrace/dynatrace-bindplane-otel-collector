@@ -30,8 +30,8 @@ fi
 mkdir -p storage
 touch storage/.include
 
-cp "$PROJECT_BASE/dist/collector_windows_${ARCH}.exe" "observiq-otel-collector.exe"
+cp "$PROJECT_BASE/dist/collector_windows_${ARCH}.exe" "dbdot-collector.exe"
 cp "$PROJECT_BASE/dist/updater_windows_${ARCH}.exe" "updater.exe"
 
 vagrant winrm -c \
-    "cd C:/vagrant; go-msi.exe make -m observiq-otel-collector-${ARCH}.msi --version v0.0.1 --arch ${WIX_ARCH}"
+    "cd C:/vagrant; go-msi.exe make -m dbdot-collector-${ARCH}.msi --version v0.0.1 --arch ${WIX_ARCH}"

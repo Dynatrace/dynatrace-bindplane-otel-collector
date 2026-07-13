@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
 )
 
 // StandaloneCollectorService is a RunnableService that runs the collector in standalone mode.

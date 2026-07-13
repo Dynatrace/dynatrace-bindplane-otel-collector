@@ -45,20 +45,19 @@ RUN mkdir \
     /etc/otel/storage \
     && chown -R otel:otel /etc/otel \
     && chmod 0750 /etc/otel/storage
-ENV OIQ_OTEL_COLLECTOR_HOME=/etc/otel
 ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
-ENV OIQ_OTEL_COLLECTOR_STORAGE=/etc/otel/storage
+ENV BINDPLANE_COLLECTOR_STORAGE=/etc/otel/storage
 
 ENV JAVA_HOME=/opt/java/openjdk
 COPY --from=jdk $JAVA_HOME $JAVA_HOME
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 RUN mkdir /licenses
-COPY LICENSE /licenses/observiq-otel-collector.license
+COPY LICENSE /licenses/dbdot-collector.license
 
 COPY release_deps/VERSION.txt /etc/otel/VERSION.txt
 
-COPY observiq-otel-collector /collector/observiq-otel-collector
+COPY dbdot-collector /collector/dbdot-collector
 COPY release_deps/opentelemetry-java-contrib-jmx-metrics.jar /opt/opentelemetry-java-contrib-jmx-metrics.jar
 COPY release_deps/plugins /etc/otel/plugins
 
@@ -81,5 +80,5 @@ WORKDIR /etc/otel
 
 # User should mount /etc/otel/config.yaml at runtime using docker volumes / k8s configmap unless
 # connecting to an OpAMP platform.
-ENTRYPOINT [ "/collector/observiq-otel-collector" ]
+ENTRYPOINT [ "/collector/dbdot-collector" ]
 

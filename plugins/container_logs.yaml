@@ -23,8 +23,8 @@ parameters:
     description: A list of file glob patterns to exclude from reading
     default:
       # Excludes logs for the collector
-      - "/var/log/containers/observiq-*-collector-*"
-      - "/var/log/containers/bindplane-*-agent-*"
+      - "/var/log/containers/dbdot-collector-*"
+      - "/var/log/containers/dbdot-*-collector-*"
   - name: body_json_parsing
     type: bool
     description: If the application log is detected as json, parse the values into the log entry's body.
@@ -54,7 +54,7 @@ parameters:
   - name: offset_storage_dir
     description: The directory that the offset storage file will be created
     type: string
-    default: ${env:OIQ_OTEL_COLLECTOR_HOME}/storage
+    default: ${env:BINDPLANE_COLLECTOR_HOME}/storage
   - name: parse
     description: When enabled, parses the log fields into structured attributes. When disabled, sends the raw log message in the body field.
     type: bool

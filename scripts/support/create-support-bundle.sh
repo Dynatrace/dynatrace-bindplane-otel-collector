@@ -19,7 +19,7 @@ PREREQS="printf sed uname sudo tar gzip curl"
 INDENT_WIDTH='  '
 indent=""
 
-collector_dir=/opt/observiq-otel-collector
+collector_dir=/opt/dbdot-collector
 
 # Colors
 num_colors=$(tput colors 2>/dev/null)
@@ -254,10 +254,10 @@ function bundle_files() {
             info "No logs found in $(fg_red $log_dir)"
             return 1
         fi
-        # Get the /log/observiq_collector.err file
-        err_file="$log_dir/observiq_collector.err"
+        # Get the /log/dbdot_collector.err file
+        err_file="$log_dir/dbdot_collector.err"
         if [ -f "$err_file" ]; then
-            tar --append --file="$tar_filename" -C "$log_dir" observiq_collector.err
+            tar --append --file="$tar_filename" -C "$log_dir" dbdot_collector.err
             info "Added file $(fg_cyan "$err_file")$(reset) to the tar file."
         fi
     fi
@@ -289,7 +289,7 @@ function bundle_files() {
     # Grab the logs from journalctl -- in some cases, the collector.log file 
     # may be empty, but there may be logs in journalctl
     info "Collecting logs from journalctl..."
-    journalctl -u observiq-otel-collector.service -n 50 > journalctl.log
+    journalctl -u dbdot-collector.service -n 50 > journalctl.log
     tar --append --file="$tar_filename" journalctl.log
     rm journalctl.log
 

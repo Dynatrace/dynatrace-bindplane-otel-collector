@@ -20,9 +20,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/logging"
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/service"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/logging"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/service"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.uber.org/zap"
 )

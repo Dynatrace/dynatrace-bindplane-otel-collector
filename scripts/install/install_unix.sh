@@ -16,21 +16,21 @@
 set -e
 
 # Reads optional package overrides. Users should deploy the override
-# file before installing BDOT for the first time. The override should
+# file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/observiq-otel-collector ] && . /etc/default/observiq-otel-collector
-[ -f /etc/sysconfig/observiq-otel-collector ] && . /etc/sysconfig/observiq-otel-collector
+[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
+[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/observiq-otel-collector}"
+: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
 # Allow configurable runtime user/group (used for permissions and manager.yaml)
-: "${BDOT_USER:=bdot}"
-: "${BDOT_GROUP:=bdot}"
+: "${DBDOT_USER:=dbdot}"
+: "${DBDOT_GROUP:=dbdot}"
 
 # Agent Constants
-PACKAGE_NAME="observiq-otel-collector"
-DOWNLOAD_BASE="https://bdot.bindplane.com"
+PACKAGE_NAME="dbdot-collector"
+DOWNLOAD_BASE="https://TODO-DBDOT-DOWNLOAD-HOST"
 
 # Determine if we need service or systemctl for prereqs
 if command -v systemctl > /dev/null 2>&1; then
@@ -40,11 +40,10 @@ elif command -v service > /dev/null 2>&1; then
 fi
 
 # Script Constants
-COLLECTOR_USER="${BDOT_USER}"
-COLLECTOR_GROUP="${BDOT_GROUP}"
-COLLECTOR_USER_LEGACY="observiq-otel-collector"
+COLLECTOR_USER="${DBDOT_USER}"
+COLLECTOR_GROUP="${DBDOT_GROUP}"
 TMP_DIR=${TMPDIR:-"/tmp"} # Allow this to be overriden by cannonical TMPDIR env var
-MANAGEMENT_YML_PATH="${BDOT_CONFIG_HOME}/manager.yaml"
+MANAGEMENT_YML_PATH="${DBDOT_CONFIG_HOME}/manager.yaml"
 PREREQS="curl printf $SVC_PRE sed uname cut"
 SCRIPT_NAME="$0"
 INDENT_WIDTH='  '
@@ -53,10 +52,10 @@ non_interactive=false
 error_mode=false
 skip_gpg_check=false
 
-# package_out_file_path is the full path to the downloaded package (e.g. "/tmp/observiq-otel-collector_linux_amd64.deb")
+# package_out_file_path is the full path to the downloaded package (e.g. "/tmp/dbdot-collector_linux_amd64.deb")
 package_out_file_path="unknown"
 
-# gpg_tar_out_file_path is the full path to the downloaded GPG tar.gz file (e.g. "/tmp/bdot-gpg-keys.tar.gz")
+# gpg_tar_out_file_path is the full path to the downloaded GPG tar.gz file (e.g. "/tmp/dbdot-gpg-keys.tar.gz")
 gpg_tar_out_file_path="unknown"
 
 offline_installation=false
@@ -66,7 +65,7 @@ offline_installation=false
 # The entries can be found by importing the revoked public key and then exploring the RPM database for the key.
 # rpm --import <revoked_public_key>.asc
 # rpm -q gpg-pubkey, it's one of these
-# rpm -q gpg-pubkey --info, go find the BDOT public key and use the version and release numbers from there.
+# rpm -q gpg-pubkey --info, go find the DBDOT public key and use the version and release numbers from there.
 RPM_GPG_KEYS_TO_REMOVE=[]
 
 # Colors
@@ -220,12 +219,12 @@ Usage:
   $(fg_yellow '-l, --url')
       Defines the URL that the components will be downloaded from.
       If not provided, this will default to Bindplane Agent\'s GitHub releases.
-      Example: '-l http://my.domain.org/observiq-otel-collector' will download from there.
+      Example: '-l http://my.domain.org/dbdot-collector' will download from there.
 
   $(fg_yellow '-gl, --gpg-tar-url')
       Defines the URL that the GPG tar file will be downloaded from.
       If not provided, this will default to Bindplane Agent\'s GitHub releases.
-      Example: '-gl http://my.domain.org/bdot-gpg-keys.tar.gz' will download from there.
+      Example: '-gl http://my.domain.org/dbdot-gpg-keys.tar.gz' will download from there.
 
   $(fg_yellow '-b, --base-url')
       Defines the base of the download URL used in conjunction with the version to download the package and GPG tar file.
@@ -233,16 +232,16 @@ Usage:
       and
       '{base_url}/v{version}/gpg-keys.tar.gz'
       If not provided, this will default to '$DOWNLOAD_BASE'.
-      Example: '-b http://my.domain.org/observiq-otel-collector/binaries' will be used as the base of the download URL.
+      Example: '-b http://my.domain.org/dbdot-collector/binaries' will be used as the base of the download URL.
 
   $(fg_yellow '-f, --file')
       Install Agent from a local file instead of downloading from a URL.
-      Example: '-f /path/to/observiq-otel-collector_v1.2.12_linux_amd64.deb' will install from the local file.
+      Example: '-f /path/to/dbdot-collector_v1.2.12_linux_amd64.deb' will install from the local file.
       Required if '--gpg-tar-file' is specified.
 
   $(fg_yellow '-gf, --gpg-tar-file')
       Verify the Agent from a local GPG tar file instead of downloading from a URL.
-      Example: '-gf /path/to/bdot-gpg-keys.tar.gz' will verify from the local file.
+      Example: '-gf /path/to/dbdot-gpg-keys.tar.gz' will verify from the local file.
       Required if '--file' is specified.
 
   $(fg_yellow '-x, --proxy')
@@ -422,7 +421,7 @@ set_file_names() {
   fi
   package_out_file_path="$TMP_DIR/$package_file_name"
 
-  gpg_tar_out_file_path="$TMP_DIR/bdot-gpg-keys.tar.gz"
+  gpg_tar_out_file_path="$TMP_DIR/dbdot-gpg-keys.tar.gz"
 }
 
 set_proxy()
@@ -793,31 +792,21 @@ dependencies_check()
   succeeded
 }
 
-# This will check if the required collector user exists when BDOT_SKIP_RUNTIME_USER_CREATION is set to true.
+# This will check if the required collector user exists when DBDOT_SKIP_RUNTIME_USER_CREATION is set to true.
 user_check()
 {
-  if [ "$BDOT_SKIP_RUNTIME_USER_CREATION" != "true" ]; then
+  if [ "$DBDOT_SKIP_RUNTIME_USER_CREATION" != "true" ]; then
     succeeded
     return 0
   fi
 
-  info "BDOT_SKIP_RUNTIME_USER_CREATION is set to true, checking for existing collector users..."
-
-  user_exists=false
+  info "DBDOT_SKIP_RUNTIME_USER_CREATION is set to true, checking for existing collector user..."
 
   if id "$COLLECTOR_USER" >/dev/null 2>&1; then
-    user_exists=true
     info "Found collector user: $COLLECTOR_USER"
-  fi
-
-  if id "$COLLECTOR_USER_LEGACY" >/dev/null 2>&1; then
-    user_exists=true
-    info "Found legacy collector user: $COLLECTOR_USER_LEGACY"
-  fi
-
-  if [ "$user_exists" = "false" ]; then
+  else
     failed
-    error_exit "$LINENO" "BDOT_SKIP_RUNTIME_USER_CREATION is set to true, but neither collector user ($COLLECTOR_USER) nor legacy collector user ($COLLECTOR_USER_LEGACY) exists on the system."
+    error_exit "$LINENO" "DBDOT_SKIP_RUNTIME_USER_CREATION is set to true, but collector user ($COLLECTOR_USER) does not exist on the system."
   fi
 
   succeeded
@@ -838,7 +827,7 @@ package_type_check()
 # latest_version gets the tag of the latest release, without the v prefix.
 latest_version()
 {
-  curl -s https://bdot.bindplane.com/latest
+  curl -s "$DOWNLOAD_BASE/latest"
 }
 
 # This will install the package by downloading the archived agent,
@@ -879,8 +868,8 @@ install_package()
   info "Installing package..."
   # if target install directory doesn't exist and we're using dpkg ensure a clean state 
   # by checking for the package and running purge if it exists.
-  if [ ! -d "${BDOT_CONFIG_HOME}" ] && [ "$package_type" = "deb" ]; then
-    dpkg -s "observiq-otel-collector" > /dev/null 2>&1 && dpkg --purge "observiq-otel-collector" > /dev/null 2>&1
+  if [ ! -d "${DBDOT_CONFIG_HOME}" ] && [ "$package_type" = "deb" ]; then
+    dpkg -s "dbdot-collector" > /dev/null 2>&1 && dpkg --purge "dbdot-collector" > /dev/null 2>&1
   fi
 
   # Verify the package signature, with optional user override on failure
@@ -950,31 +939,31 @@ install_package()
   fi
 
   if [ "$SVC_PRE" = "systemctl" ]; then
-    if [ "$(systemctl is-enabled observiq-otel-collector)" = "enabled" ]; then
+    if [ "$(systemctl is-enabled dbdot-collector)" = "enabled" ]; then
       # The unit is already enabled; It may be running, too, if this was an upgrade.
       # We'll want to restart, which will start it if it wasn't running already,
       # and restart in the case that this was an upgrade on a running agent.
       info "Restarting service..."
-      systemctl restart observiq-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
+      systemctl restart dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
       succeeded
     else
       info "Enabling service..."
-      systemctl enable --now observiq-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
+      systemctl enable --now dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
       succeeded
     fi
   else
-    case "$(service observiq-otel-collector status)" in
+    case "$(service dbdot-collector status)" in
       *running*)
         # The service is running.
         # We'll want to restart.
         info "Restarting service..."
-        service observiq-otel-collector restart > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
+        service dbdot-collector restart > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
         succeeded
         ;;
       *)
         info "Enabling and starting service..."
-        chkconfig observiq-otel-collector on > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
-        service observiq-otel-collector start > /dev/null 2>&1 || error_exit "$LINENO" "Failed to start service"
+        chkconfig dbdot-collector on > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
+        service dbdot-collector start > /dev/null 2>&1 || error_exit "$LINENO" "Failed to start service"
         succeeded
         ;;
     esac
@@ -1031,7 +1020,7 @@ verify_package_deb() {
     return 0
   fi
 
-  if ! GNUPGHOME="$TMP_DIR/gpg" gpg --import "$TMP_DIR/gpg/bdot-public-gpg-key.asc" > /dev/null 2>&1; then
+  if ! GNUPGHOME="$TMP_DIR/gpg" gpg --import "$TMP_DIR/gpg/dbdot-public-gpg-key.asc" > /dev/null 2>&1; then
     error "Failed to import public key"
     return 1
   fi
@@ -1086,7 +1075,7 @@ verify_package_deb() {
 verify_package_rpm() {
   set +e
   # Capture stderr from rpm --import
-  IMPORT_OUTPUT=$(rpm --import "$TMP_DIR/gpg/bdot-public-gpg-key.asc" 2>&1)
+  IMPORT_OUTPUT=$(rpm --import "$TMP_DIR/gpg/dbdot-public-gpg-key.asc" 2>&1)
   IMPORT_EXIT_CODE=$?
   set -e
 
@@ -1201,18 +1190,18 @@ display_results()
 {
     banner 'Information'
     increase_indent
-    info "Agent Home:         $(fg_cyan "${BDOT_CONFIG_HOME}")$(reset)"
-    info "Agent Config:       $(fg_cyan "${BDOT_CONFIG_HOME}/config.yaml")$(reset)"
+    info "Agent Home:         $(fg_cyan "${DBDOT_CONFIG_HOME}")$(reset)"
+    info "Agent Config:       $(fg_cyan "${DBDOT_CONFIG_HOME}/config.yaml")$(reset)"
     if [ "$SVC_PRE" = "systemctl" ]; then
-      info "Start Command:      $(fg_cyan "sudo systemctl start observiq-otel-collector")$(reset)"
-      info "Stop Command:       $(fg_cyan "sudo systemctl stop observiq-otel-collector")$(reset)"
-      info "Status Command:     $(fg_cyan "sudo systemctl status observiq-otel-collector")$(reset)"
+      info "Start Command:      $(fg_cyan "sudo systemctl start dbdot-collector")$(reset)"
+      info "Stop Command:       $(fg_cyan "sudo systemctl stop dbdot-collector")$(reset)"
+      info "Status Command:     $(fg_cyan "sudo systemctl status dbdot-collector")$(reset)"
     else
-      info "Start Command:      $(fg_cyan "sudo service observiq-otel-collector start")$(reset)"
-      info "Stop Command:       $(fg_cyan "sudo service observiq-otel-collector stop")$(reset)"
-      info "Status Command:     $(fg_cyan "sudo service observiq-otel-collector status")$(reset)"
+      info "Start Command:      $(fg_cyan "sudo service dbdot-collector start")$(reset)"
+      info "Stop Command:       $(fg_cyan "sudo service dbdot-collector stop")$(reset)"
+      info "Status Command:     $(fg_cyan "sudo service dbdot-collector status")$(reset)"
     fi
-    info "Logs Command:       $(fg_cyan "sudo tail -F ${BDOT_CONFIG_HOME}/log/collector.log")$(reset)"
+    info "Logs Command:       $(fg_cyan "sudo tail -F ${DBDOT_CONFIG_HOME}/log/collector.log")$(reset)"
     info "Uninstall Command:  $(fg_cyan "sudo sh -c \"\$(curl -fsSlL ${DOWNLOAD_BASE}/v${version}/install_unix.sh)\" install_unix.sh -r")$(reset)"
     decrease_indent
 
@@ -1220,9 +1209,9 @@ display_results()
     increase_indent
     info "For more information on configuring the agent, see the docs:"
     increase_indent
-    info "$(fg_cyan "https://github.com/observIQ/bindplane-otel-collector/tree/main#bindplane-agent")$(reset)"
+    info "$(fg_cyan "https://github.com/dynatrace/dynatrace-bindplane-otel-collector/tree/main")$(reset)"
     decrease_indent
-    info "If you have any other questions please contact us at $(fg_cyan support@observiq.com)$(reset)"
+    info "If you have any other questions please contact us at $(fg_cyan TODO-DBDOT-SUPPORT-EMAIL)$(reset)"
     increase_indent
     decrease_indent
     decrease_indent
@@ -1235,10 +1224,10 @@ uninstall_package()
 {
   case "$package_type" in
     deb)
-      dpkg -r "observiq-otel-collector" > /dev/null 2>&1
+      dpkg -r "dbdot-collector" > /dev/null 2>&1
       ;;
     rpm)
-      rpm -e "observiq-otel-collector" > /dev/null 2>&1
+      rpm -e "dbdot-collector" > /dev/null 2>&1
       ;;
     *)
       error "Unrecognized package type"
@@ -1260,20 +1249,20 @@ uninstall()
 
   if [ "$SVC_PRE" = "systemctl" ]; then
     info "Stopping service..."
-    systemctl stop observiq-otel-collector > /dev/null || error_exit "$LINENO" "Failed to stop service"
+    systemctl stop dbdot-collector > /dev/null || error_exit "$LINENO" "Failed to stop service"
     succeeded
 
     info "Disabling service..."
-    systemctl disable observiq-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to disable service"
+    systemctl disable dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to disable service"
     succeeded
   else
     info "Stopping service..."
-    service observiq-otel-collector stop
+    service dbdot-collector stop
     succeeded
 
     info "Disabling service..."
-    chkconfig observiq-otel-collector on
-    # rm -f /etc/init.d/observiq-otel-collector
+    chkconfig dbdot-collector on
+    # rm -f /etc/init.d/dbdot-collector
     succeeded
   fi
 

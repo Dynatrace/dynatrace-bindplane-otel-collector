@@ -12,9 +12,9 @@ Push the agent image to your GCR account:
 - replace `myproject` with your gcr project
 
 ```bash
-docker pull observiq/bindplane-agent:1.30.0
-docker tag observiq/bindplane-agent:1.30.0 gcr.io/myproject/bindplane-agent:1.30.0
-docker push gcr.io/myproject/bindplane-agent:1.30.0
+docker pull TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest
+docker tag TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest gcr.io/myproject/dbdot-collector:latest
+docker push gcr.io/myproject/dbdot-collector:latest
 ```
 
 ## Deployment

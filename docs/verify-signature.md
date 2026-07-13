@@ -19,5 +19,5 @@ cosign verify-blob --key ./signature/bp_agent_key.pub --signature <PATH_TO_SIG> 
 Heres an example of verifying the signature of an agent binary:
 
 ```bash
-cosign verify-blob --key ./signature/bp_agent_key.pub --signature observiq-otel-collector-v1.47.1-darwin-amd64.tar.gz.sig observiq-otel-collector-v1.47.1-darwin-amd64.tar.gz
+cosign verify-blob --key ./signature/bp_agent_key.pub --signature dbdot-collector-v1.47.1-darwin-amd64.tar.gz.sig dbdot-collector-v1.47.1-darwin-amd64.tar.gz
 ```

@@ -39,9 +39,9 @@ func TestReplaceInstallDir(t *testing.T) {
 			output:     []byte("no install dir"),
 		},
 		{
-			input:      []byte("[INSTALLDIR]observiq-otel-collector"),
+			input:      []byte("[INSTALLDIR]dbdot-collector"),
 			installDir: "some/install/directory",
-			output:     []byte(filepath.Join("some", "install", "directory", "observiq-otel-collector")),
+			output:     []byte(filepath.Join("some", "install", "directory", "dbdot-collector")),
 		},
 	}
 

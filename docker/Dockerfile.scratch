@@ -15,7 +15,7 @@ RUN mkdir \
     && chmod 0750 /etc/otel/storage
 
 RUN mkdir /licenses
-COPY LICENSE /licenses/observiq-otel-collector.license
+COPY LICENSE /licenses/dbdot-collector.license
 
 COPY release_deps/VERSION.txt /etc/otel/VERSION.txt
 
@@ -37,12 +37,11 @@ COPY --from=stage --chown=otel:otel /licenses /licenses
 COPY --from=stage --chown=otel:otel /etc/otel /etc/otel
 COPY --from=stage --chown=otel:otel /etc/otel/storage /etc/otel/storage
 
-COPY observiq-otel-collector /collector/observiq-otel-collector
+COPY dbdot-collector /collector/dbdot-collector
 
-ENV OIQ_OTEL_COLLECTOR_HOME=/etc/otel
 ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
-ENV OIQ_OTEL_COLLECTOR_STORAGE=/etc/otel/storage
+ENV BINDPLANE_COLLECTOR_STORAGE=/etc/otel/storage
 
 USER otel
 WORKDIR /etc/otel
-ENTRYPOINT ["/collector/observiq-otel-collector"]
+ENTRYPOINT ["/collector/dbdot-collector"]
