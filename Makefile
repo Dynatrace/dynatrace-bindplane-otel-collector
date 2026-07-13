@@ -432,13 +432,28 @@ release-containers-test:
 	mv ./dist/collector_linux_ppc64le ./tmp/collector_linux_ppc64le
 	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --skip=publish --skip=validate --skip=sign --clean --snapshot --config .goreleaser-docker.yml
 
-.PHONY: agent-linux-amd64 agent-linux-arm64 agent-linux-ppc64le
+.PHONY: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le
 agent-linux-amd64:
 	GOARCH=amd64 GOOS=linux $(MAKE) agent
 agent-linux-arm64:
 	GOARCH=arm64 GOOS=linux $(MAKE) agent
+agent-linux-arm:
+	GOARCH=arm GOOS=linux $(MAKE) agent
+agent-linux-ppc64:
+	GOARCH=ppc64 GOOS=linux $(MAKE) agent
 agent-linux-ppc64le:
 	GOARCH=ppc64le GOOS=linux $(MAKE) agent
+
+.PHONY: agent-darwin-amd64 agent-darwin-arm64
+agent-darwin-amd64:
+	GOARCH=amd64 GOOS=darwin $(MAKE) agent
+agent-darwin-arm64:
+	GOARCH=arm64 GOOS=darwin $(MAKE) agent
+
+# build-all-agent builds only the collector binary (no updater) for every
+# release platform. Keep this list in sync with build-all.
+.PHONY: build-all-agent
+build-all-agent: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le agent-darwin-amd64 agent-darwin-arm64 agent-windows-amd64 agent-windows-arm64
 
 # agent-clean wipes the ocb-generated output trees. The ocb step is
 # platform-agnostic Go-source generation, so subsequent platform builds
