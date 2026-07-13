@@ -9,7 +9,7 @@
 </a>
 
 <p align="center">
-  The Dynatrace Bindplane Distribution of OpenTelemetry Collector (DBDOT Collector) is Bindplane’s distribution of the upstream <a href="https://github.com/open-telemetry/opentelemetry-collector">OpenTelemetry Collector</a>. It’s the first distribution to implement the <a href="https://opentelemetry.io/docs/specs/opamp/">Open Agent Management Protocol</a> (OpAMP) and is designed to be fully managed with <a href="https://bindplane.com/">Bindplane Telemetry Pipeline</a>. The DBDOT Collector is built using the <a href="https://github.com/open-telemetry/opentelemetry-collector/tree/main/cmd/builder">OpenTelemetry Collector Builder</a>.
+  The Dynatrace Bindplane Distribution of OpenTelemetry Collector (DBDOT Collector) is a distribution of the upstream <a href="https://github.com/open-telemetry/opentelemetry-collector">OpenTelemetry Collector</a>, designed to be managed by <a href="https://bindplane.com/">Bindplane</a>. It implements the <a href="https://opentelemetry.io/docs/specs/opamp/">Open Agent Management Protocol</a> (OpAMP) and supports both standalone and managed modes. The DBDOT Collector is built using the <a href="https://github.com/open-telemetry/opentelemetry-collector/tree/main/cmd/builder">OpenTelemetry Collector Builder</a>.
 </p>
 
 <b>
@@ -67,7 +67,7 @@ If you're managing telemetry at scale you'll run in to these problems sooner or 
 
 ### An OpenTelemetry Collector you're used to
 
-The DBDOT Collector is Bindplane’s distribution of the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector). It’s the first distribution to implement the [Open Agent Management Protocol](https://opentelemetry.io/docs/specs/opamp/) (OpAMP) and is designed to be fully managed with [Bindplane Telemetry Pipeline](https://bindplane.com/solutions).
+The DBDOT Collector is a distribution of the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector), designed to be managed by [Bindplane](https://bindplane.com/solutions). It implements the [Open Agent Management Protocol](https://opentelemetry.io/docs/specs/opamp/) (OpAMP) and supports both standalone and managed modes.
 
 ### Focused on usability
 
