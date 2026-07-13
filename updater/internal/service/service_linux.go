@@ -24,8 +24,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/observiq/bindplane-otel-collector/updater/internal/file"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/file"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"go.uber.org/zap"
 )
 
@@ -41,7 +41,7 @@ func WithServiceFile(svcFilePath string) Option {
 	}
 }
 
-// NewService returns an instance of the Service interface for managing the observiq-otel-collector service on the current OS.
+// NewService returns an instance of the Service interface for managing the dbdot-collector service on the current OS.
 func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	// Get some information from the environment
 	_, svcFileName := filepath.Split(path.LinuxServiceFilePath())

@@ -11,10 +11,10 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            msi_name: observiq-otel-collector.msi
+            msi_name: dbdot-collector-amd64.msi
             msi_arch: x64
           - arch: arm64
-            msi_name: observiq-otel-collector-arm64.msi
+            msi_name: dbdot-collector-arm64.msi
             msi_arch: arm64
     steps:
       - name: Checkout Sources
@@ -43,7 +43,7 @@ jobs:
           cp release_deps/VERSION.txt windows/VERSION.txt
       - name: Copy Binaries
         run: |
-          cp dist/collector_windows_${{ matrix.arch }}.exe windows/observiq-otel-collector.exe
+          cp dist/collector_windows_${{ matrix.arch }}.exe windows/dbdot-collector.exe
           cp dist/updater_windows_${{ matrix.arch }}.exe windows/updater.exe
       # HACK: Copy build directory to C drive to avoid this error, since there must be a relative path from the tempdir that go-msi uses
       # for the MSI to build properly
@@ -61,6 +61,8 @@ jobs:
       - name: Build MSI
         run: go-msi.exe make -m ${{ matrix.msi_name }} --version ${{ github.ref_name }} --arch ${{ matrix.msi_arch }}
         working-directory: C:/build
+      # TODO(dbdot): the SM_* and DBDOT_DIGICERT_KEYPAIR_ALIAS secrets do not exist yet,
+      # and the DigiCert account itself is being migrated; revisit this signing setup.
       - name: Install DigiCert Client tools from Github Custom Actions marketplace
         uses: digicert/ssm-code-signing@v1.0.0
       - name: Set up certificate
@@ -78,7 +80,7 @@ jobs:
         shell: bash
       - name: Sign MSI
         run: |
-          smctl sign --keypair-alias ${{ secrets.BDOT_DIGICERT_KEYPAIR_ALIAS }} --input C:/build/${{ matrix.msi_name }} --config-file C:\Users\RUNNER~1\AppData\Local\Temp\smtools-windows-x64\pkcs11properties.cfg
+          smctl sign --keypair-alias ${{ secrets.DBDOT_DIGICERT_KEYPAIR_ALIAS }} --input C:/build/${{ matrix.msi_name }} --config-file C:\Users\RUNNER~1\AppData\Local\Temp\smtools-windows-x64\pkcs11properties.cfg
         shell: cmd
       - name: Upload MSI
         uses: actions/upload-artifact@v4
@@ -106,8 +108,8 @@ jobs:
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
-          project_id: ${{ secrets.BDOT_GCS_RELEASE_BUCKET_PROJECT_ID }}
-          credentials_json: ${{ secrets.BDOT_GCS_RELEASE_BUCKET_CREDENTIALS }}
+          project_id: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_PROJECT_ID }}
+          credentials_json: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_CREDENTIALS }}
       - name: Install Gcloud SDK
         uses: google-github-actions/setup-gcloud@v2
       - name: Set up Go
@@ -129,11 +131,11 @@ jobs:
       - name: Retrieve Windows AMD64 MSI Installer
         uses: actions/download-artifact@v4
         with:
-          name: observiq-otel-collector.msi
+          name: dbdot-collector-amd64.msi
       - name: Retrieve Windows ARM64 MSI Installer
         uses: actions/download-artifact@v4
         with:
-          name: observiq-otel-collector-arm64.msi
+          name: dbdot-collector-arm64.msi
       - name: Install cosign
         run: go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
       - name: Build cosign key file
@@ -149,12 +151,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-goreleaser-
       - name: Sign AMD64 MSI
-        run: cosign sign-blob --key=cosign.key --output-signature ./observiq-otel-collector.msi.sig ./observiq-otel-collector.msi
+        run: cosign sign-blob --key=cosign.key --output-signature ./dbdot-collector-amd64.msi.sig ./dbdot-collector-amd64.msi
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.ORG_COSIGN_PWD }}
       - name: Sign ARM64 MSI
-        run: cosign sign-blob --key=cosign.key --output-signature ./observiq-otel-collector-arm64.msi.sig ./observiq-otel-collector-arm64.msi
+        run: cosign sign-blob --key=cosign.key --output-signature ./dbdot-collector-arm64.msi.sig ./dbdot-collector-arm64.msi
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.ORG_COSIGN_PWD }}
@@ -183,37 +185,37 @@ jobs:
           cp ./scripts/install/*.sh ./artifacts
           cp ./scripts/install/*.ps1 ./artifacts
           cp ./release_deps/gpg-keys.tar.gz ./artifacts/gpg-keys.tar.gz
-          cp ./observiq-otel-collector.msi ./artifacts
-          cp ./observiq-otel-collector-arm64.msi ./artifacts
+          cp ./dbdot-collector-amd64.msi ./artifacts
+          cp ./dbdot-collector-arm64.msi ./artifacts
           cp ./dist/*tar.gz ./artifacts
           cp ./dist/*.zip ./artifacts
           cp ./dist/*.rpm ./artifacts
           cp ./dist/*.deb ./artifacts
           cp ./dist/*SHA256SUMS ./artifacts
-          tar -czvf observiq-otel-collector-${{ github.ref_name }}-artifacts.tar.gz -C ./artifacts .
+          tar -czvf dbdot-collector-${{ github.ref_name }}-artifacts.tar.gz -C ./artifacts .
       - name: Sign artifact archive
-        run: cosign sign-blob --key=cosign.key --output-signature ./observiq-otel-collector-${{ github.ref_name }}-artifacts.tar.gz.sig ./observiq-otel-collector-${{ github.ref_name }}-artifacts.tar.gz
+        run: cosign sign-blob --key=cosign.key --output-signature ./dbdot-collector-${{ github.ref_name }}-artifacts.tar.gz.sig ./dbdot-collector-${{ github.ref_name }}-artifacts.tar.gz
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.ORG_COSIGN_PWD }}
       - name: Upload Latest Install Scripts
         run: |
-          gsutil cp ./scripts/install/install_unix.sh gs://bdot-release/latest/install_unix.sh
-          gsutil cp ./scripts/install/install_macos.sh gs://bdot-release/latest/install_macos.sh
-          gsutil cp ./scripts/install/install_windows.ps1 gs://bdot-release/latest/install_windows.ps1
-          gsutil cp ./release_deps/gpg-keys.tar.gz gs://bdot-release/latest/gpg-keys.tar.gz
+          gsutil cp ./scripts/install/install_unix.sh gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_unix.sh
+          gsutil cp ./scripts/install/install_macos.sh gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_macos.sh
+          gsutil cp ./scripts/install/install_windows.ps1 gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_windows.ps1
+          gsutil cp ./release_deps/gpg-keys.tar.gz gs://TODO-DBDOT-RELEASE-BUCKET/latest/gpg-keys.tar.gz
       - name: Upload artifact bundle to release
         uses: AButler/upload-release-assets@v2.0
         with:
           repo-token: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
-          files: "observiq-otel-collector-${{ github.ref_name }}-artifacts.tar.gz*"
+          files: "dbdot-collector-${{ github.ref_name }}-artifacts.tar.gz*"
           release-tag: ${{ github.ref_name }}
-      # Trigger installation tests in otel-collector-installer-testing
+      # Trigger installation tests in TODO-DBDOT-INSTALLER-TESTING-REPO
       - name: Trigger Installation Testing
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
-          repository: observIQ/otel-collector-installer-testing
+          repository: TODO-DBDOT-INSTALLER-TESTING-REPO
           event-type: upstream_prerelease
           client-payload: '{ "version": "${{ github.ref_name }}" }'
 
@@ -231,79 +233,79 @@ jobs:
       - name: Upload Bindplane Linux AMD64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_amd64.deb
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_amd64.deb
 
       - name: Upload Bindplane Linux AMD64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_amd64.rpm
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_amd64.rpm
 
       - name: Upload Bindplane Linux ARM64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_arm64.deb
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_arm64.deb
 
       - name: Upload Bindplane Linux ARM64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_arm64.rpm
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_arm64.rpm
 
       - name: Upload Bindplane Linux ARM32 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_arm.deb
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_arm.deb
 
       - name: Upload Bindplane Linux ARM32 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_arm.rpm
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_arm.rpm
 
       - name: Upload Bindplane Linux PPC64LE Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_ppc64le.deb
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_ppc64le.deb
 
       - name: Upload Bindplane Linux PPC64LE RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_ppc64le.rpm
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_ppc64le.rpm
 
       - name: Upload Bindplane Linux PPC64 Deb Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts apt upload stable-deb \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_ppc64.deb
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_ppc64.deb
 
       - name: Upload Bindplane Linux PPC64 RPM Package
         run: |
           gcloud \
-            --project bindplane-repository \
+            --project TODO-DBDOT-PKG-PROJECT \
             artifacts yum upload stable-rpm \
             --location us-central1 \
-            --source dist/observiq-otel-collector_${{ github.ref_name }}_linux_ppc64.rpm
+            --source dist/dbdot-collector_${{ github.ref_name }}_linux_ppc64.rpm

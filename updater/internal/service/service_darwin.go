@@ -22,13 +22,13 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/observiq/bindplane-otel-collector/updater/internal/file"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/file"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"go.uber.org/zap"
 )
 
 const (
-	darwinServiceFilePath = "/Library/LaunchDaemons/com.observiq.collector.plist"
+	darwinServiceFilePath = "/Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist"
 )
 
 // Option is an extra option for creating a Service
@@ -41,10 +41,10 @@ func WithServiceFile(svcFilePath string) Option {
 	}
 }
 
-// NewService returns an instance of the Service interface for managing the observiq-otel-collector service on the current OS.
+// NewService returns an instance of the Service interface for managing the dbdot-collector service on the current OS.
 func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	darwinSvc := &darwinService{
-		newServiceFilePath:       filepath.Join(path.ServiceFileDir(installDir), "com.observiq.collector.plist"),
+		newServiceFilePath:       filepath.Join(path.ServiceFileDir(installDir), "com.dynatrace.dbdot.collector.plist"),
 		installedServiceFilePath: darwinServiceFilePath,
 		installDir:               path.DarwinInstallDir,
 		logger:                   logger.Named("darwin-service"),

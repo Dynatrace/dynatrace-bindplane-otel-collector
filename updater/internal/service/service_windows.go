@@ -28,13 +28,12 @@ import (
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"github.com/kballard/go-shellquote"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/path"
 )
 
 const (
-	defaultProductName = "observIQ Distro for OpenTelemetry Collector"
-	defaultServiceName = "observiq-otel-collector"
+	defaultServiceName = "dbdot-collector"
 
 	// defaultRecoveryDelay is the duration in which to wait between service restarts due to failures
 	defaultRecoveryDelay = 5 * time.Second
@@ -52,12 +51,12 @@ func WithServiceFile(svcFilePath string) Option {
 	}
 }
 
-// NewService returns an instance of the Service interface for managing the observiq-otel-collector service on the current OS.
+// NewService returns an instance of the Service interface for managing the dbdot-collector service on the current OS.
 func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	winSvc := &windowsService{
 		newServiceFilePath: filepath.Join(path.ServiceFileDir(installDir), "windows_service.json"),
 		serviceName:        defaultServiceName,
-		productName:        defaultProductName,
+		productName:        path.ProductName,
 		installDir:         installDir,
 		logger:             logger.Named("windows-service"),
 	}

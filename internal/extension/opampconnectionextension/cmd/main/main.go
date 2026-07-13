@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main is the entry point for the ocb-built BDOT Collector. The
+// Package main is the entry point for the ocb-built DBDOT Collector. The
 // `agent` Make target copies this file over ocb's generated main.go after
 // `builder --skip-compilation` runs; `go build` then compiles it together
 // with ocb's components.go inside ./build/.
@@ -35,7 +35,7 @@ import (
 	"strings"
 	_ "time/tzdata"
 
-	"github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/runtime"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/runtime"
 	"github.com/observiq/bindplane-otel-contrib/pkg/version"
 	"github.com/spf13/pflag"
 )
@@ -59,7 +59,7 @@ func main() {
 	pflag.Parse()
 
 	if *showVersion {
-		fmt.Println("observiq-otel-collector version", version.Version())
+		fmt.Println("dbdot-collector version", version.Version())
 		fmt.Println("commit:", version.GitHash())
 		fmt.Println("built at:", version.Date())
 		return

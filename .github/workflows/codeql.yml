@@ -55,8 +55,7 @@ jobs:
       # There is no root Go module (the collector is assembled by ocb from
       # the manifest), so autobuild would find nothing to trace at the repo
       # root. Build every module explicitly so CodeQL's Go tracer extracts
-      # all first-party packages. Migrated modules are skipped, matching the
-      # rest of CI.
+      # all first-party packages.
       - name: Build all modules
         run: make for-all-modules CMD="go build ./..."
 

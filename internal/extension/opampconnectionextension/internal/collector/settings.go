@@ -29,7 +29,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const buildDescription = "observIQ's opentelemetry-collector distribution"
+const buildDescription = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 
 // NewSettings returns new settings for the collector with default values.
 func NewSettings(configPaths []string, version string, loggingOpts []zap.Option, factories otelcol.Factories) (*otelcol.CollectorSettings, error) {

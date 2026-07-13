@@ -44,15 +44,16 @@ AGENT_LDFLAGS = -s -w \
 	-X github.com/observiq/bindplane-otel-contrib/pkg/version.gitHash=$(GIT_HASH) \
 	-X github.com/observiq/bindplane-otel-contrib/pkg/version.date=$(BUILD_DATE)
 
-# AGENT_BUILD_TAGS are the build tags that should be used when building BDOT
+# AGENT_BUILD_TAGS are the build tags that should be used when building DBDOT
+# 'bindplane' builds with logic used by the v1 OpAMP implementation
 # 'embed_library' used by the telemetry generator receiver to use blitz (PR#3525)
 AGENT_BUILD_TAGS = embed_library
 
 # UPDATER_LDFLAGS stamps the same values into the updater binary.
 UPDATER_LDFLAGS = -s -w \
-	-X github.com/observiq/bindplane-otel-collector/updater/internal/version.version=$(VERSION) \
-	-X github.com/observiq/bindplane-otel-collector/updater/internal/version.gitHash=$(GIT_HASH) \
-	-X github.com/observiq/bindplane-otel-collector/updater/internal/version.date=$(BUILD_DATE)
+	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.version=$(VERSION) \
+	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.gitHash=$(GIT_HASH) \
+	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.date=$(BUILD_DATE)
 
 .PHONY: version
 version:
@@ -62,7 +63,7 @@ version:
 .DEFAULT_GOAL := build-binaries
 
 # ocb-driven build:
-#   1. Run the OTel collector builder against manifests/observIQ/manifest.yaml
+#   1. Run the OTel collector builder against manifests/dbdot/manifest.yaml
 #      to generate ./build/ (components.go, go.mod, etc).
 #   2. Overwrite the generated main.go with the v1 entry point shipped by
 #      the opampconnectionextension at cmd/main/main.go. That entry point
@@ -84,7 +85,7 @@ OCB ?= $(shell command -v $${OCB:-builder} 2>/dev/null || echo $${GOBIN:-$$HOME/
 .PHONY: install-ocb
 install-ocb:
 	go install go.opentelemetry.io/collector/cmd/builder@$(OCB_VERSION)
-MANIFEST ?= manifests/observIQ/manifest.yaml
+MANIFEST ?= manifests/dbdot/manifest.yaml
 BUILD_DIR ?= ./build
 AGENT_MAIN ?= internal/extension/opampconnectionextension/cmd/main/main.go
 
@@ -291,8 +292,8 @@ gosec:
 ci-checks: check-fmt check-license check-mod-paths check-dependabot misspell lint gosec test
 
 # This target checks that every go.mod has the correct module path.
-# Root must be github.com/observiq/bindplane-otel-collector.
-# Subdirectories must be github.com/observiq/bindplane-otel-collector/<relative-path>.
+# Root must be github.com/dynatrace/dynatrace-bindplane-otel-collector.
+# Subdirectories must be github.com/dynatrace/dynatrace-bindplane-otel-collector/<relative-path>.
 # Modules with legacy paths that cannot be renamed are excluded.
 MOD_PATH_EXCLUDES := ./cmd/plugindocgen
 .PHONY: check-mod-paths
@@ -302,10 +303,10 @@ check-mod-paths:
 		case " $(MOD_PATH_EXCLUDES) " in *" $${dir} "*) continue ;; esac; \
 		MOD=$$(head -1 "$${dir}/go.mod" | sed 's/^module //'); \
 		if [ "$${dir}" = "." ]; then \
-			EXPECTED="github.com/observiq/bindplane-otel-collector"; \
+			EXPECTED="github.com/dynatrace/dynatrace-bindplane-otel-collector"; \
 		else \
 			RELPATH=$$(echo "$${dir}" | sed 's|^\./||'); \
-			EXPECTED="github.com/observiq/bindplane-otel-collector/$${RELPATH}"; \
+			EXPECTED="github.com/dynatrace/dynatrace-bindplane-otel-collector/$${RELPATH}"; \
 		fi; \
 		if [ "$${MOD}" != "$${EXPECTED}" ]; then \
 			echo "MISMATCH: $${dir}/go.mod"; \
@@ -373,11 +374,11 @@ add-license:
 
 # update-otel attempts to update otel dependencies in go.mods,
 # and update the otel versions in the docs.
-# Usage: make update-otel OTEL_VERSION=vx.x.x CONTRIB_VERSION=vx.x.x PDATA_VERSION=vx.x.x-rcx BDOT_CONTRIB_VERSION=vx.x.x
+# Usage: make update-otel OTEL_VERSION=vx.x.x CONTRIB_VERSION=vx.x.x PDATA_VERSION=vx.x.x-rcx DBDOT_CONTRIB_VERSION=vx.x.x
 .PHONY: update-otel
 update-otel:
 	./scripts/update-otel.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(PDATA_VERSION)"
-	./scripts/update-docs.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(BDOT_CONTRIB_VERSION)"
+	./scripts/update-docs.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(DBDOT_CONTRIB_VERSION)"
 	$(MAKE) tidy
 # Double make tidy - this unfortunately is needed due to the order in which modules are tidied.
 # The modules this seems to effect are plugindocgen and bindplaneextension
@@ -391,10 +392,10 @@ update-modules:
 	$(MAKE) tidy
 
 # update-contrib updates all bindplane-otel-contrib dependencies to the new version.
-# Usage: make update-contrib BDOT_CONTRIB_VERSION=vx.x.x
+# Usage: make update-contrib DBDOT_CONTRIB_VERSION=vx.x.x
 .PHONY: update-contrib
 update-contrib:
-	./scripts/update-bindplane-contrib.sh "$(BDOT_CONTRIB_VERSION)"
+	./scripts/update-bindplane-contrib.sh "$(DBDOT_CONTRIB_VERSION)"
 	$(MAKE) tidy
 
 # Downloads and setups dependencies that are packaged with binary
@@ -407,7 +408,7 @@ release-prep:
 	@cp -r ./plugins release_deps/
 	@cp config/example.yaml release_deps/config.yaml
 	@cp config/logging.yaml release_deps/logging.yaml
-	@cp service/com.observiq.collector.plist release_deps/com.observiq.collector.plist
+	@cp service/com.dynatrace.dbdot.collector.plist release_deps/com.dynatrace.dbdot.collector.plist
 	@jq ".files[] | select(.service != null)" windows/wix.json >> release_deps/windows_service.json
 
 .PHONY: release-prep-gpg
@@ -422,8 +423,8 @@ release-prep-gpg:
 .PHONY: release-test
 release-test:
 # If there are no MSIs in the root dir, we'll create dummy ones so that goreleaser can complete successfully
-	if [ ! -e "./observiq-otel-collector.msi" ]; then touch ./observiq-otel-collector.msi; fi
-	if [ ! -e "./observiq-otel-collector-arm64.msi" ]; then touch ./observiq-otel-collector-arm64.msi; fi
+	if [ ! -e "./dbdot-collector-amd64.msi" ]; then touch ./dbdot-collector-amd64.msi; fi
+	if [ ! -e "./dbdot-collector-arm64.msi" ]; then touch ./dbdot-collector-arm64.msi; fi
 	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --skip=publish --skip=validate --skip=sign --clean --snapshot
 
 .PHONY: release-containers-test
@@ -435,13 +436,28 @@ release-containers-test:
 	mv ./dist/collector_linux_ppc64le ./tmp/collector_linux_ppc64le
 	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --skip=publish --skip=validate --skip=sign --clean --snapshot --config .goreleaser-docker.yml
 
-.PHONY: agent-linux-amd64 agent-linux-arm64 agent-linux-ppc64le
+.PHONY: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le
 agent-linux-amd64:
 	GOARCH=amd64 GOOS=linux $(MAKE) agent
 agent-linux-arm64:
 	GOARCH=arm64 GOOS=linux $(MAKE) agent
+agent-linux-arm:
+	GOARCH=arm GOOS=linux $(MAKE) agent
+agent-linux-ppc64:
+	GOARCH=ppc64 GOOS=linux $(MAKE) agent
 agent-linux-ppc64le:
 	GOARCH=ppc64le GOOS=linux $(MAKE) agent
+
+.PHONY: agent-darwin-amd64 agent-darwin-arm64
+agent-darwin-amd64:
+	GOARCH=amd64 GOOS=darwin $(MAKE) agent
+agent-darwin-arm64:
+	GOARCH=arm64 GOOS=darwin $(MAKE) agent
+
+# build-all-agent builds only the collector binary (no updater) for every
+# release platform. Keep this list in sync with build-all.
+.PHONY: build-all-agent
+build-all-agent: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le agent-darwin-amd64 agent-darwin-arm64 agent-windows-amd64 agent-windows-arm64
 
 # agent-clean wipes the ocb-generated output trees. The ocb step is
 # platform-agnostic Go-source generation, so subsequent platform builds
