@@ -4,6 +4,7 @@
 <dict>
     <key>Label</key>
     <string>com.dynatrace.dbdot.collector</string>
+    <!-- BINDPLANE_COLLECTOR_HOME is the Bindplane-facing name; DBDOT_-prefixed vars are collector-internal. -->
     <key>EnvironmentVariables</key>
     <dict>
         <key>BINDPLANE_COLLECTOR_HOME</key>

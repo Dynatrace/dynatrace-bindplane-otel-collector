@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
+	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
 )
 

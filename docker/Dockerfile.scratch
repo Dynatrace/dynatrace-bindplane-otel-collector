@@ -39,6 +39,8 @@ COPY --from=stage --chown=otel:otel /etc/otel/storage /etc/otel/storage
 
 COPY dbdot-collector /collector/dbdot-collector
 
+# BINDPLANE_COLLECTOR_HOME is the Bindplane-facing name (referenced by
+# Bindplane-rendered configurations); DBDOT_-prefixed vars are collector-internal.
 ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
 ENV DBDOT_OTEL_COLLECTOR_STORAGE=/etc/otel/storage
 

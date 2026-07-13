@@ -15,7 +15,12 @@
 // Package updater provides templates for service files.
 package updater
 
-// Constants for service file templates
+// Constants for service file templates.
+//
+// The service environments deliberately mix env var prefixes:
+// BINDPLANE_COLLECTOR_HOME is the Bindplane-facing name (referenced by
+// Bindplane-rendered configurations), while DBDOT_-prefixed vars are
+// collector-internal.
 const systemdServiceTemplate = `[Unit]
 Description=Dynatrace Bindplane Distribution of OpenTelemetry Collector
 After=network.target
