@@ -43,7 +43,7 @@ The script accepts the following parameters:
 
 ### Manual Installation
 
-For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://TODO-DBDOT-DOWNLOAD-HOST/v<version>/dbdot-collector.msi` (or `dbdot-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
+For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://TODO-DBDOT-DOWNLOAD-HOST/v<version>/dbdot-collector-amd64.msi` (or `dbdot-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
 
 ### Signature Verification
 

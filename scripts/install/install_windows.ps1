@@ -116,7 +116,7 @@ $ErrorActionPreference = "Stop"
 # ---- Constants ---------------------------------------------------------------
 
 $DOWNLOAD_BASE = "https://TODO-DBDOT-DOWNLOAD-HOST"
-$MSI_NAME_AMD64 = "dbdot-collector.msi"
+$MSI_NAME_AMD64 = "dbdot-collector-amd64.msi"
 $MSI_NAME_ARM64 = "dbdot-collector-arm64.msi"
 $PRODUCT_DISPLAY_NAME = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 # DBDOT's own UpgradeCode, stable across DBDOT releases; defined in windows/wix.json

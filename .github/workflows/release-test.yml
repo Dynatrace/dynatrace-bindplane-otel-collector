@@ -14,7 +14,7 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            msi_name: dbdot-collector.msi
+            msi_name: dbdot-collector-amd64.msi
             msi_arch: x64
           - arch: arm64
             msi_name: dbdot-collector-arm64.msi
@@ -118,7 +118,7 @@ jobs:
       - name: Retrieve Windows AMD64 MSI Installer
         uses: actions/download-artifact@v8
         with:
-          name: dbdot-collector.msi
+          name: dbdot-collector-amd64.msi
 
       - name: Retrieve Windows ARM64 MSI Installer
         uses: actions/download-artifact@v8
@@ -134,7 +134,7 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{secrets.ORG_COSIGN_PRIVATE_KEY}}
 
       - name: Sign AMD64 MSI
-        run: cosign sign-blob --key=cosign.key --output-signature ./dbdot-collector.msi.sig ./dbdot-collector.msi
+        run: cosign sign-blob --key=cosign.key --output-signature ./dbdot-collector-amd64.msi.sig ./dbdot-collector-amd64.msi
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.ORG_COSIGN_PWD }}
@@ -185,7 +185,7 @@ jobs:
           cp ./scripts/install/*.sh ./artifacts
           cp ./scripts/install/*.ps1 ./artifacts
           cp ./release_deps/gpg-keys.tar.gz ./artifacts/gpg-keys.tar.gz
-          cp ./dbdot-collector.msi ./artifacts
+          cp ./dbdot-collector-amd64.msi ./artifacts
           cp ./dbdot-collector-arm64.msi ./artifacts
           cp ./dist/*tar.gz ./artifacts
           cp ./dist/*.zip ./artifacts

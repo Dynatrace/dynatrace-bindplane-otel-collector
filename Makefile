@@ -419,7 +419,7 @@ release-prep-gpg:
 .PHONY: release-test
 release-test:
 # If there are no MSIs in the root dir, we'll create dummy ones so that goreleaser can complete successfully
-	if [ ! -e "./dbdot-collector.msi" ]; then touch ./dbdot-collector.msi; fi
+	if [ ! -e "./dbdot-collector-amd64.msi" ]; then touch ./dbdot-collector-amd64.msi; fi
 	if [ ! -e "./dbdot-collector-arm64.msi" ]; then touch ./dbdot-collector-arm64.msi; fi
 	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --skip=publish --skip=validate --skip=sign --clean --snapshot
 

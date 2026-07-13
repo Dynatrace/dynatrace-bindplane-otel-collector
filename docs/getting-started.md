@@ -14,7 +14,7 @@ Please note that the agent must be installed on the system which you wish to col
 #### Windows:
 
 ```batch
-msiexec /i "https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases/latest/download/dbdot-collector.msi" /quiet
+msiexec /i "https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases/latest/download/dbdot-collector-amd64.msi" /quiet
 ```
 
 #### Linux:
