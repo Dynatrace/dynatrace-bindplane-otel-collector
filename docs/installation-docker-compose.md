@@ -1,18 +1,18 @@
 
 ## Docker Compose
 
-The Bindplane Distro for OpenTelemetry (BDOT) Collector can be installed with Docker and Docker Compose.
+The Dynatrace Bindplane Distribution of OpenTelemetry Collector can be installed with Docker and Docker Compose.
 
 ## Prerequisites
 
-Before installing the Bindplane Distro for OpenTelemetry Collector using Docker Compose, ensure you have the following installed:
+Before installing the Dynatrace Bindplane Distribution of OpenTelemetry Collector using Docker Compose, ensure you have the following installed:
 
 - Docker Engine (version 20.10.0 or later)
 - Docker Compose (version 2.0.0 or later)
 
 ## Installation Steps
 
-1. Create directories and files to store both Docker Compose and BDOT Collector configuration files:
+1. Create directories and files to store both Docker Compose and DBDOT Collector configuration files:
 
 ```
 > config
@@ -31,8 +31,8 @@ Proceed to add content into all files except the `manager.yaml` that will be aut
 version: '3.8'
 
 services:
-  bdot-collector:
-    image: ghcr.io/observiq/bindplane-agent:latest
+  dbdot-collector:
+    image: ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector:latest
     command: ["--config=/etc/otel/storage/config.yaml"]
     volumes:
       - ./config:/etc/otel/config
@@ -46,7 +46,7 @@ services:
       OPAMP_ENDPOINT: <your-endpoint> # use "wss://app.bindplane.com/v1/opamp" for Bindplane Cloud
       OPAMP_SECRET_KEY: <your-secret-key>
       OPAMP_LABELS: install_id=<your-install-id>
-      OPAMP_AGENT_NAME: bdot-collector
+      OPAMP_AGENT_NAME: dbdot-collector
       CONFIG_YAML_PATH: /etc/otel/storage/config.yaml
       MANAGER_YAML_PATH: /etc/otel/config/manager.yaml
       LOGGING_YAML_PATH: /etc/otel/storage/logging.yaml
@@ -86,7 +86,7 @@ output: stdout
 level: info
 ```
 
-5. Start the BDOT Collector using Docker Compose:
+5. Start the DBDOT Collector using Docker Compose:
 
 ```bash
 docker compose up -d
@@ -106,15 +106,15 @@ docker compose ps
 docker compose logs -f
 ```
 
-## Configuring the BDOT Collector
+## Configuring the DBDOT Collector
 
 Roll out a configuration update from Bindplane.
 
 ## Uninstalling
 
-Stop Docker Compose and remove the BDOT Collector container.
+Stop Docker Compose and remove the DBDOT Collector container.
 
 ```
 docker compose down -v
-docker compose rm -f bdot-collector
+docker compose rm -f dbdot-collector
 ```

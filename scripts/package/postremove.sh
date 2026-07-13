@@ -17,13 +17,13 @@
 set -e
 
 # Read's optional package overrides. Users should deploy the override
-# file before installing BDOT for the first time. The override should
+# file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/observiq-otel-collector ] && . /etc/default/observiq-otel-collector
-[ -f /etc/sysconfig/observiq-otel-collector ] && . /etc/sysconfig/observiq-otel-collector
+[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
+[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
 
 # The collectors installation directory
-: "${BDOT_CONFIG_HOME:=/opt/observiq-otel-collector}"
+: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
 
 # Check if this is an uninstall or an upgrade
 # RPM: $1 is the number of packages remaining that provide this package
@@ -66,13 +66,21 @@ remove_file_or_dir() {
 
 # Only perform cleanup on uninstall, not on upgrade
 if is_uninstall "$1"; then
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/package_statuses.json"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/plugins"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/log"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/VERSION.txt"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/updater"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/observiq-otel-collector"
-    remove_file_or_dir "${BDOT_CONFIG_HOME}/install"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/package_statuses.json"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/plugins"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/log"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/VERSION.txt"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/updater"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/dbdot-collector"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/install"
+
+    # Remove the service definitions written by postinstall.sh.
+    remove_file_or_dir "/usr/lib/systemd/system/dbdot-collector.service"
+    remove_file_or_dir "/etc/systemd/system/dbdot-collector.service.d"
+    remove_file_or_dir "/etc/init.d/dbdot-collector"
+    if command -v systemctl > /dev/null 2>&1; then
+        systemctl daemon-reload || true
+    fi
 else
     echo "Upgrade detected, skipping cleanup"
 fi

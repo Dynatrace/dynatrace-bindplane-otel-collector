@@ -39,7 +39,7 @@ The `credentials_file` parameter can be set:
 ```yaml
 exporters:
   googlecloud:
-    credentials_file: /opt/observiq-otel-collector/credentials.json
+    credentials_file: /opt/dbdot-collector/credentials.json
 ```
 
 **Credential JSON**

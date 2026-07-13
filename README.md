@@ -9,7 +9,7 @@
 </a>
 
 <p align="center">
-  The Bindplane Distro for OpenTelemetry Collector (BDOT Collector) is Bindplane’s distribution of the upstream <a href="https://github.com/open-telemetry/opentelemetry-collector">OpenTelemetry Collector</a>. It’s the first distribution to implement the <a href="https://opentelemetry.io/docs/specs/opamp/">Open Agent Management Protocol</a> (OpAMP) and is designed to be fully managed with <a href="https://bindplane.com/">Bindplane Telemetry Pipeline</a>. The BDOT Collector is built using the <a href="https://github.com/open-telemetry/opentelemetry-collector/tree/main/cmd/builder">OpenTelemetry Collector Builder</a>.
+  The Dynatrace Bindplane Distribution of OpenTelemetry Collector (DBDOT Collector) is a distribution of the upstream <a href="https://github.com/open-telemetry/opentelemetry-collector">OpenTelemetry Collector</a>, designed to be managed by <a href="https://bindplane.com/">Bindplane</a>. It implements the <a href="https://opentelemetry.io/docs/specs/opamp/">Open Agent Management Protocol</a> (OpAMP) and supports both standalone and managed modes. The DBDOT Collector is built using the <a href="https://github.com/open-telemetry/opentelemetry-collector/tree/main/cmd/builder">OpenTelemetry Collector Builder</a>.
 </p>
 
 <b>
@@ -34,14 +34,14 @@
 
 <!-- badges -->
 <p align="center">
-  <a href="https://github.com/observIQ/bindplane-otel-collector/actions">
-    <img src="https://github.com/observIQ/bindplane-otel-collector/workflows/Build/badge.svg" alt="Action Status">
+  <a href="https://github.com/dynatrace/dynatrace-bindplane-otel-collector/actions">
+    <img src="https://github.com/dynatrace/dynatrace-bindplane-otel-collector/workflows/Build/badge.svg" alt="Action Status">
   </a>
-  <a href="https://github.com/observIQ/bindplane-otel-collector/actions">
-    <img src="https://github.com/observIQ/bindplane-otel-collector/workflows/Tests/badge.svg" alt="Action Test Status">
+  <a href="https://github.com/dynatrace/dynatrace-bindplane-otel-collector/actions">
+    <img src="https://github.com/dynatrace/dynatrace-bindplane-otel-collector/workflows/Tests/badge.svg" alt="Action Test Status">
   </a>
-  <a href="https://goreportcard.com/report/github.com/observIQ/bindplane-otel-collector">
-    <img src="https://goreportcard.com/badge/github.com/observIQ/bindplane-otel-collector" alt="Go Report Card">
+  <a href="https://goreportcard.com/report/github.com/dynatrace/dynatrace-bindplane-otel-collector">
+    <img src="https://goreportcard.com/badge/github.com/dynatrace/dynatrace-bindplane-otel-collector" alt="Go Report Card">
   </a>
   <a href="https://opensource.org/licenses/Apache-2.0">
     <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
@@ -53,11 +53,11 @@
 </p>
 <p align="center">
   <i>
-    Learn how to connect Bindplane Distro for OpenTelemetry Collector to telemetry <a href="https://bindplane.com/docs/resources/sources">sources</a> and <a href="https://bindplane.com/docs/resources/destinations">destinations</a>, and use <a href="https://bindplane.com/docs/resources/processors">processors</a> to transform data.
+    Learn how to connect Dynatrace Bindplane Distribution of OpenTelemetry Collector to telemetry <a href="https://bindplane.com/docs/resources/sources">sources</a> and <a href="https://bindplane.com/docs/resources/destinations">destinations</a>, and use <a href="https://bindplane.com/docs/resources/processors">processors</a> to transform data.
   </i>
 </p>
 
-## Why Bindplane Distro for OpenTelemetry Collector?
+## Why Dynatrace Bindplane Distribution of OpenTelemetry Collector?
 
 If you're managing telemetry at scale you'll run in to these problems sooner or later:
 
@@ -67,7 +67,7 @@ If you're managing telemetry at scale you'll run in to these problems sooner or 
 
 ### An OpenTelemetry Collector you're used to
 
-The BDOT Collector is Bindplane’s distribution of the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector). It’s the first distribution to implement the [Open Agent Management Protocol](https://opentelemetry.io/docs/specs/opamp/) (OpAMP) and is designed to be fully managed with [Bindplane Telemetry Pipeline](https://bindplane.com/solutions).
+The DBDOT Collector is a distribution of the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector), designed to be managed by [Bindplane](https://bindplane.com/solutions). It implements the [Open Agent Management Protocol](https://opentelemetry.io/docs/specs/opamp/) (OpAMP) and supports both standalone and managed modes.
 
 ### Focused on usability
 
@@ -89,66 +89,66 @@ To continue with the quick start, follow along below.
 
 ### Linux
 
-Install BDOT Collector using the installation script below.
+Install DBDOT Collector using the installation script below.
 
 ```sh
-sudo sh -c "$(curl -fsSlL https://bdot.bindplane.com/<version>/install_unix.sh)" install_unix.sh
+sudo sh -c "$(curl -fsSlL https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_unix.sh)" install_unix.sh
 ```
 
 To install directly with the appropriate package manager, and how to configure OpAMP, see [installing on Linux](/docs/installation-linux.md).
 
 ### Windows
 
-Install the BDOT Collector using the PowerShell command below. The script automatically selects the correct MSI for the system architecture (amd64 or arm64).
+Install the DBDOT Collector using the PowerShell command below. The script automatically selects the correct MSI for the system architecture (amd64 or arm64).
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://bdot.bindplane.com/<version>/install_windows.ps1")))
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1")))
 ```
 
 For more installation information, and how to configure OpAMP, see [installing on Windows](/docs/installation-windows.md).
 
 ### macOS
 
-Install BDOT Collector using the installation script below.
+Install DBDOT Collector using the installation script below.
 
 ```sh
-sudo sh -c "$(curl -fsSlL https://bdot.bindplane.com/<version>/install_macos.sh)" install_macos.sh
+sudo sh -c "$(curl -fsSlL https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_macos.sh)" install_macos.sh
 ```
 
 For more installation information, and how to configure OpAMP, see [installing on macOS](/docs/installation-mac.md).
 
 ## Next Steps
 
-### BDOT Collector default `config.yaml`
+### DBDOT Collector default `config.yaml`
 
-With the BDOT Collector installed, it will start collecting basic metrics about the host machine printing them to the log. To further configure your collector edit the `config.yaml` file just like you would an OpenTelemetry Collector. To find your `config.yaml` file based on your operating system, reference the table below:
+With the DBDOT Collector installed, it will start collecting basic metrics about the host machine printing them to the log. To further configure your collector edit the `config.yaml` file just like you would an OpenTelemetry Collector. To find your `config.yaml` file based on your operating system, reference the table below:
 
 | OS      | Default Location                                                |
 | :------ | :-------------------------------------------------------------- |
-| Linux   | `/opt/observiq-otel-collector/config.yaml`                      |
-| Windows | `C:\Program Files\observIQ OpenTelemetry Collector\config.yaml` |
-| macOS   | `/opt/observiq-otel-collector/config.yaml`                      |
+| Linux   | `/opt/dbdot-collector/config.yaml`                      |
+| Windows | `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\config.yaml` |
+| macOS   | `/opt/dbdot-collector/config.yaml`                      |
 
 For more information on configuration see the [Configuration section](#configuration).
 
-### Manage BDOT Collector with Bindplane Telemetry Pipeline via OpAMP
+### Manage DBDOT Collector with Bindplane Telemetry Pipeline via OpAMP
 
 Improving developer experience with OpenTelemetry is Bindplane's primary focus. We're building Bindplane Telemetry Pipeline to help deploy and manage OpenTelemetry Collectors at scale, but retain core OpenTelemetry Standards for terminology and configuration, with the added benefit of enabling remote management with OpAMP.
 
-The BDOT Collector can be configured as an OpenTelemetry Collector that is managed by the Bindplane Telemetry Pipeline via OpAMP. Bindplane is designed to be OpenTelemetry-first, with OpenTelemetry as its core framework. By providing a centralized management plane, it simplifies the development, implementation, management, and configuration of OpenTelemetry.
+The DBDOT Collector can be configured as an OpenTelemetry Collector that is managed by the Bindplane Telemetry Pipeline via OpAMP. Bindplane is designed to be OpenTelemetry-first, with OpenTelemetry as its core framework. By providing a centralized management plane, it simplifies the development, implementation, management, and configuration of OpenTelemetry.
 
 For more information on managing collectors via OpAMP see the [Connecting to Bindplane Telemetry Pipeline with OpAMP section](#connecting-to-bindplane-telemetry-pipeline-with-opamp).
 
 ## Configuration
 
-The BDOT Collector uses OpenTelemetry Collector configuration.
+The DBDOT Collector uses OpenTelemetry Collector configuration.
 
 For sample configs, see the [config](/config/) directory.
 For general configuration help, see the [OpenTelemetry docs](https://opentelemetry.io/docs/collector/configuration/).
 
 For configuration options of a specific component, take a look at the README found in their respective module roots. For a list of currently supported components see [Included Components](#included-components).
 
-For a list of possible command line arguments to use with the BDOT Collector, run the collector with the `--help` argument.
+For a list of possible command line arguments to use with the DBDOT Collector, run the collector with the `--help` argument.
 
 ### Included Components
 
@@ -209,10 +209,10 @@ service:
 
 ### Feature Gates
 
-Starting in v1.80.2 of the BDOT collector, OpenTelemetry feature gates can be configured at run time using a program argument or environment variable. To configure via a run time argument, you can do the following:
+Starting in v1.80.2 of the DBDOT collector, OpenTelemetry feature gates can be configured at run time using a program argument or environment variable. To configure via a run time argument, you can do the following:
 
 ```sh
-./observiq-otel-collector --config ./path/to/config.yaml --feature-gates otel.SomeFeature,-otel.OtherFeature
+./dbdot-collector --config ./path/to/config.yaml --feature-gates otel.SomeFeature,-otel.OtherFeature
 ```
 
 This would enable the `otel.SomeFeature` feature gate and disable the `otel.OtherFeature` feature gate.
@@ -223,7 +223,7 @@ Use the environment variable `COLLECTOR_FEATURE_GATES` to achieve the same resul
 COLLECTOR_FEATURE_GATES=otel.SomeFeature,-otel.OtherFeature
 ```
 
-By default the following feature gates are enabled in BDOT:
+By default the following feature gates are enabled in DBDOT:
 
 - filelog.allowFileDeletion
 - filelog.allowHeaderMetadataParsing
@@ -253,27 +253,27 @@ You can also get started with Bindplane On Prem for free by hosting it yourself.
 
 ### V1
 
-V1 distributions of the BDOT Collector use a custom OpAMP manager built into the BDOT Collector to interface between the OpenTelemetry collector and the OpAMP server run by Bindplane.
+V1 distributions of the DBDOT Collector use a custom OpAMP manager built into the DBDOT Collector to interface between the OpenTelemetry collector and the OpAMP server run by Bindplane.
 
 ### V2
 
-V2 is the latest major release of the BDOT Collector. This version is currently in [Beta](https://github.com/observIQ/bindplane-otel-collector/releases/tag/v2.0.0-beta.12). V2 distributions of the BDOT Collector use the [OpenTelemetry OpAMP supervisor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor) to interface between the OpenTelemetry Collector and the OpAMP server run by Bindplane. For more information, [see this documentation](https://github.com/observIQ/bindplane-otel-collector/blob/release/v2.0.0/docs/supervisor.md).
+V2 is the latest major release of the DBDOT Collector. This version is currently in [Beta](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases/tag/v2.0.0-beta.12). V2 distributions of the DBDOT Collector use the [OpenTelemetry OpAMP supervisor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor) to interface between the OpenTelemetry Collector and the OpAMP server run by Bindplane. For more information, [see this documentation](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/release/v2.0.0/docs/supervisor.md).
 
 ## Community
 
-Have an idea to improve the Bindplane Distro for OpenTelemetry Collector? Here's how you can help:
+Have an idea to improve the Dynatrace Bindplane Distribution of OpenTelemetry Collector? Here's how you can help:
 
 - Star this repo ⭐️ and follow us on [Twitter](https://x.com/bindplane).
 - Upvote issues with 👍 so we know what to prioritize in the road map.
-- [Create issues](https://github.com/observIQ/bindplane-otel-collector/issues) when you feel something is missing or wrong.
+- [Create issues](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/issues) when you feel something is missing or wrong.
 - Join our [Slack Community](https://www.launchpass.com/bindplane), and ask us any questions there.
 
 ## Contributing
 
-The Bindplane Distro for OpenTelemetry Collector is an open source project. If you'd like to contribute, take a look at our [contribution guidelines](/CONTRIBUTING.md) and [developer guide](/docs/development.md).
+The Dynatrace Bindplane Distribution of OpenTelemetry Collector is an open source project. If you'd like to contribute, take a look at our [contribution guidelines](/CONTRIBUTING.md) and [developer guide](/docs/development.md).
 
 All sorts of contributions are **welcome and extremely helpful**. 🙌
 
 ## How can we help?
 
-If you need any additional help feel free to reach out to us at support@observiq.com.
+If you need any additional help feel free to reach out to us at TODO-DBDOT-SUPPORT-EMAIL.

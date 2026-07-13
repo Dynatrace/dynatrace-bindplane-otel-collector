@@ -14,13 +14,13 @@ Please note that the agent must be installed on the system which you wish to col
 #### Windows:
 
 ```batch
-msiexec /i "https://github.com/observIQ/bindplane-otel-collector/releases/latest/download/observiq-otel-collector.msi" /quiet
+msiexec /i "https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases/latest/download/dbdot-collector-amd64.msi" /quiet
 ```
 
 #### Linux:
 
 ```shell
-sudo sh -c "$(curl -fsSlL https://github.com/observIQ/bindplane-otel-collector/releases/latest/download/install_unix.sh)" install_unix.sh
+sudo sh -c "$(curl -fsSlL https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases/latest/download/install_unix.sh)" install_unix.sh
 ```
 
 For more details on installation, see our [Linux](/docs/installation-linux.md), [Windows](/docs/installation-windows.md), and [Mac](/docs/installation-mac.md) installation guides.
@@ -42,12 +42,12 @@ Create a service account JSON key and place it on the system that is running the
 
 ### Linux
 
-In this example, the key is placed at `/opt/observiq-otel-collector/sa.json` and its permissions are restricted to the user running the collector process.
+In this example, the key is placed at `/opt/dbdot-collector/sa.json` and its permissions are restricted to the user running the collector process.
 
 ```shell
-sudo cp sa.json /opt/observiq-otel-collector/sa.json
-sudo chown observiq-otel-collector: /opt/observiq-otel-collector/sa.json
-sudo chmod 0400 /opt/observiq-otel-collector/sa.json
+sudo cp sa.json /opt/dbdot-collector/sa.json
+sudo chown dbdot: /opt/dbdot-collector/sa.json
+sudo chmod 0400 /opt/dbdot-collector/sa.json
 ```
  
 Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable by creating a systemd override. A systemd override allows users to modify the systemd service configuration without modifying the service directly. This allows package upgrades to happen seamlessly. You can learn more about systemd units and overrides here.
@@ -55,14 +55,14 @@ Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable by creating a syst
 Run the following command
 
 ```shell
-sudo systemctl edit observiq-otel-collector
+sudo systemctl edit dbdot-collector
 ```
 
 If this is the first time an override is being created, paste the following contents into the file:
 
 ```
 [Service]
-Environment=GOOGLE_APPLICATION_CREDENTIALS=/opt/observiq-otel-collector/sa.json
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/opt/dbdot-collector/sa.json
 ```
  
 If an override is already in place, simply insert the Environment parameter into the existing Service section.
@@ -76,7 +76,7 @@ sudo systemctl daemon-reload
 Restart the agent
 
 ```shell
-sudo systemctl restart observiq-otel-collector
+sudo systemctl restart dbdot-collector
 ```
  
 ### Windows
@@ -101,9 +101,9 @@ To export the metrics to Google Cloud Operations, use the configurations outline
 
 After the installation, the config file for the agent can be found at:
 
-Windows: `C:\Program Files\observIQ OpenTelemetry Collector\config.yaml`
+Windows: `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\config.yaml`
 
-Linux: `/opt/observiq-otel-collector/config.yaml`
+Linux: `/opt/dbdot-collector/config.yaml`
 
 Edit the configuration file and use the following configuration.
 
@@ -140,7 +140,7 @@ service:
 Restart the agent
 
 ```shell
-systemctl restart observiq-otel-collector
+systemctl restart dbdot-collector
 ```
 
 ## Viewing the metrics in Google Cloud Operations

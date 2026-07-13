@@ -31,9 +31,8 @@ jobs:
 
 
       # There is no root Go module (the collector is assembled by ocb from
-      # the manifest), so scan each module in the repo, skipping the ones
-      # migrated to the contrib repo. A scan error fails the job rather
-      # than silently reporting a clean result.
+      # the manifest), so scan each module in the repo. A scan error fails
+      # the job rather than silently reporting a clean result.
       - name: Run govulncheck across all modules
         timeout-minutes: 30
         run: |

@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	collector "github.com/observiq/bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
+	collector "github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
 
 	mock "github.com/stretchr/testify/mock"
 

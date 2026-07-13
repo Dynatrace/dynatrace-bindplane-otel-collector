@@ -21,11 +21,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/observiq/bindplane-otel-collector/updater/internal/action"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/file"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/path"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/rollback"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/service"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/file"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/rollback"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/service"
 	"go.uber.org/zap"
 )
 

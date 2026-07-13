@@ -7,19 +7,19 @@ To install the agent on Windows, run the PowerShell command below from an **elev
 > **Note:** The install script is available as of release v1.96.0. For earlier versions, see the [manual installation](#manual-installation) instructions below.
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://bdot.bindplane.com/<version>/install_windows.ps1")))
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1")))
 ```
 
 To install a specific version, pass the `-Version` parameter:
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://bdot.bindplane.com/<version>/install_windows.ps1"))) -Version "v1.96.0"
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1"))) -Version "v1.96.0"
 ```
 
 For an unattended (silent) installation without the installer UI, add `-Quiet`:
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://bdot.bindplane.com/<version>/install_windows.ps1"))) -Quiet
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1"))) -Quiet
 ```
 
 ### Additional Options
@@ -43,7 +43,7 @@ The script accepts the following parameters:
 
 ### Manual Installation
 
-For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://bdot.bindplane.com/v<version>/observiq-otel-collector.msi` (or `observiq-otel-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
+For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://TODO-DBDOT-DOWNLOAD-HOST/v<version>/dbdot-collector-amd64.msi` (or `dbdot-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
 
 ### Signature Verification
 
@@ -54,7 +54,7 @@ Installation artifacts are signed, and the script verifies the MSI's Authenticod
 To install the agent with an OpAMP connection configuration, pass the management flags to the install script:
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://bdot.bindplane.com/<version>/install_windows.ps1"))) `
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1"))) `
     -EnableManagement "1" `
     -OpAMPEndpoint "<your_endpoint>" `
     -OpAMPSecretKey "<secret-key>"
@@ -64,19 +64,19 @@ To read more about the generated connection configuration file see [OpAMP docs](
 
 ## Configuring the Agent
 
-After installing, the `observiq-otel-collector` service will be running and ready for configuration!
+After installing, the `dbdot-collector` service will be running and ready for configuration!
 
-The agent logs to `C:\Program Files\observIQ OpenTelemetry Collector\log\collector.log` by default.
+The agent logs to `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log\collector.log` by default.
 
-By default, the config file for the agent can be found at `C:\Program Files\observIQ OpenTelemetry Collector\config.yaml`. When changing the configuration, the agent service must be restarted in order for config changes to take effect.
+By default, the config file for the agent can be found at `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\config.yaml`. When changing the configuration, the agent service must be restarted in order for config changes to take effect.
 
 For more information on configuring the agent, see the [OpenTelemetry docs](https://opentelemetry.io/docs/collector/configuration/).
 
 **Logging**
 
-Logs from the agent will appear in `<install_dir>/log` (`C:\Program Files\observIQ OpenTelemetry Collector\log` by default).
+Logs from the agent will appear in `<install_dir>/log` (`C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log` by default).
 
-Stderr for the agent process can be found at `<install_dir>/log/observiq_collector.err` (`C:\Program Files\observIQ OpenTelemetry Collector\log\observiq_collector.err` by default).
+Stderr for the agent process can be found at `<install_dir>/log/dbdot_collector.err` (`C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log\dbdot_collector.err` by default).
 
 ## Restarting the Agent
 Restarting the agent may be done through the services dialog.
@@ -84,13 +84,13 @@ To access the services dialog, press Win + R, enter `services.msc` into the Run 
 
 ![The run dialog](./screenshots/windows/launch-services.png)
 
-Locate the "observIQ Distro for OpenTelemetry Collector" service, right click the entry, and click "Restart" to restart the agent.
+Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service, right click the entry, and click "Restart" to restart the agent.
 
 ![The services dialog](./screenshots/windows/stop-restart-service.png)
 
 Alternatively, the PowerShell command below may be run to restart the agent service.
 ```pwsh
-Restart-Service -Name "observiq-otel-collector"
+Restart-Service -Name "dbdot-collector"
 ```
 
 ## Stopping the Agent
@@ -100,13 +100,13 @@ To access the services dialog, press Win + R, enter `services.msc` into the Run 
 
 ![The run dialog](./screenshots/windows/launch-services.png)
 
-Locate the "observIQ Distro for OpenTelemetry Collector" service, right click the entry, and click "Stop" to stop the agent.
+Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service, right click the entry, and click "Stop" to stop the agent.
 
 ![The services dialog](./screenshots/windows/stop-restart-service.png)
 
 Alternatively, the PowerShell command below may be run to stop the agent service.
 ```pwsh
-Stop-Service -Name "observiq-otel-collector"
+Stop-Service -Name "dbdot-collector"
 ```
 
 ## Starting the Agent
@@ -116,13 +116,13 @@ To access the services dialog, press Win + R, enter `services.msc` into the Run 
 
 ![The run dialog](./screenshots/windows/launch-services.png)
 
-Locate the "observIQ Distro for OpenTelemetry Collector" service, right click the entry, and click "Start" to start the agent.
+Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service, right click the entry, and click "Start" to start the agent.
 
 ![The services dialog](./screenshots/windows/start-service.png)
 
 Alternatively, the PowerShell command below may be run to start the agent service.
 ```pwsh
-Start-Service -Name "observiq-otel-collector"
+Start-Service -Name "dbdot-collector"
 ```
 
 ## Uninstalling
@@ -130,14 +130,14 @@ Start-Service -Name "observiq-otel-collector"
 To uninstall the agent, run the install script with the `-Uninstall` flag:
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://bdot.bindplane.com/<version>/install_windows.ps1"))) -Uninstall
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1"))) -Uninstall
 ```
 
 Alternatively, uninstall through the control panel via the "Uninstall a program" dialog.
 
 ![The control panel](./screenshots/windows/control-panel-uninstall.png)
 
-Locate the `"observIQ Distro for OpenTelemetry Collector"` entry, and select uninstall.
+Locate the `"Dynatrace Bindplane Distribution of OpenTelemetry Collector"` entry, and select uninstall.
 
 ![The uninstall or change a program dialog](./screenshots/windows/uninstall-collector.png)
 

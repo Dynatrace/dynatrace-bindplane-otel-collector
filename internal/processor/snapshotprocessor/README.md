@@ -4,7 +4,7 @@ Supported pipelines: logs, metrics, traces
 
 This processor saves OTLP payloads into snapshots that can be reported to [Bindplane](https://bindplane.com/).
 
-This processor is only used by bindplane-agent. To add snapshot support to an agent built with OpenTelemetry Collector Builder, use the non-internal [snapshotprocessor](/processor/snapshotprocessor/README.md) instead.
+This processor is internal to the DBDOT Collector. To add snapshot support to a different agent built with OpenTelemetry Collector Builder, use the [snapshotprocessor from bindplane-otel-contrib](https://github.com/observIQ/bindplane-otel-contrib/tree/main/processor/snapshotprocessor) instead.
 
 ## Configuration
 

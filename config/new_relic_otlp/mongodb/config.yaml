@@ -7,7 +7,7 @@ receivers:
       insecure: true
 
   plugin/mongodb:
-    path: $OIQ_OTEL_COLLECTOR_HOME/plugins/mongodb_logs.yaml
+    path: $BINDPLANE_COLLECTOR_HOME/plugins/mongodb_logs.yaml
     parameters:
       log_paths:
         - /var/log/mongodb/mongod.log

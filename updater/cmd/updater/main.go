@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/observiq/bindplane-otel-collector/updater/internal/logging"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/path"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/updater"
-	"github.com/observiq/bindplane-otel-collector/updater/internal/version"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/logging"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/updater"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 )
@@ -32,7 +32,7 @@ func main() {
 	pflag.Parse()
 
 	if *showVersion {
-		fmt.Println("observiq-otel-collector updater version", version.Version())
+		fmt.Println("dbdot-collector updater version", version.Version())
 		fmt.Println("commit:", version.GitHash())
 		fmt.Println("built at:", version.Date())
 		return
