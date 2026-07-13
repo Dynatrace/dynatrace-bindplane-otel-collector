@@ -608,7 +608,7 @@ display_results()
     increase_indent
     info "For more information on configuring the agent, see the docs:"
     increase_indent
-    info "$(fg_cyan "https://github.com/dynatrace/dbdot-collector/tree/main")$(reset)"
+    info "$(fg_cyan "https://github.com/dynatrace/dynatrace-bindplane-otel-collector/tree/main")$(reset)"
     decrease_indent
     info "If you have any other questions please contact us at $(fg_cyan TODO-DBDOT-SUPPORT-EMAIL)$(reset)"
     decrease_indent

@@ -34,14 +34,14 @@
 
 <!-- badges -->
 <p align="center">
-  <a href="https://github.com/dynatrace/dbdot-collector/actions">
-    <img src="https://github.com/dynatrace/dbdot-collector/workflows/Build/badge.svg" alt="Action Status">
+  <a href="https://github.com/dynatrace/dynatrace-bindplane-otel-collector/actions">
+    <img src="https://github.com/dynatrace/dynatrace-bindplane-otel-collector/workflows/Build/badge.svg" alt="Action Status">
   </a>
-  <a href="https://github.com/dynatrace/dbdot-collector/actions">
-    <img src="https://github.com/dynatrace/dbdot-collector/workflows/Tests/badge.svg" alt="Action Test Status">
+  <a href="https://github.com/dynatrace/dynatrace-bindplane-otel-collector/actions">
+    <img src="https://github.com/dynatrace/dynatrace-bindplane-otel-collector/workflows/Tests/badge.svg" alt="Action Test Status">
   </a>
-  <a href="https://goreportcard.com/report/github.com/dynatrace/dbdot-collector">
-    <img src="https://goreportcard.com/badge/github.com/dynatrace/dbdot-collector" alt="Go Report Card">
+  <a href="https://goreportcard.com/report/github.com/dynatrace/dynatrace-bindplane-otel-collector">
+    <img src="https://goreportcard.com/badge/github.com/dynatrace/dynatrace-bindplane-otel-collector" alt="Go Report Card">
   </a>
   <a href="https://opensource.org/licenses/Apache-2.0">
     <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
@@ -257,7 +257,7 @@ V1 distributions of the DBDOT Collector use a custom OpAMP manager built into th
 
 ### V2
 
-V2 is the latest major release of the DBDOT Collector. This version is currently in [Beta](https://github.com/dynatrace/dbdot-collector/releases/tag/v2.0.0-beta.12). V2 distributions of the DBDOT Collector use the [OpenTelemetry OpAMP supervisor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor) to interface between the OpenTelemetry Collector and the OpAMP server run by Bindplane. For more information, [see this documentation](https://github.com/dynatrace/dbdot-collector/blob/release/v2.0.0/docs/supervisor.md).
+V2 is the latest major release of the DBDOT Collector. This version is currently in [Beta](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases/tag/v2.0.0-beta.12). V2 distributions of the DBDOT Collector use the [OpenTelemetry OpAMP supervisor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor) to interface between the OpenTelemetry Collector and the OpAMP server run by Bindplane. For more information, [see this documentation](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/release/v2.0.0/docs/supervisor.md).
 
 ## Community
 
@@ -265,7 +265,7 @@ Have an idea to improve the Dynatrace Bindplane Distribution of OpenTelemetry Co
 
 - Star this repo ⭐️ and follow us on [Twitter](https://x.com/bindplane).
 - Upvote issues with 👍 so we know what to prioritize in the road map.
-- [Create issues](https://github.com/dynatrace/dbdot-collector/issues) when you feel something is missing or wrong.
+- [Create issues](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/issues) when you feel something is missing or wrong.
 - Join our [Slack Community](https://www.launchpass.com/bindplane), and ask us any questions there.
 
 ## Contributing

@@ -114,7 +114,7 @@ nfpms:
     vendor: TODO-DBDOT-VENDOR
     maintainer: TODO-DBDOT-VENDOR <TODO-DBDOT-SUPPORT-EMAIL>
     description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
-    homepage: https://github.com/dynatrace/dbdot-collector
+    homepage: https://github.com/dynatrace/dynatrace-bindplane-otel-collector
     license: Apache 2.0
     formats:
       - rpm

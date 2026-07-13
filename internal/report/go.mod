@@ -1,4 +1,4 @@
-module github.com/dynatrace/dbdot-collector/internal/report
+module github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report
 
 go 1.26.4
 

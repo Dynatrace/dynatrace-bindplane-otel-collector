@@ -1,7 +1,7 @@
 dist:
   name: dbdot-collector
   description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
-  module: github.com/dynatrace/dbdot-collector/build
+  module: github.com/dynatrace/dynatrace-bindplane-otel-collector/build
   version: 0.0.0
   output_path: ./build
 
@@ -36,7 +36,7 @@ extensions:
   # internal/extension/opampconnectionextension/, kept internal because the
   # whole runtime cluster (collector lifecycle, OpAMP client, packagestate,
   # report manager, etc.) ships in the same module. Local replace below.
-  - gomod: github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension v1.103.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension v1.103.0
 
 exporters:
   - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.155.0
@@ -126,7 +126,7 @@ processors:
   - gomod: github.com/observiq/bindplane-otel-contrib/processor/throughputmeasurementprocessor v1.9.0
   - gomod: github.com/observiq/bindplane-otel-contrib/processor/topologyprocessor v1.9.0
   # Bindplane snapshot processor — its own internal go.mod, local replace below.
-  - gomod: github.com/dynatrace/dbdot-collector/internal/processor/snapshotprocessor v1.103.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/processor/snapshotprocessor v1.103.0
 
 receivers:
   - gomod: go.opentelemetry.io/collector/receiver/nopreceiver v0.155.0
@@ -243,9 +243,9 @@ providers:
 
 replaces:
   # Internal Go modules — point ocb at the local checkouts.
-  - github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension => ../internal/extension/opampconnectionextension
-  - github.com/dynatrace/dbdot-collector/internal/processor/snapshotprocessor => ../internal/processor/snapshotprocessor
-  - github.com/dynatrace/dbdot-collector/internal/report => ../internal/report
+  - github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension => ../internal/extension/opampconnectionextension
+  - github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/processor/snapshotprocessor => ../internal/processor/snapshotprocessor
+  - github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report => ../internal/report
   # Pinning replaces preserved from the legacy top-level go.mod.
   # These are not local-dev replaces — they're version pins / fork redirects
   # that must persist in release builds too.

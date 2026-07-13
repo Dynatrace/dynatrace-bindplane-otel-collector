@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dynatrace/dbdot-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

@@ -23,9 +23,9 @@ import (
 	"github.com/observiq/bindplane-otel-contrib/pkg/measurements"
 	"github.com/observiq/bindplane-otel-contrib/processor/topologyprocessor"
 
-	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/collector"
-	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/opamp"
-	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/opamp/observiq"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/observiq"
 	"github.com/observiq/bindplane-otel-contrib/pkg/version"
 	"go.uber.org/zap"
 )

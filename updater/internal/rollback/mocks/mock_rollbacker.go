@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	action "github.com/dynatrace/dbdot-collector/updater/internal/action"
+	action "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
 	mock "github.com/stretchr/testify/mock"
 )
 

@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/dynatrace/dbdot-collector/internal/report"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"

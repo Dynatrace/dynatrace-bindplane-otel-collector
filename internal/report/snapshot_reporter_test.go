@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/dynatrace/dbdot-collector/internal/report/mocks"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report/mocks"
 	"github.com/observiq/bindplane-otel-contrib/pkg/snapshot"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

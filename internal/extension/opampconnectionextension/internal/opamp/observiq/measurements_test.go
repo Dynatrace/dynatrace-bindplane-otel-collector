@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/golang/snappy"
-	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/opamp/mocks"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/mocks"
 	"github.com/observiq/bindplane-otel-contrib/pkg/measurements"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"

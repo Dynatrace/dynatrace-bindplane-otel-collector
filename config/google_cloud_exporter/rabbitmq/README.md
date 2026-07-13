@@ -4,7 +4,7 @@ The RabbitMQ Receiver can be used to send RabbitMQ metrics to Google Cloud Monit
 
 ## Prerequisites
 
-See the [documentation](https://github.com/dynatrace/dbdot-collector/blob/main/docs/receivers.md) for RabbitMQ prerequisites.
+See the [documentation](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/main/docs/receivers.md) for RabbitMQ prerequisites.
 
 See the [prerequisites](../README.md) doc for Google Cloud prerequisites.
 

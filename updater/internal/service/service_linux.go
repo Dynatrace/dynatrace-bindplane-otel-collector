@@ -24,8 +24,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dynatrace/dbdot-collector/updater/internal/file"
-	"github.com/dynatrace/dbdot-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/file"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"go.uber.org/zap"
 )
 

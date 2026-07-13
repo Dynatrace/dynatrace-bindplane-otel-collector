@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/collector"
-	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/collector/mocks"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )

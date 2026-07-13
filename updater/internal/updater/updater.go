@@ -27,13 +27,13 @@ import (
 
 	"path/filepath"
 
-	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/packagestate"
-	"github.com/dynatrace/dbdot-collector/updater/internal/action"
-	"github.com/dynatrace/dbdot-collector/updater/internal/install"
-	"github.com/dynatrace/dbdot-collector/updater/internal/path"
-	"github.com/dynatrace/dbdot-collector/updater/internal/rollback"
-	"github.com/dynatrace/dbdot-collector/updater/internal/service"
-	"github.com/dynatrace/dbdot-collector/updater/internal/state"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/install"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/rollback"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/service"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/state"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"go.uber.org/zap"
 )

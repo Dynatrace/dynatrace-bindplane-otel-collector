@@ -22,7 +22,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension/internal/opamp"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
 	"gopkg.in/yaml.v3"
 )
 

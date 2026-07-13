@@ -17,7 +17,7 @@ package action
 import (
 	"testing"
 
-	"github.com/dynatrace/dbdot-collector/updater/internal/service/mocks"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/service/mocks"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )

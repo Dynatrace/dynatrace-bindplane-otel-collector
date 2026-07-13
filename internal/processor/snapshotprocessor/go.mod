@@ -1,4 +1,4 @@
-module github.com/dynatrace/dbdot-collector/internal/processor/snapshotprocessor
+module github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/processor/snapshotprocessor
 
 go 1.26.4
 
@@ -6,7 +6,7 @@ replace github.com/mattn/go-ieproxy => github.com/mattn/go-ieproxy v0.0.1
 
 replace github.com/cilium/ebpf => github.com/cilium/ebpf v0.11.0
 
-replace github.com/dynatrace/dbdot-collector/internal/extension/opampconnectionextension => ../../extension/opampconnectionextension
+replace github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension => ../../extension/opampconnectionextension
 
 require (
 	github.com/observiq/bindplane-otel-contrib/pkg/snapshot v1.9.0
@@ -27,7 +27,7 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dynatrace/dbdot-collector/internal/report v1.103.0
+	github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report v1.103.0
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -50,4 +50,4 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
-replace github.com/dynatrace/dbdot-collector/internal/report => ../../report
+replace github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report => ../../report

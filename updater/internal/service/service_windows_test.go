@@ -28,7 +28,7 @@ import (
 
 	"go.uber.org/zap/zaptest"
 
-	"github.com/dynatrace/dbdot-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows/svc"

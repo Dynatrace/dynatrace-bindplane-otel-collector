@@ -29,7 +29,7 @@ import (
 	"golang.org/x/sys/windows/svc/mgr"
 
 	"github.com/kballard/go-shellquote"
-	"github.com/dynatrace/dbdot-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 )
 
 const (

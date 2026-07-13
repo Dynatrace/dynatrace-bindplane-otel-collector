@@ -33,7 +33,7 @@ for local_mod in $LOCAL_MODULES; do
         cd "$local_mod" || exit 1
         go mod tidy
         OTEL_MODULES=$(go list -m -f '{{if not (or .Indirect .Main)}}{{.Path}}{{end}}' all |
-            grep -E -e '^github.com/dynatrace/dbdot-collector')
+            grep -E -e '^github.com/dynatrace/dynatrace-bindplane-otel-collector')
 
         for mod in $OTEL_MODULES; do
             echo "$local_mod: $mod@$TARGET_VERSION"

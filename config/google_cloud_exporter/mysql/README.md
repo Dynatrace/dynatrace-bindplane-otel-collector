@@ -8,7 +8,7 @@ The agent must be installed on the Mysql system.
 
 ## Prerequisites
 
-See the [documentation](https://github.com/dynatrace/dbdot-collector/blob/main/docs/receivers.md) for Mysql prerequisites.
+See the [documentation](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/main/docs/receivers.md) for Mysql prerequisites.
 
 See the [prerequisites](../README.md) doc for Google Cloud prerequisites.
 

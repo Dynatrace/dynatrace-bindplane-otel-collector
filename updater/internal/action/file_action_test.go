@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dynatrace/dbdot-collector/updater/internal/path"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
