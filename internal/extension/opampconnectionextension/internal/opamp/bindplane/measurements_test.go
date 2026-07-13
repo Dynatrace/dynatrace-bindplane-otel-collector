@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package observiq
+package bindplane
 
 import (
 	"context"
@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/snappy"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/mocks"
+	"github.com/golang/snappy"
 	"github.com/observiq/bindplane-otel-contrib/pkg/measurements"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"

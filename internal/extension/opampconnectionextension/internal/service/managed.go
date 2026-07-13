@@ -25,7 +25,7 @@ import (
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
-	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/observiq"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/bindplane"
 	"github.com/observiq/bindplane-otel-contrib/pkg/version"
 	"go.uber.org/zap"
 )
@@ -67,7 +67,7 @@ func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, man
 	}
 
 	// Create client Args
-	clientArgs := &observiq.NewClientArgs{
+	clientArgs := &bindplane.NewClientArgs{
 		DefaultLogger:        logger,
 		Config:               *opampConfig,
 		Collector:            col,
@@ -81,9 +81,9 @@ func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, man
 	}
 
 	// Create new client
-	client, err := observiq.NewClient(clientArgs)
+	client, err := bindplane.NewClient(clientArgs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create observIQ client: %w", err)
+		return nil, fmt.Errorf("failed to create bindplane client: %w", err)
 	}
 
 	return &ManagedCollectorService{

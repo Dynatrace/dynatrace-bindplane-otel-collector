@@ -52,7 +52,7 @@ bindplane-otel-collector/
 │   │       │
 │   │       ├── collector/               # otelcol lifecycle wrapper
 │   │       ├── opamp/                   # OpAMP types + client interface
-│   │       │   └── observiq/            # default Bindplane client implementation
+│   │       │   └── bindplane/           # default Bindplane client implementation
 │   │       ├── packagestate/            # package-install state machine
 │   │       ├── report/                  # snapshot/measurements/topology senders
 │   │       ├── measurements/            # throughput measurements registry

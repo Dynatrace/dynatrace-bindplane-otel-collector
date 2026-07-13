@@ -14,7 +14,7 @@
 
 //go:build windows
 
-package observiq
+package bindplane
 
 import (
 	"errors"

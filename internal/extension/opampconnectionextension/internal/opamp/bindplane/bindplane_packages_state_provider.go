@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package observiq contains OpAmp structures compatible with the observiq client
-package observiq
+// Package bindplane contains OpAmp structures compatible with the Bindplane OpAMP client
+package bindplane
 
 import (
 	"context"

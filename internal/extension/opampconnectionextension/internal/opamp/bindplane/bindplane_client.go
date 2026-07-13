@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package observiq contains OpAmp structures compatible with the observiq client
-package observiq
+// Package bindplane contains OpAmp structures compatible with the Bindplane OpAMP client
+package bindplane
 
 import (
 	"context"
@@ -63,7 +63,7 @@ var (
 
 // hardcodedCustomCapabilities are the custom capabilities that this client
 // always advertises to the OpAMP server regardless of what components have
-// registered via an opamp_connection extension. The observiq client's
+// registered via an opamp_connection extension. The Bindplane client's
 // measurements and topology senders rely on the server knowing about these
 // capabilities even when no component has explicitly registered them.
 var hardcodedCustomCapabilities = []string{
@@ -136,7 +136,7 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 		return nil, fmt.Errorf("failed to set client on report manager: %w", err)
 	}
 
-	observiqClient := &Client{
+	bindplaneClient := &Client{
 		logger:                  clientLogger,
 		ident:                   newIdentity(clientLogger, args.Config, args.Version),
 		configManager:           configManager,
@@ -156,7 +156,7 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 	}
 
 	// Add managed configs
-	if err := observiqClient.addManagedConfigs(args); err != nil {
+	if err := bindplaneClient.addManagedConfigs(args); err != nil {
 		return nil, err
 	}
 
@@ -164,7 +164,7 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 	switch opampURL.Scheme {
 	case "ws", "wss":
 		logger := newZapOpAMPLoggerAdapter(clientLogger)
-		observiqClient.opampClient = client.NewWebSocket(logger)
+		bindplaneClient.opampClient = client.NewWebSocket(logger)
 	default:
 		return nil, ErrUnsupportedURL
 	}
@@ -173,29 +173,29 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 	// capabilities that components register via an opamp_connection
 	// extension will be merged on top of these by the Client's own
 	// SetCustomCapabilities method.
-	err = observiqClient.SetCustomCapabilities(&protobufs.CustomCapabilities{})
+	err = bindplaneClient.SetCustomCapabilities(&protobufs.CustomCapabilities{})
 	if err != nil {
 		return nil, fmt.Errorf("error setting custom capabilities: %w", err)
 	}
 
 	// Create measurements sender
-	observiqClient.measurementsSender = newMeasurementsSender(
+	bindplaneClient.measurementsSender = newMeasurementsSender(
 		clientLogger,
 		args.MeasurementsReporter,
-		observiqClient.opampClient,
+		bindplaneClient.opampClient,
 		args.Config.MeasurementsInterval,
 		args.Config.ExtraMeasurementsAttributes,
 	)
 
 	// Create topology sender
-	observiqClient.topologySender = newTopologySender(
+	bindplaneClient.topologySender = newTopologySender(
 		clientLogger,
 		args.TopologyReporter,
-		observiqClient.opampClient,
+		bindplaneClient.opampClient,
 		args.Config.TopologyInterval,
 	)
 
-	return observiqClient, nil
+	return bindplaneClient, nil
 }
 
 func (c *Client) addManagedConfigs(args *NewClientArgs) error {
@@ -312,7 +312,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	// report is independent of whether the running collector config
 	// includes the opamp_connection extension. Matches the upstream
 	// opampextension behavior — see
-	// internal/opamp/observiq/available_components.go for the helper
+	// internal/opamp/bindplane/available_components.go for the helper
 	// functions ported from upstream.
 	available := initAvailableComponents(c.collector.ModuleInfos())
 	if err := c.opampClient.SetAvailableComponents(available); err != nil {
@@ -353,7 +353,7 @@ func (c *Client) Disconnect(ctx context.Context) error {
 // advertises (see hardcodedCustomCapabilities) and forwards the merged list
 // to the underlying OpAMP client. This lets the opamp_connection
 // extension's registry request its own capability set without clobbering
-// the measurements and topology capabilities the observiq client requires.
+// the measurements and topology capabilities the Bindplane client requires.
 func (c *Client) SetCustomCapabilities(customCapabilities *protobufs.CustomCapabilities) error {
 	merged := append([]string(nil), customCapabilities.GetCapabilities()...)
 	for _, capability := range hardcodedCustomCapabilities {

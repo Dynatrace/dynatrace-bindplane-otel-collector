@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package observiq
+package bindplane
 
 import (
 	"context"
@@ -25,13 +25,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
 	colmocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector/mocks"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/mocks"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report"
+	"github.com/google/uuid"
 	"github.com/observiq/bindplane-otel-contrib/pkg/version"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"
@@ -135,20 +135,20 @@ func TestNewClient(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 
-				observiqClient, ok := actual.(*Client)
+				bindplaneClient, ok := actual.(*Client)
 				require.True(t, ok)
 
 				// Do a shallow check on all fields to assert they exist and are equal to passed in params were possible
-				assert.NotNil(t, observiqClient.opampClient)
-				assert.NotNil(t, observiqClient.configManager)
-				assert.NotNil(t, observiqClient.packagesStateProvider)
-				assert.Equal(t, testLogger.Named("opamp"), observiqClient.logger)
-				assert.Equal(t, mockCollector, observiqClient.collector)
-				assert.NotNil(t, observiqClient.ident)
-				assert.Equal(t, report.GetManager(), observiqClient.reportManager)
-				assert.Equal(t, observiqClient.currentConfig, tc.config)
-				assert.False(t, observiqClient.safeGetDisconnecting())
-				assert.False(t, observiqClient.safeGetUpdatingPackage())
+				assert.NotNil(t, bindplaneClient.opampClient)
+				assert.NotNil(t, bindplaneClient.configManager)
+				assert.NotNil(t, bindplaneClient.packagesStateProvider)
+				assert.Equal(t, testLogger.Named("opamp"), bindplaneClient.logger)
+				assert.Equal(t, mockCollector, bindplaneClient.collector)
+				assert.NotNil(t, bindplaneClient.ident)
+				assert.Equal(t, report.GetManager(), bindplaneClient.reportManager)
+				assert.Equal(t, bindplaneClient.currentConfig, tc.config)
+				assert.False(t, bindplaneClient.safeGetDisconnecting())
+				assert.False(t, bindplaneClient.safeGetUpdatingPackage())
 			}
 
 		})

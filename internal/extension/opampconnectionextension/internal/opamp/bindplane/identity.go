@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package observiq
+package bindplane
 
 import (
 	"os"
@@ -33,7 +33,7 @@ type identity struct {
 	labels      *string
 	oSArch      string
 	oSDetails   string
-	oSType    string
+	oSType      string
 	hostname    string
 	mac         string
 }
@@ -59,7 +59,7 @@ func newIdentity(logger *zap.Logger, config opamp.Config, version string) *ident
 		labels:      config.Labels,
 		oSArch:      runtime.GOARCH,
 		oSDetails:   name,
-		oSType:    runtime.GOOS,
+		oSType:      runtime.GOOS,
 		hostname:    hostname,
 		mac:         osinfo.MACAddress(),
 	}
@@ -73,7 +73,7 @@ func (i identity) Copy() *identity {
 		version:     i.version,
 		oSArch:      i.oSArch,
 		oSDetails:   i.oSDetails,
-		oSType:    i.oSType,
+		oSType:      i.oSType,
 		hostname:    i.hostname,
 		mac:         i.mac,
 	}

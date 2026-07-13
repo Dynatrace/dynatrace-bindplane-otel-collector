@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build windows
+//go:build !windows
 
-package observiq
+package bindplane
 
 import (
 	"os"
@@ -26,23 +26,23 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestNewWindowsUpdaterManager(t *testing.T) {
+func TestNewOthersUpdaterManager(t *testing.T) {
 	testCases := []struct {
 		desc     string
 		testFunc func(*testing.T)
 	}{
 		{
-			desc: "New WindowsUpdaterManager",
+			desc: "New LinuxUpdaterManager",
 			testFunc: func(t *testing.T) {
-				tmpPath := "\\tmp"
+				tmpPath := "/tmp"
 				logger := zap.NewNop()
 				cwd, err := os.Getwd()
 				require.NoError(t, err)
 
-				expected := &windowsUpdaterManager{
+				expected := &othersUpdaterManager{
 					tmpPath:             tmpPath,
 					logger:              logger.Named("updater manager"),
-					updaterName:         "updater.exe",
+					updaterName:         "updater",
 					cwd:                 cwd,
 					shutdownWaitTimeout: 30 * time.Second,
 				}
@@ -69,32 +69,29 @@ func TestStartAndMonitorUpdater(t *testing.T) {
 		{
 			desc: "Updater does not exist at path",
 			testFunc: func(t *testing.T) {
-				t.Parallel()
-
 				tmpDir := t.TempDir()
 				updateManager, err := newUpdaterManager(zap.NewNop(), tmpDir)
 				require.NoError(t, err)
 
-				updateManager.(*windowsUpdaterManager).cwd = tmpDir
-				updateManager.(*windowsUpdaterManager).shutdownWaitTimeout = 5 * time.Second
+				updateManager.(*othersUpdaterManager).cwd = tmpDir
+				updateManager.(*othersUpdaterManager).shutdownWaitTimeout = 5 * time.Second
 
 				err = updateManager.StartAndMonitorUpdater()
 
-				assert.ErrorContains(t, err, "failed to copy updater to cwd")
+				assert.ErrorContains(t, err, "no such file or directory")
 			},
 		},
 		{
 			desc: "Updater is not executable",
 			testFunc: func(t *testing.T) {
-				t.Parallel()
-
 				tmpDir := t.TempDir()
+
 				updateManager, err := newUpdaterManager(zap.NewNop(), "./testdata")
 				require.NoError(t, err)
 
-				updateManager.(*windowsUpdaterManager).cwd = tmpDir
-				updateManager.(*windowsUpdaterManager).updaterName = "badupdater"
-				updateManager.(*windowsUpdaterManager).shutdownWaitTimeout = 5 * time.Second
+				updateManager.(*othersUpdaterManager).cwd = tmpDir
+				updateManager.(*othersUpdaterManager).updaterName = "badupdater"
+				updateManager.(*othersUpdaterManager).shutdownWaitTimeout = 5 * time.Second
 
 				err = updateManager.StartAndMonitorUpdater()
 
@@ -104,15 +101,14 @@ func TestStartAndMonitorUpdater(t *testing.T) {
 		{
 			desc: "Updater exits quickly",
 			testFunc: func(t *testing.T) {
-				t.Parallel()
-
 				tmpDir := t.TempDir()
+
 				updateManager, err := newUpdaterManager(zap.NewNop(), "./testdata")
 				require.NoError(t, err)
 
-				updateManager.(*windowsUpdaterManager).cwd = tmpDir
-				updateManager.(*windowsUpdaterManager).updaterName = "quickupdater.exe"
-				updateManager.(*windowsUpdaterManager).shutdownWaitTimeout = 5 * time.Second
+				updateManager.(*othersUpdaterManager).cwd = tmpDir
+				updateManager.(*othersUpdaterManager).updaterName = "quickupdater"
+				updateManager.(*othersUpdaterManager).shutdownWaitTimeout = 5 * time.Second
 
 				err = updateManager.StartAndMonitorUpdater()
 
@@ -122,23 +118,18 @@ func TestStartAndMonitorUpdater(t *testing.T) {
 		{
 			desc: "Updater times out",
 			testFunc: func(t *testing.T) {
-				t.Parallel()
-
 				tmpDir := t.TempDir()
+
 				updateManager, err := newUpdaterManager(zap.NewNop(), "./testdata")
 				require.NoError(t, err)
 
-				updateManager.(*windowsUpdaterManager).cwd = tmpDir
-				updateManager.(*windowsUpdaterManager).updaterName = "slowupdater.exe"
-				updateManager.(*windowsUpdaterManager).shutdownWaitTimeout = 5 * time.Second
+				updateManager.(*othersUpdaterManager).cwd = tmpDir
+				updateManager.(*othersUpdaterManager).updaterName = "slowupdater"
+				updateManager.(*othersUpdaterManager).shutdownWaitTimeout = 5 * time.Second
 
 				err = updateManager.StartAndMonitorUpdater()
 
 				assert.ErrorContains(t, err, "updater failed to update collector")
-
-				// The slow updater needs time to shut down, so we wait an extra second.
-				// If the updater isn't killed, the tmpDir cannot be deleted and the test fails.
-				time.Sleep(1 * time.Second)
 			},
 		},
 	}

@@ -30,7 +30,7 @@
 //
 // When updating, diff against the upstream file at the pinned version above.
 
-package observiq
+package bindplane
 
 import (
 	"crypto/sha256"

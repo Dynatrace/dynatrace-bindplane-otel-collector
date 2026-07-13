@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package observiq
+package bindplane
 
 import (
 	"os"
@@ -88,7 +88,7 @@ func TestToAgentDescription(t *testing.T) {
 				labels:      nil,
 				oSArch:      "amd64",
 				oSDetails:   "os details",
-				oSType:    "linux",
+				oSType:      "linux",
 				hostname:    "my-linux-box",
 				mac:         "68-C7-B4-EB-A8-D2",
 			},
@@ -119,7 +119,7 @@ func TestToAgentDescription(t *testing.T) {
 				labels:      &labelsContents,
 				oSArch:      "amd64",
 				oSDetails:   "os details",
-				oSType:    "linux",
+				oSType:      "linux",
 				hostname:    "my-linux-box",
 				mac:         "68-C7-B4-EB-A8-D2",
 			},
@@ -163,7 +163,7 @@ func Test_identityCopy(t *testing.T) {
 		labels:      &labelsContents,
 		oSArch:      "amd64",
 		oSDetails:   "os details",
-		oSType:    "linux",
+		oSType:      "linux",
 		hostname:    "my-linux-box",
 		mac:         "68-C7-B4-EB-A8-D2",
 	}
