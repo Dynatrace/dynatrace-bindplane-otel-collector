@@ -49,7 +49,7 @@
   ],
   "environments": [
     {
-      "name": "DBDOT_OTEL_COLLECTOR_STORAGE",
+      "name": "BINDPLANE_COLLECTOR_STORAGE",
       "value": "[INSTALLDIR]storage",
       "permanent": "no",
       "system": "yes",

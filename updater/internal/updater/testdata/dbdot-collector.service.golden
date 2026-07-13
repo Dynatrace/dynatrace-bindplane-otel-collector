@@ -9,7 +9,7 @@ User=root
 Group=dbdot
 Environment=PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 Environment=BINDPLANE_COLLECTOR_HOME=/opt/dbdot-collector
-Environment=DBDOT_OTEL_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
+Environment=BINDPLANE_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
 WorkingDirectory=/opt/dbdot-collector
 ExecStart=/opt/dbdot-collector/dbdot-collector --config config.yaml
 LimitNOFILE=65000

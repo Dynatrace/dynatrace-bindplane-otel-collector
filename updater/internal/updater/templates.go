@@ -15,12 +15,7 @@
 // Package updater provides templates for service files.
 package updater
 
-// Constants for service file templates.
-//
-// The service environments deliberately mix env var prefixes:
-// BINDPLANE_COLLECTOR_HOME is the Bindplane-facing name (referenced by
-// Bindplane-rendered configurations), while DBDOT_-prefixed vars are
-// collector-internal.
+// Constants for service file templates
 const systemdServiceTemplate = `[Unit]
 Description=Dynatrace Bindplane Distribution of OpenTelemetry Collector
 After=network.target
@@ -32,7 +27,7 @@ User=root
 Group={{.Group}}
 Environment=PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 Environment=BINDPLANE_COLLECTOR_HOME={{.InstallDir}}
-Environment=DBDOT_OTEL_COLLECTOR_STORAGE={{.InstallDir}}/storage
+Environment=BINDPLANE_COLLECTOR_STORAGE={{.InstallDir}}/storage
 WorkingDirectory={{.InstallDir}}
 ExecStart={{.InstallDir}}/dbdot-collector --config config.yaml
 LimitNOFILE=65000
@@ -117,7 +112,7 @@ PIDFILE=/var/run/"$BINARY".pid
 
 # Exported variables are used by the collector process.
 export BINDPLANE_COLLECTOR_HOME=/opt/dbdot-collector
-export DBDOT_OTEL_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
+export BINDPLANE_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
 
 RETVAL=0
 start() {

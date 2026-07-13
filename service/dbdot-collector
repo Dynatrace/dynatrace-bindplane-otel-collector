@@ -70,7 +70,7 @@ PIDFILE=/var/run/"$BINARY".pid
 
 # Exported variables are used by the collector process.
 export BINDPLANE_COLLECTOR_HOME=/opt/dbdot-collector
-export DBDOT_OTEL_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
+export BINDPLANE_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
 
 RETVAL=0
 start() {

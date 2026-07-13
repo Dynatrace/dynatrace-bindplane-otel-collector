@@ -102,7 +102,7 @@ User=root
 Group=${DBDOT_GROUP}
 Environment=PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 Environment=BINDPLANE_COLLECTOR_HOME=${DBDOT_CONFIG_HOME}
-Environment=DBDOT_OTEL_COLLECTOR_STORAGE=${DBDOT_CONFIG_HOME}/storage
+Environment=BINDPLANE_COLLECTOR_STORAGE=${DBDOT_CONFIG_HOME}/storage
 WorkingDirectory=${DBDOT_CONFIG_HOME}
 ExecStart=${DBDOT_CONFIG_HOME}/dbdot-collector --config config.yaml
 LimitNOFILE=65000
@@ -222,7 +222,7 @@ PIDFILE=/var/run/"\$BINARY".pid
 
 # Exported variables are used by the collector process.
 export BINDPLANE_COLLECTOR_HOME=${DBDOT_CONFIG_HOME}
-export DBDOT_OTEL_COLLECTOR_STORAGE=${DBDOT_CONFIG_HOME}/storage
+export BINDPLANE_COLLECTOR_STORAGE=${DBDOT_CONFIG_HOME}/storage
 
 RETVAL=0
 start() {
