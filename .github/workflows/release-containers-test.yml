@@ -9,7 +9,7 @@ on:
 
 jobs:
   release-containers-test:
-    runs-on: ubuntu-latest-32-cores
+    runs-on: ubuntu-latest
     steps:
       - name: Redirect temp directories
         run: |

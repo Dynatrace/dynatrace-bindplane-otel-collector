@@ -18,7 +18,7 @@ on:
 
 jobs:
   release-containers:
-    runs-on: ubuntu-latest-32-cores
+    runs-on: ubuntu-latest
     # Uncomment the following when switching to workflow_run trigger,
     # to ensure the job only runs if the release workflow succeeded.
     # if: ${{ github.event.workflow_run.conclusion == 'success' }}

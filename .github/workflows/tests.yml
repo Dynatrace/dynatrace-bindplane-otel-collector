@@ -21,7 +21,7 @@ jobs:
   detect-changes:
     if: ${{ needs.optimize_ci.outputs.skip != 'true' }}
     needs: optimize_ci
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
@@ -61,18 +61,18 @@ jobs:
         include:
           # Ubuntu - All tests
           - os: ubuntu
-            runner: ubuntu-latest-32-cores
+            runner: ubuntu-latest
             # GitHub-hosted runners execute as the unprivileged `runner` user, so
             # `sudo` sanitizes PATH (secure_path) and drops /home/runner/go/bin where
             # gotestsum lives. Preserve PATH so the tools installed above resolve.
             test_cmd: sudo env "PATH=$PATH" make test-updater-integration
           # macOS - All tests
           - os: macos
-            runner: macos-15-xlarge
+            runner: macos-15
             test_cmd: make test-updater-integration
           # Windows - All tests
           - os: windows
-            runner: windows-2022-16-cores
+            runner: windows-2022
             test_cmd: make test-updater-integration
     runs-on: ${{ matrix.runner }}
     steps:
