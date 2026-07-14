@@ -35,8 +35,8 @@ import (
 )
 
 var (
-	// errPrefixResolverInitialization for error when initializing config file resolver
-	errPrefixResolverInitialization = "failed to initialize OpAmp config resolver"
+	// ci for error when initializing config file resolver
+	ci = "failed to initialize OpAmp config resolver"
 
 	// errPrefixReadFile for error when reading config file
 	errPrefixReadFile = "failed to read OpAmp config file"
@@ -293,7 +293,7 @@ func ParseConfig(configLocation string) (*Config, error) {
 
 	resolver, err := confmap.NewResolver(resolverSettings)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", errPrefixResolverInitialization, err)
+		return nil, fmt.Errorf("%s: %w", ci, err)
 	}
 
 	conf, err := resolver.Resolve(context.Background())
