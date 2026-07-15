@@ -200,10 +200,10 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.ORG_COSIGN_PWD }}
       - name: Upload Latest Install Scripts
         run: |
-          gsutil cp ./scripts/install/install_unix.sh gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_unix.sh
-          gsutil cp ./scripts/install/install_macos.sh gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_macos.sh
-          gsutil cp ./scripts/install/install_windows.ps1 gs://TODO-DBDOT-RELEASE-BUCKET/latest/install_windows.ps1
-          gsutil cp ./release_deps/gpg-keys.tar.gz gs://TODO-DBDOT-RELEASE-BUCKET/latest/gpg-keys.tar.gz
+          gsutil cp ./scripts/install/install_unix.sh gs://dbdot-release/latest/install_unix.sh
+          gsutil cp ./scripts/install/install_macos.sh gs://dbdot-release/latest/install_macos.sh
+          gsutil cp ./scripts/install/install_windows.ps1 gs://dbdot-release/latest/install_windows.ps1
+          gsutil cp ./release_deps/gpg-keys.tar.gz gs://dbdot-release/latest/gpg-keys.tar.gz
       - name: Upload artifact bundle to release
         uses: AButler/upload-release-assets@v2.0
         with:
