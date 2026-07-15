@@ -92,7 +92,7 @@ To continue with the quick start, follow along below.
 Install DBDOT Collector using the installation script below.
 
 ```sh
-sudo sh -c "$(curl -fsSlL https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_unix.sh)" install_unix.sh
+sudo sh -c "$(curl -fsSlL https://dbdot.bindplane.com/<version>/install_unix.sh)" install_unix.sh
 ```
 
 To install directly with the appropriate package manager, and how to configure OpAMP, see [installing on Linux](/docs/installation-linux.md).
@@ -102,7 +102,7 @@ To install directly with the appropriate package manager, and how to configure O
 Install the DBDOT Collector using the PowerShell command below. The script automatically selects the correct MSI for the system architecture (amd64 or arm64).
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1")))
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://dbdot.bindplane.com/<version>/install_windows.ps1")))
 ```
 
 For more installation information, and how to configure OpAMP, see [installing on Windows](/docs/installation-windows.md).
@@ -112,7 +112,7 @@ For more installation information, and how to configure OpAMP, see [installing o
 Install DBDOT Collector using the installation script below.
 
 ```sh
-sudo sh -c "$(curl -fsSlL https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_macos.sh)" install_macos.sh
+sudo sh -c "$(curl -fsSlL https://dbdot.bindplane.com/<version>/install_macos.sh)" install_macos.sh
 ```
 
 For more installation information, and how to configure OpAMP, see [installing on macOS](/docs/installation-mac.md).

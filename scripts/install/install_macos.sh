@@ -17,7 +17,7 @@ set -e
 
 # Collector Constants
 SERVICE_NAME="com.dynatrace.dbdot.collector"
-DOWNLOAD_BASE="https://TODO-DBDOT-DOWNLOAD-HOST"
+DOWNLOAD_BASE="https://dbdot.bindplane.com"
 
 # Script Constants
 PREREQS="printf sed uname tr find grep"
