@@ -38,7 +38,7 @@ docker run -d \
     --volume="$(pwd)/credentials.json:/etc/otel/credentials.json" \
     -e "GOOGLE_APPLICATION_CREDENTIALS=/etc/otel/credentials.json" \
     -e "DOCKER_AGENT_HOSTNAME=$(hostname)" \
-    TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest
+    dynatrace/dbdot-collector:latest
 ```
 
 Run with Docker Compose
@@ -51,7 +51,7 @@ services:
     # Run as root if using a configuration that requires
     # root privileges.
     #user: root
-    image: TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest
+    image: dynatrace/dbdot-collector:latest
     restart: always
     deploy:
       resources:
