@@ -1,0 +1,29 @@
+name: Private Go modules access
+description: >
+  Mints a GitHub App installation token and routes git fetches of
+  github.com/Dynatrace repos through it, so go can download private
+  Dynatrace modules from the collector manifest (the proxy/sumdb bypass
+  comes from GOPRIVATE, exported by the Makefile). Needed by every job
+  that resolves the manifest (i.e. runs `make install-ocb` and builds).
+inputs:
+  app-id:
+    description: ID of a GitHub App with contents:read on the private module repos
+    required: true
+  private-key:
+    description: Private key of the GitHub App
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Mint installation token
+      id: app-token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.private-key }}
+        # Scope the token to just the repos go needs; extend this list when
+        # the manifest gains another private module.
+        repositories: dt-otelcol-edge-processing-components
+    - name: Route git fetches of Dynatrace repos through the token
+      shell: bash
+      run: git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/Dynatrace/".insteadOf "https://github.com/Dynatrace/"

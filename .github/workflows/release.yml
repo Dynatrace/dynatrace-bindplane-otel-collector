@@ -24,6 +24,11 @@ jobs:
         with:
           go-version-file: internal/extension/opampconnectionextension/go.mod
           cache-dependency-path: "**/go.sum"
+      - name: Grant access to private Dynatrace Go modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
       - name: Install ocb
         run: make install-ocb
         shell: bash
@@ -126,6 +131,11 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+      - name: Grant access to private Dynatrace Go modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
       - name: Install ocb
         run: make install-ocb
       - name: Retrieve Windows AMD64 MSI Installer
