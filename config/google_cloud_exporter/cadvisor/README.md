@@ -37,7 +37,7 @@ services:
     - /var/lib/docker/:/var/lib/docker:ro
 
   agent:
-    image: TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest
+    image: dynatrace/dbdot-collector:latest
     restart: always
     container_name: dbdot-collector
     hostname: dbdot-collector

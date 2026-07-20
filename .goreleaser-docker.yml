@@ -49,8 +49,8 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "dynatrace/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}-minimal"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
@@ -77,8 +77,8 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "dynatrace/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}-minimal"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
@@ -105,8 +105,8 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "dynatrace/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}-minimal"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
@@ -134,10 +134,10 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}"
+      - "dynatrace/dbdot-collector-amd64:latest"
+      - "dynatrace/dbdot-collector-amd64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-amd64:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:latest"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:{{ .Version }}"
       # Bindplane Agent Containers
@@ -166,10 +166,10 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}"
+      - "dynatrace/dbdot-collector-arm64:latest"
+      - "dynatrace/dbdot-collector-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-arm64:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:latest"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}"
       # Bindplane Agent Containers
@@ -198,10 +198,10 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}"
+      - "dynatrace/dbdot-collector-ppc64le:latest"
+      - "dynatrace/dbdot-collector-ppc64le:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:latest"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}"
       # Bindplane Agent Containers
@@ -231,8 +231,8 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}-jmx"
+      - "dynatrace/dbdot-collector-amd64:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}-jmx"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-amd64:{{ .Version }}-jmx"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.jmx
@@ -261,8 +261,8 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}-jmx"
+      - "dynatrace/dbdot-collector-arm64:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}-jmx"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}-jmx"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.jmx
@@ -291,8 +291,8 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}-jmx"
+      - "dynatrace/dbdot-collector-ppc64le:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}-jmx"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}-jmx"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.jmx
@@ -312,17 +312,17 @@ dockers:
       - release_deps/opentelemetry-java-contrib-jmx-metrics.jar
 
 docker_manifests:
-  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:{{ .Version }}-minimal"
+  - name_template: "dynatrace/dbdot-collector:{{ .Version }}-minimal"
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}-minimal"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}-minimal"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "dynatrace/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "dynatrace/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "dynatrace/dbdot-collector-ppc64le:{{ .Version }}-minimal"
     skip_push: false
-  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector:{{ .Version }}-minimal"
+  - name_template: "ghcr.io/dynatrace/dbdot-collector:{{ .Version }}-minimal"
     image_templates:
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}-minimal"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}-minimal"
     skip_push: false
   - name_template: "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector:{{ .Version }}-minimal"
     image_templates:
@@ -330,29 +330,29 @@ docker_manifests:
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-arm64:{{ .Version }}-minimal"
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}-minimal"
     skip_push: false
-  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:latest"
+  - name_template: "dynatrace/dbdot-collector:latest"
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:latest"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:latest"
+      - "dynatrace/dbdot-collector-amd64:latest"
+      - "dynatrace/dbdot-collector-arm64:latest"
+      - "dynatrace/dbdot-collector-ppc64le:latest"
     skip_push: false
-  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:{{ .Version }}"
+  - name_template: "dynatrace/dbdot-collector:{{ .Version }}"
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:{{ .Version }}"
+      - "dynatrace/dbdot-collector-amd64:{{ .Version }}"
+      - "dynatrace/dbdot-collector-arm64:{{ .Version }}"
+      - "dynatrace/dbdot-collector-ppc64le:{{ .Version }}"
     skip_push: false
-  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector:latest"
+  - name_template: "ghcr.io/dynatrace/dbdot-collector:latest"
     image_templates:
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:latest"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-amd64:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-arm64:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:latest"
     skip_push: false
-  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector:{{ .Version }}"
+  - name_template: "ghcr.io/dynatrace/dbdot-collector:{{ .Version }}"
     image_templates:
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}"
     skip_push: false
   - name_template: "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector:latest"
     image_templates:
@@ -367,17 +367,17 @@ docker_manifests:
       - "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector-ppc64le:{{ .Version }}"
     skip_push: false
   # Bindplane Agent Manifests
-  - name_template: "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector:{{ .Version }}-jmx"
+  - name_template: "dynatrace/dbdot-collector:{{ .Version }}-jmx"
     image_templates:
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-amd64:{{ .Version }}-jmx"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-arm64:{{ .Version }}-jmx"
-      - "TODO-DBDOT-DOCKERHUB-ORG/dbdot-collector-ppc64le:{{ .Version }}-jmx"
+      - "dynatrace/dbdot-collector-amd64:{{ .Version }}-jmx"
+      - "dynatrace/dbdot-collector-arm64:{{ .Version }}-jmx"
+      - "dynatrace/dbdot-collector-ppc64le:{{ .Version }}-jmx"
     skip_push: false
-  - name_template: "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector:{{ .Version }}-jmx"
+  - name_template: "ghcr.io/dynatrace/dbdot-collector:{{ .Version }}-jmx"
     image_templates:
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-amd64:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-arm64:{{ .Version }}-jmx"
-      - "ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector-ppc64le:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}-jmx"
     skip_push: false
   - name_template: "us-central1-docker.pkg.dev/TODO-DBDOT-GCP-PROJECT/collector/dbdot-collector:{{ .Version }}-jmx"
     image_templates:

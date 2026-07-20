@@ -32,7 +32,7 @@ version: '3.8'
 
 services:
   dbdot-collector:
-    image: ghcr.io/TODO-DBDOT-GHCR-ORG/dbdot-collector:latest
+    image: ghcr.io/dynatrace/dbdot-collector:latest
     command: ["--config=/etc/otel/storage/config.yaml"]
     volumes:
       - ./config:/etc/otel/config
