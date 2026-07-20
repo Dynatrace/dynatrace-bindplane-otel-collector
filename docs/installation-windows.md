@@ -7,19 +7,19 @@ To install the agent on Windows, run the PowerShell command below from an **elev
 > **Note:** The install script is available as of release v1.96.0. For earlier versions, see the [manual installation](#manual-installation) instructions below.
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1")))
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://dbdot.bindplane.com/<version>/install_windows.ps1")))
 ```
 
 To install a specific version, pass the `-Version` parameter:
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1"))) -Version "v1.96.0"
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://dbdot.bindplane.com/<version>/install_windows.ps1"))) -Version "v1.96.0"
 ```
 
 For an unattended (silent) installation without the installer UI, add `-Quiet`:
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1"))) -Quiet
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://dbdot.bindplane.com/<version>/install_windows.ps1"))) -Quiet
 ```
 
 ### Additional Options
@@ -43,7 +43,7 @@ The script accepts the following parameters:
 
 ### Manual Installation
 
-For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://TODO-DBDOT-DOWNLOAD-HOST/v<version>/dbdot-collector-amd64.msi` (or `dbdot-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
+For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://dbdot.bindplane.com/v<version>/dbdot-collector-amd64.msi` (or `dbdot-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
 
 ### Signature Verification
 
@@ -54,7 +54,7 @@ Installation artifacts are signed, and the script verifies the MSI's Authenticod
 To install the agent with an OpAMP connection configuration, pass the management flags to the install script:
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1"))) `
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://dbdot.bindplane.com/<version>/install_windows.ps1"))) `
     -EnableManagement "1" `
     -OpAMPEndpoint "<your_endpoint>" `
     -OpAMPSecretKey "<secret-key>"
@@ -130,7 +130,7 @@ Start-Service -Name "dbdot-collector"
 To uninstall the agent, run the install script with the `-Uninstall` flag:
 
 ```pwsh
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://TODO-DBDOT-DOWNLOAD-HOST/<version>/install_windows.ps1"))) -Uninstall
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://dbdot.bindplane.com/<version>/install_windows.ps1"))) -Uninstall
 ```
 
 Alternatively, uninstall through the control panel via the "Uninstall a program" dialog.

@@ -42,7 +42,7 @@ jobs:
           VERSION=${{ github.event.inputs.version }}
           for ARCH in amd64 arm64 ppc64le; do
             ARCHIVE="dbdot-collector-${VERSION}-linux-${ARCH}.tar.gz"
-            gsutil cp "gs://TODO-DBDOT-RELEASE-BUCKET/${VERSION}/${ARCHIVE}" tmp/
+            gsutil cp "gs://dbdot-release/${VERSION}/${ARCHIVE}" tmp/
             mkdir -p "tmp/${ARCH}"
             tar -xzf "tmp/${ARCHIVE}" -C "tmp/${ARCH}" dbdot-collector
             mv "tmp/${ARCH}/dbdot-collector" "tmp/collector_linux_${ARCH}"
