@@ -68,7 +68,7 @@ jobs:
         with:
           registry: us-central1-docker.pkg.dev
           username: _json_key
-          password: ${{ secrets.TODO_DBDOT_GCR_JSON_KEY }}
+          password: ${{ secrets.DBDOT_GAR_JSON_KEY }}
       # - name: Install cosign
       #   run: go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
       # - name: Build cosign key file
