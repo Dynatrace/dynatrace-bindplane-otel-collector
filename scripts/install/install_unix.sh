@@ -30,7 +30,7 @@ set -e
 
 # Agent Constants
 PACKAGE_NAME="dbdot-collector"
-DOWNLOAD_BASE="https://TODO-DBDOT-DOWNLOAD-HOST"
+DOWNLOAD_BASE="https://dbdot.bindplane.com"
 
 # Determine if we need service or systemctl for prereqs
 if command -v systemctl > /dev/null 2>&1; then

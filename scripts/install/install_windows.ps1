@@ -115,7 +115,7 @@ $ErrorActionPreference = "Stop"
 
 # ---- Constants ---------------------------------------------------------------
 
-$DOWNLOAD_BASE = "https://TODO-DBDOT-DOWNLOAD-HOST"
+$DOWNLOAD_BASE = "https://dbdot.bindplane.com"
 $MSI_NAME_AMD64 = "dbdot-collector-amd64.msi"
 $MSI_NAME_ARM64 = "dbdot-collector-arm64.msi"
 $PRODUCT_DISPLAY_NAME = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
