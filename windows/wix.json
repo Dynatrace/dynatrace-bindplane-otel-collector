@@ -1,6 +1,6 @@
 {
   "product": "Dynatrace Bindplane Distribution of OpenTelemetry Collector",
-  "company": "TODO-DBDOT-VENDOR",
+  "company": "Dynatrace LLC",
   "license": "./LICENSE.rtf",
   "info": {
     "help-link": "https://bindplane.com/contact/",
