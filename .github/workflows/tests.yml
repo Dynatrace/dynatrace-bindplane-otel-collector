@@ -21,7 +21,9 @@ jobs:
   detect-changes:
     if: ${{ needs.optimize_ci.outputs.skip != 'true' }}
     needs: optimize_ci
-    runs-on: ubuntu-latest-8-cores
+    runs-on:
+      group: bindplane-large
+      labels: ubuntu-latest-8-cores
     permissions:
       contents: read
       pull-requests: read
@@ -61,7 +63,9 @@ jobs:
         include:
           # Ubuntu - All tests
           - os: ubuntu
-            runner: ubuntu-latest-32-cores
+            runner:
+              group: bindplane-large
+              labels: ubuntu-latest-32-cores
             # GitHub-hosted runners execute as the unprivileged `runner` user, so
             # `sudo` sanitizes PATH (secure_path) and drops /home/runner/go/bin where
             # gotestsum lives. Preserve PATH so the tools installed above resolve.
@@ -72,7 +76,9 @@ jobs:
             test_cmd: make test-updater-integration
           # Windows - All tests
           - os: windows
-            runner: windows-2022-16-cores
+            runner:
+              group: bindplane-large
+              labels: windows-2022-16-cores
             test_cmd: make test-updater-integration
     runs-on: ${{ matrix.runner }}
     steps:
