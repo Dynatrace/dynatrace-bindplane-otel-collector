@@ -97,7 +97,9 @@ jobs:
 
   release:
     needs: [build-msi]
-    runs-on: ubuntu-latest-32-cores
+    runs-on:
+      group: bindplane-large
+      labels: ubuntu-latest-32-cores
     steps:
       - name: Redirect temp directories
         run: |

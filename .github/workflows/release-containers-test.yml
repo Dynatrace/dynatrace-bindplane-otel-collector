@@ -9,7 +9,9 @@ on:
 
 jobs:
   release-containers-test:
-    runs-on: ubuntu-latest-32-cores
+    runs-on:
+      group: bindplane-large
+      labels: ubuntu-latest-32-cores
     steps:
       - name: Redirect temp directories
         run: |
