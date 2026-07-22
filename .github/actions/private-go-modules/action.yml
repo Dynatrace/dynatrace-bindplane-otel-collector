@@ -23,7 +23,7 @@ runs:
         private-key: ${{ inputs.private-key }}
         # Scope the token to just the repos go needs; extend this list when
         # the manifest gains another private module.
-        repositories: dt-otelcol-edge-processing-components
+        repositories: dt-otelcol-edge-processing-components,dt-protocols-go
     - name: Route git fetches of Dynatrace repos through the token
       shell: bash
       run: git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/Dynatrace/".insteadOf "https://github.com/Dynatrace/"
