@@ -69,12 +69,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Login to Google Artifact Repository
-        uses: docker/login-action@v2
-        with:
-          registry: us-central1-docker.pkg.dev
-          username: _json_key
-          password: ${{ secrets.DBDOT_GAR_JSON_KEY }}
+      # GAR publishing is disabled for now — the GCP project and
+      # DBDOT_GAR_JSON_KEY secret are not provisioned yet. The GAR image
+      # templates in .goreleaser-docker.yml are commented out to match.
+      # - name: Login to Google Artifact Repository
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: us-central1-docker.pkg.dev
+      #     username: _json_key
+      #     password: ${{ secrets.DBDOT_GAR_JSON_KEY }}
       # - name: Install cosign
       #   run: go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
       # - name: Build cosign key file
