@@ -33,9 +33,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-amd64:{{ .Version }}-minimal"
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:{{ .Version }}-minimal"
+      - "observiq/dbdot-collector-standalone-amd64:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-amd64:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-amd64:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -60,9 +60,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-arm64:{{ .Version }}-minimal"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:{{ .Version }}-minimal"
+      - "observiq/dbdot-collector-standalone-arm64:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-arm64:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-arm64:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -87,9 +87,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-ppc64le:{{ .Version }}-minimal"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "observiq/dbdot-collector-standalone-ppc64le:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-ppc64le:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-ppc64le:{{ .Version }}-minimal"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -115,12 +115,12 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-amd64:latest"
-      - "observiq/dbdot-collector-amd64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:{{ .Version }}"
+      - "observiq/dbdot-collector-standalone-amd64:latest"
+      - "observiq/dbdot-collector-standalone-amd64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-amd64:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-amd64:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-amd64:latest"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-amd64:{{ .Version }}"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.ubuntu
     use: buildx
@@ -146,12 +146,12 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-arm64:latest"
-      - "observiq/dbdot-collector-arm64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:{{ .Version }}"
+      - "observiq/dbdot-collector-standalone-arm64:latest"
+      - "observiq/dbdot-collector-standalone-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-arm64:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-arm64:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-arm64:latest"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-arm64:{{ .Version }}"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.ubuntu
     use: buildx
@@ -177,12 +177,12 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-ppc64le:latest"
-      - "observiq/dbdot-collector-ppc64le:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:{{ .Version }}"
+      - "observiq/dbdot-collector-standalone-ppc64le:latest"
+      - "observiq/dbdot-collector-standalone-ppc64le:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-ppc64le:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-ppc64le:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-ppc64le:latest"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-ppc64le:{{ .Version }}"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.ubuntu
     use: buildx
@@ -209,9 +209,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-amd64:{{ .Version }}-jmx"
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:{{ .Version }}-jmx"
+      - "observiq/dbdot-collector-standalone-amd64:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-amd64:{{ .Version }}-jmx"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-amd64:{{ .Version }}-jmx"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.jmx
     use: buildx
@@ -238,9 +238,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-arm64:{{ .Version }}-jmx"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:{{ .Version }}-jmx"
+      - "observiq/dbdot-collector-standalone-arm64:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-arm64:{{ .Version }}-jmx"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-arm64:{{ .Version }}-jmx"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.jmx
     use: buildx
@@ -267,9 +267,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-ppc64le:{{ .Version }}-jmx"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:{{ .Version }}-jmx"
+      - "observiq/dbdot-collector-standalone-ppc64le:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-ppc64le:{{ .Version }}-jmx"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-ppc64le:{{ .Version }}-jmx"
       # Bindplane Agent Containers
     dockerfile: ./docker/Dockerfile.jmx
     use: buildx
@@ -288,78 +288,78 @@ dockers:
       - release_deps/opentelemetry-java-contrib-jmx-metrics.jar
 
 docker_manifests:
-  - name_template: "observiq/dbdot-collector:{{ .Version }}-minimal"
+  - name_template: "observiq/dbdot-collector-standalone:{{ .Version }}-minimal"
     image_templates:
-      - "observiq/dbdot-collector-amd64:{{ .Version }}-minimal"
-      - "observiq/dbdot-collector-arm64:{{ .Version }}-minimal"
-      - "observiq/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "observiq/dbdot-collector-standalone-amd64:{{ .Version }}-minimal"
+      - "observiq/dbdot-collector-standalone-arm64:{{ .Version }}-minimal"
+      - "observiq/dbdot-collector-standalone-ppc64le:{{ .Version }}-minimal"
     skip_push: false
-  - name_template: "ghcr.io/dynatrace/dbdot-collector:{{ .Version }}-minimal"
+  - name_template: "ghcr.io/dynatrace/dbdot-collector-standalone:{{ .Version }}-minimal"
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}-minimal"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}-minimal"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-amd64:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-arm64:{{ .Version }}-minimal"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-ppc64le:{{ .Version }}-minimal"
     skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector:{{ .Version }}-minimal"
+  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone:{{ .Version }}-minimal"
     image_templates:
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:{{ .Version }}-minimal"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-amd64:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-arm64:{{ .Version }}-minimal"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-ppc64le:{{ .Version }}-minimal"
     skip_push: false
-  - name_template: "observiq/dbdot-collector:latest"
+  - name_template: "observiq/dbdot-collector-standalone:latest"
     image_templates:
-      - "observiq/dbdot-collector-amd64:latest"
-      - "observiq/dbdot-collector-arm64:latest"
-      - "observiq/dbdot-collector-ppc64le:latest"
+      - "observiq/dbdot-collector-standalone-amd64:latest"
+      - "observiq/dbdot-collector-standalone-arm64:latest"
+      - "observiq/dbdot-collector-standalone-ppc64le:latest"
     skip_push: false
-  - name_template: "observiq/dbdot-collector:{{ .Version }}"
+  - name_template: "observiq/dbdot-collector-standalone:{{ .Version }}"
     image_templates:
-      - "observiq/dbdot-collector-amd64:{{ .Version }}"
-      - "observiq/dbdot-collector-arm64:{{ .Version }}"
-      - "observiq/dbdot-collector-ppc64le:{{ .Version }}"
+      - "observiq/dbdot-collector-standalone-amd64:{{ .Version }}"
+      - "observiq/dbdot-collector-standalone-arm64:{{ .Version }}"
+      - "observiq/dbdot-collector-standalone-ppc64le:{{ .Version }}"
     skip_push: false
-  - name_template: "ghcr.io/dynatrace/dbdot-collector:latest"
+  - name_template: "ghcr.io/dynatrace/dbdot-collector-standalone:latest"
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-amd64:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-arm64:latest"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-ppc64le:latest"
     skip_push: false
-  - name_template: "ghcr.io/dynatrace/dbdot-collector:{{ .Version }}"
+  - name_template: "ghcr.io/dynatrace/dbdot-collector-standalone:{{ .Version }}"
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-amd64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-ppc64le:{{ .Version }}"
     skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector:latest"
+  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone:latest"
     image_templates:
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:latest"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-amd64:latest"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-arm64:latest"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-ppc64le:latest"
     skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector:{{ .Version }}"
+  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone:{{ .Version }}"
     image_templates:
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-amd64:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-arm64:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-ppc64le:{{ .Version }}"
     skip_push: false
   # Bindplane Agent Manifests
-  - name_template: "observiq/dbdot-collector:{{ .Version }}-jmx"
+  - name_template: "observiq/dbdot-collector-standalone:{{ .Version }}-jmx"
     image_templates:
-      - "observiq/dbdot-collector-amd64:{{ .Version }}-jmx"
-      - "observiq/dbdot-collector-arm64:{{ .Version }}-jmx"
-      - "observiq/dbdot-collector-ppc64le:{{ .Version }}-jmx"
+      - "observiq/dbdot-collector-standalone-amd64:{{ .Version }}-jmx"
+      - "observiq/dbdot-collector-standalone-arm64:{{ .Version }}-jmx"
+      - "observiq/dbdot-collector-standalone-ppc64le:{{ .Version }}-jmx"
     skip_push: false
-  - name_template: "ghcr.io/dynatrace/dbdot-collector:{{ .Version }}-jmx"
+  - name_template: "ghcr.io/dynatrace/dbdot-collector-standalone:{{ .Version }}-jmx"
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}-jmx"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}-jmx"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-amd64:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-arm64:{{ .Version }}-jmx"
+      - "ghcr.io/dynatrace/dbdot-collector-standalone-ppc64le:{{ .Version }}-jmx"
     skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector:{{ .Version }}-jmx"
+  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone:{{ .Version }}-jmx"
     image_templates:
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:{{ .Version }}-jmx"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:{{ .Version }}-jmx"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-amd64:{{ .Version }}-jmx"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-arm64:{{ .Version }}-jmx"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-standalone-ppc64le:{{ .Version }}-jmx"
     skip_push: false
 changelog:
   # Set this to true if you don't want any changelog at all.

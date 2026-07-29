@@ -128,6 +128,33 @@ agent:
 	cd $(BUILD_DIR) && go mod tidy
 	cd $(BUILD_DIR) && CGO_ENABLED=0 go build -tags "$(AGENT_BUILD_TAGS)" -ldflags "$(AGENT_LDFLAGS)" -o ../$(OUTDIR)/collector_$(GOOS)_$(GOARCH)$(EXT) .
 
+# Builds the collector purely with ocb for the current GOOS/GOARCH pair:
+# stock ocb-generated main.go, no main.go overlay, no build tags. This is
+# the binary shipped in the standard (non-standalone) container images.
+# The manifest is copied with the release version stamped into dist.version
+# so `--version` reports the real version instead of 0.0.0.
+OCB_MANIFEST_TMP = $(basename $(MANIFEST)).ocb.yaml
+.PHONY: agent-ocb
+agent-ocb:
+	@if [ ! -x "$(OCB)" ]; then \
+		echo "ocb not found at $(OCB). Install with: make install-ocb"; \
+		exit 1; \
+	fi
+	rm -rf $(BUILD_DIR)
+	sed 's/^  version: .*/  version: $(VERSION:v%=%)/' $(MANIFEST) > $(OCB_MANIFEST_TMP)
+	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 $(OCB) --config $(OCB_MANIFEST_TMP)
+	rm -f $(OCB_MANIFEST_TMP)
+	mkdir -p $(OUTDIR)
+	mv $(BUILD_DIR)/dbdot-collector $(OUTDIR)/collector-ocb_$(GOOS)_$(GOARCH)$(EXT)
+
+# build-all-agent-ocb builds the pure-ocb collector for every container
+# release platform. Keep this list in sync with .goreleaser-docker-ocb.yml.
+.PHONY: build-all-agent-ocb
+build-all-agent-ocb:
+	GOOS=linux GOARCH=amd64 $(MAKE) agent-ocb
+	GOOS=linux GOARCH=arm64 $(MAKE) agent-ocb
+	GOOS=linux GOARCH=ppc64le $(MAKE) agent-ocb
+
 # Builds just the updater for current GOOS/GOARCH pair
 .PHONY: updater
 updater:
