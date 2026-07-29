@@ -1,0 +1,58 @@
+name: release-containers-ocb-test
+# Dry run of release-containers-ocb: builds the pure-ocb collector and the
+# container images without publishing. Unlike the release workflow, this
+# builds from the dispatched ref rather than the version tag so unreleased
+# changes to the flow can be tested.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Collector Version"
+        required: true
+        default: "v0.0.1"
+
+jobs:
+  release-containers-ocb-test:
+    runs-on:
+      group: bindplane-large
+      labels: ubuntu-latest-32-cores
+    steps:
+      - name: Redirect temp directories
+        run: |
+          echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+          echo "TMP=$RUNNER_TEMP" >> "$GITHUB_ENV"
+          echo "TEMP=$RUNNER_TEMP" >> "$GITHUB_ENV"
+          echo "GOTMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Checkout Repo
+        uses: actions/checkout@v7
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: internal/extension/opampconnectionextension/go.mod
+      - name: Install ocb
+        run: make install-ocb
+      - name: Build Collector Binaries
+        run: make build-all-agent-ocb OUTDIR=tmp VERSION=${{ github.event.inputs.version }}
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Cache Goreleaser Build
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/goreleaser
+          key: ${{ runner.os }}-goreleaser-ocb-${{ hashFiles('.goreleaser-docker-ocb.yml', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-goreleaser-ocb-
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser-pro
+          version: "v2.12.5"
+          args: release --skip=publish --skip=validate --clean --config .goreleaser-docker-ocb.yml
+        env:
+          GORELEASER_CURRENT_TAG: ${{ github.event.inputs.version }}
+          GAR_PROJECT_ID: ${{ vars.DBDOT_GAR_PROJECT_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
