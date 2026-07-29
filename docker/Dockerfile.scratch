@@ -14,6 +14,9 @@ RUN mkdir \
     && chown -R otel:otel /etc/otel \
     && chmod 0750 /etc/otel/storage
 
+RUN mkdir /licenses
+COPY LICENSE /licenses/dbdot-collector.license
+
 COPY release_deps/plugins /etc/otel/plugins
 COPY config/logging.stdout.yaml /etc/otel/logging.yaml
 COPY release_deps/config.yaml /etc/otel/config.yaml
@@ -29,6 +32,7 @@ FROM scratch
 COPY --from=stage /etc/passwd /etc/passwd
 COPY --from=stage /etc/group /etc/group
 COPY --from=stage /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=stage --chown=otel:otel /licenses /licenses
 COPY --from=stage --chown=otel:otel /etc/otel /etc/otel
 COPY --from=stage --chown=otel:otel /etc/otel/storage /etc/otel/storage
 

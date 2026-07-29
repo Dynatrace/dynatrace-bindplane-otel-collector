@@ -36,8 +36,7 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-arm64:{{ .Version }}"
-      - "observiq/dbdot-collector-arm64:latest"
+      - "observiq/dbdot-arm64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -50,6 +49,7 @@ dockers:
       - release_deps/plugins
       - release_deps/config.yaml
       - config/logging.stdout.yaml
+      - LICENSE
 
 changelog:
   disable: true

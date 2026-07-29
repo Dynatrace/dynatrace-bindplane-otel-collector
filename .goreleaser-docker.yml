@@ -35,12 +35,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-amd64:latest"
-      - "observiq/dbdot-collector-amd64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:{{ .Version }}"
+      - "observiq/dbdot-amd64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-amd64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -53,6 +50,7 @@ dockers:
       - release_deps/plugins
       - release_deps/config.yaml
       - config/logging.stdout.yaml
+      - LICENSE
   - id: scratch-arm64
     goos: linux
     goarch: arm64
@@ -63,12 +61,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-arm64:latest"
-      - "observiq/dbdot-collector-arm64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:{{ .Version }}"
+      - "observiq/dbdot-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-arm64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -81,6 +76,7 @@ dockers:
       - release_deps/plugins
       - release_deps/config.yaml
       - config/logging.stdout.yaml
+      - LICENSE
   - id: scratch-ppc64le
     goos: linux
     goarch: ppc64le
@@ -91,12 +87,9 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-collector-ppc64le:latest"
-      - "observiq/dbdot-collector-ppc64le:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:{{ .Version }}"
+      - "observiq/dbdot-ppc64le:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-ppc64le:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -109,43 +102,26 @@ dockers:
       - release_deps/plugins
       - release_deps/config.yaml
       - config/logging.stdout.yaml
+      - LICENSE
 
 docker_manifests:
-  - name_template: "observiq/dbdot-collector:latest"
+  - name_template: "observiq/dbdot:{{ .Version }}"
     image_templates:
-      - "observiq/dbdot-collector-amd64:latest"
-      - "observiq/dbdot-collector-arm64:latest"
-      - "observiq/dbdot-collector-ppc64le:latest"
+      - "observiq/dbdot-amd64:{{ .Version }}"
+      - "observiq/dbdot-arm64:{{ .Version }}"
+      - "observiq/dbdot-ppc64le:{{ .Version }}"
     skip_push: false
-  - name_template: "observiq/dbdot-collector:{{ .Version }}"
+  - name_template: "ghcr.io/dynatrace/dbdot:{{ .Version }}"
     image_templates:
-      - "observiq/dbdot-collector-amd64:{{ .Version }}"
-      - "observiq/dbdot-collector-arm64:{{ .Version }}"
-      - "observiq/dbdot-collector-ppc64le:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
     skip_push: false
-  - name_template: "ghcr.io/dynatrace/dbdot-collector:latest"
+  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot:{{ .Version }}"
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:latest"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:latest"
-    skip_push: false
-  - name_template: "ghcr.io/dynatrace/dbdot-collector:{{ .Version }}"
-    image_templates:
-      - "ghcr.io/dynatrace/dbdot-collector-amd64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-arm64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-collector-ppc64le:{{ .Version }}"
-    skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector:latest"
-    image_templates:
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:latest"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:latest"
-    skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector:{{ .Version }}"
-    image_templates:
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-amd64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-arm64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-collector-ppc64le:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-amd64:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-arm64:{{ .Version }}"
+      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-ppc64le:{{ .Version }}"
     skip_push: false
 changelog:
   # Set this to true if you don't want any changelog at all.
