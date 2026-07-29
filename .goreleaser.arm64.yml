@@ -35,8 +35,10 @@ dockers:
       max_delay: 1m
     ids:
       - collector
+    # GHCR only, matching .goreleaser-docker.yml. Docker Hub and GAR
+    # publishing should be added back under Dynatrace-owned orgs/registries.
     image_templates:
-      - "observiq/dbdot-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:

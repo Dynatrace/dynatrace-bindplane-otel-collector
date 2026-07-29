@@ -24,6 +24,14 @@ builds:
 # Build container images with docker buildx (mutli arch builds).
 # A single scratch-based image per arch: collector binary, passwd/group,
 # CA certificates, and the /etc/otel runtime tree only.
+#
+# Images are currently published to GHCR only. Docker Hub and Google
+# Artifact Registry publishing should be added back once Dynatrace-owned
+# orgs/registries exist for them, e.g.:
+#   - "dynatrace/dbdot-<arch>:{{ .Version }}"
+#   - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-<arch>:{{ .Version }}"
+# (plus the matching docker_manifests entries and registry logins in
+# .github/workflows/release-containers.yml).
 dockers:
   - id: scratch-amd64
     goos: linux
@@ -35,9 +43,7 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-amd64:{{ .Version }}"
       - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-amd64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -61,9 +67,7 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-arm64:{{ .Version }}"
       - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-arm64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -87,9 +91,7 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "observiq/dbdot-ppc64le:{{ .Version }}"
       - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-ppc64le:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -105,23 +107,11 @@ dockers:
       - LICENSE
 
 docker_manifests:
-  - name_template: "observiq/dbdot:{{ .Version }}"
-    image_templates:
-      - "observiq/dbdot-amd64:{{ .Version }}"
-      - "observiq/dbdot-arm64:{{ .Version }}"
-      - "observiq/dbdot-ppc64le:{{ .Version }}"
-    skip_push: false
   - name_template: "ghcr.io/dynatrace/dbdot:{{ .Version }}"
     image_templates:
       - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
       - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
       - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
-    skip_push: false
-  - name_template: "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot:{{ .Version }}"
-    image_templates:
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-amd64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-arm64:{{ .Version }}"
-      - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-ppc64le:{{ .Version }}"
     skip_push: false
 changelog:
   # Set this to true if you don't want any changelog at all.
