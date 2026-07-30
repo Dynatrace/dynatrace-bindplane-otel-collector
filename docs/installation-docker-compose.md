@@ -16,14 +16,13 @@ Before installing the Dynatrace Bindplane Distribution of OpenTelemetry Collecto
 
 ```
 > config
-    manager.yaml
 > storage
     config.yaml
     logging.yaml
   docker-compose.yaml
 ```
 
-Proceed to add content into all files except the `manager.yaml` that will be auto-updated when creating rolling out a config from Bindplane.
+On startup the collector will create a `manager.yaml` in the config directory based on the OpAMP environment variables.
 
 2. Paste the following content into your `docker-compose.yaml`:
 
