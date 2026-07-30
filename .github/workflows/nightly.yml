@@ -8,6 +8,14 @@ on:
     # 06:00 UTC daily; scheduled runs always use the default branch.
     - cron: "0 6 * * *"
   workflow_dispatch:
+    inputs:
+      edge_components_ref:
+        description: >
+          Git ref (branch, tag, or SHA) of
+          Dynatrace/dt-otelcol-edge-processing-components to build the
+          collector with. Empty = version pinned in the manifest.
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -46,6 +54,19 @@ jobs:
         with:
           app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
           private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+
+      - name: Pin DT edge components to requested ref
+        if: inputs.edge_components_ref != ''
+        env:
+          # The Makefile exports GOPRIVATE, but this step calls go directly.
+          GOPRIVATE: github.com/Dynatrace/*
+          EDGE_REF: ${{ inputs.edge_components_ref }}
+        run: |
+          MOD=github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver
+          # go list needs a module context; resolve the ref from a throwaway module.
+          VERSION=$(cd "$(mktemp -d)" && go mod init resolve >/dev/null && go list -m "${MOD}@${EDGE_REF}" | awk '{print $2}')
+          echo "Resolved ${EDGE_REF} -> ${VERSION}"
+          yq -i ".replaces += [\"${MOD} => ${MOD} ${VERSION}\"]" manifests/dbdot/manifest.yaml
 
       - name: Install ocb
         run: make install-ocb
