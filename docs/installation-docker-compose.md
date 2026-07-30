@@ -63,15 +63,12 @@ Get your keys from the **Agents > Install Agents** page in Bindplane.
 ```yaml
 receivers:
   nop:
-processors:
-  batch:
 exporters:
   nop:
 service:
   pipelines:
     metrics:
       receivers: [nop]
-      processors: [batch]
       exporters: [nop]
   telemetry:
     metrics:
