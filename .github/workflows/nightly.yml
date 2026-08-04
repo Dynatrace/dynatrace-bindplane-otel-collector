@@ -118,7 +118,7 @@ jobs:
           cp LICENSE ctx/
 
           ARCH_TAGS=""
-          for ARCH in amd64 arm64 ppc64le; do
+          for ARCH in amd64 arm64; do
             cp "dist/collector_linux_${ARCH}" ctx/dbdot-collector
             docker buildx build --push \
               --platform "linux/${ARCH}" \
