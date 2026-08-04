@@ -1,8 +1,10 @@
 name: Nightly Build
 
 # Nightly test builds of the collector binary for all release platforms.
-# Artifacts stay on GitHub (workflow artifacts, 2-day retention); no
-# updater, packaging, signing, or publishing to external infrastructure.
+# Binaries are uploaded as workflow artifacts (2-day retention). Linux
+# container images are pushed to ghcr.io/dynatrace/dbdot-nightly — a
+# package separate from the release images (ghcr.io/dynatrace/dbdot).
+# No updater, packaging, or signing.
 on:
   schedule:
     # 06:00 UTC daily; scheduled runs always use the default branch.
@@ -19,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: nightly
@@ -81,3 +84,56 @@ jobs:
           path: dist/
           retention-days: 2
           if-no-files-found: error
+
+      # Container images: same Dockerfile and staging layout as the release
+      # flow (.goreleaser-docker.yml), but built with plain buildx from the
+      # binaries in dist/ — no goreleaser-pro, no GCS round-trip.
+      - name: Stage container dependencies
+        run: make release-prep CURR_VERSION=0.0.0-nightly
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push nightly container images
+        env:
+          IMAGE: ghcr.io/dynatrace/dbdot-nightly
+          EDGE_REF: ${{ inputs.edge_components_ref }}
+        run: |
+          # Minimal build context (mirrors goreleaser's extra_files staging);
+          # the repo root would ship build/, dist/, and .git/ to the daemon.
+          mkdir -p ctx/release_deps ctx/config
+          cp -r release_deps/plugins ctx/release_deps/plugins
+          cp release_deps/config.yaml ctx/release_deps/config.yaml
+          cp config/logging.stdout.yaml ctx/config/logging.stdout.yaml
+          cp LICENSE ctx/
+
+          ARCH_TAGS=""
+          for ARCH in amd64 arm64 ppc64le; do
+            cp "dist/collector_linux_${ARCH}" ctx/dbdot-collector
+            docker buildx build --push \
+              --platform "linux/${ARCH}" \
+              --file docker/Dockerfile.scratch \
+              --label "revision=${GITHUB_SHA}" \
+              --tag "${IMAGE}:${GITHUB_RUN_ID}-${ARCH}" \
+              ctx
+            ARCH_TAGS="${ARCH_TAGS} ${IMAGE}:${GITHUB_RUN_ID}-${ARCH}"
+          done
+
+          # Experimental edge-ref builds get their own tag so they can never
+          # overwrite the real nightly under :latest or the commit sha.
+          if [ -n "${EDGE_REF}" ]; then
+            TAG_ARGS="--tag ${IMAGE}:edge-${GITHUB_RUN_ID}"
+          else
+            TAG_ARGS="--tag ${IMAGE}:latest --tag ${IMAGE}:${GITHUB_SHA}"
+          fi
+          docker buildx imagetools create ${TAG_ARGS} ${ARCH_TAGS}
