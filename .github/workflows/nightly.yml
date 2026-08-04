@@ -65,11 +65,17 @@ jobs:
           GOPRIVATE: github.com/Dynatrace/*
           EDGE_REF: ${{ inputs.edge_components_ref }}
         run: |
-          MOD=github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver
-          # go list needs a module context; resolve the ref from a throwaway module.
-          VERSION=$(cd "$(mktemp -d)" && go mod init resolve >/dev/null && go list -m "${MOD}@${EDGE_REF}" | awk '{print $2}')
-          echo "Resolved ${EDGE_REF} -> ${VERSION}"
-          yq -i ".replaces += [\"${MOD} => ${MOD} ${VERSION}\"]" manifests/dbdot/manifest.yaml
+          # Pin every module the manifest pulls from the edge components repo,
+          # so new components are covered without touching this step.
+          MODS=$(grep -o 'github.com/Dynatrace/dt-otelcol-edge-processing-components/[^ ]*' manifests/dbdot/manifest.yaml | sort -u)
+          # go list needs a module context; resolve refs from a throwaway module.
+          RESOLVE_DIR=$(mktemp -d)
+          (cd "${RESOLVE_DIR}" && go mod init resolve >/dev/null)
+          for MOD in ${MODS}; do
+            VERSION=$(cd "${RESOLVE_DIR}" && go list -m "${MOD}@${EDGE_REF}" | awk '{print $2}')
+            echo "Resolved ${MOD}@${EDGE_REF} -> ${VERSION}"
+            yq -i ".replaces += [\"${MOD} => ${MOD} ${VERSION}\"]" manifests/dbdot/manifest.yaml
+          done
 
       - name: Install ocb
         run: make install-ocb
