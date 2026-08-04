@@ -138,7 +138,8 @@ jobs:
           # Experimental edge-ref builds get their own tag so they can never
           # overwrite the real nightly under :latest or the commit sha.
           if [ -n "${EDGE_REF}" ]; then
-            TAG_ARGS="--tag ${IMAGE}:edge-${GITHUB_RUN_ID}"
+            # Docker tags only allow [A-Za-z0-9_.-]; sanitize refs like "feat/foo".
+            TAG_ARGS="--tag ${IMAGE}:edge-${EDGE_REF//[^a-zA-Z0-9_.-]/-}"
           else
             TAG_ARGS="--tag ${IMAGE}:latest --tag ${IMAGE}:${GITHUB_SHA}"
           fi
