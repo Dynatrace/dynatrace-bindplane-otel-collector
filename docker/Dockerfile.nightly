@@ -1,0 +1,51 @@
+# Nightly-image variant of Dockerfile.scratch, selected by
+# .goreleaser-docker.yml when goreleaser runs in nightly mode
+# (`--nightly`, from .github/workflows/nightly.yml). Currently identical
+# to the release image; diverge nightly-only contents here.
+#
+# Alpine is used to stage everything the scratch image needs:
+# /etc/passwd and /etc/group for the otel user, CA certificates
+# for TLS connections to common destinations (Google APIs,
+# Dynatrace, etc), and the /etc/otel runtime tree.
+FROM alpine as stage
+
+RUN addgroup -S -g 10005 otel && adduser -S -u 10005 -G otel otel
+
+RUN apk update && apk add --no-cache ca-certificates
+
+RUN mkdir \
+    /etc/otel \
+    /etc/otel/storage \
+    && chown -R otel:otel /etc/otel \
+    && chmod 0750 /etc/otel/storage
+
+RUN mkdir /licenses
+COPY LICENSE /licenses/dbdot-collector.license
+
+COPY release_deps/plugins /etc/otel/plugins
+COPY config/logging.stdout.yaml /etc/otel/logging.yaml
+COPY release_deps/config.yaml /etc/otel/config.yaml
+
+# Scratch images contain nothing by default. The built image
+# will contain only what was copied into it: the collector
+# binary, the passwd/group files, the CA certificates, and the
+# /etc/otel runtime tree (default config, logging config,
+# plugins, storage). This means it does not contain utilities
+# like ls, cat, or even a shell.
+FROM scratch
+
+COPY --from=stage /etc/passwd /etc/passwd
+COPY --from=stage /etc/group /etc/group
+COPY --from=stage /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=stage --chown=otel:otel /licenses /licenses
+COPY --from=stage --chown=otel:otel /etc/otel /etc/otel
+COPY --from=stage --chown=otel:otel /etc/otel/storage /etc/otel/storage
+
+COPY dbdot-collector /collector/dbdot-collector
+
+ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
+ENV BINDPLANE_COLLECTOR_STORAGE=/etc/otel/storage
+
+USER otel
+WORKDIR /etc/otel
+ENTRYPOINT ["/collector/dbdot-collector"]

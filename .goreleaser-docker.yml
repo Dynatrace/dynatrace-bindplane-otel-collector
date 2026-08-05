@@ -57,7 +57,7 @@ dockers:
       - collector
     image_templates:
       - "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly-amd64:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}{{ end }}"
-    dockerfile: ./docker/Dockerfile.scratch
+    dockerfile: "./docker/Dockerfile{{ if .IsNightly }}.nightly{{ else }}.scratch{{ end }}"
     use: buildx
     build_flag_templates:
       - "--label=created={{.Date}}"
@@ -81,7 +81,7 @@ dockers:
       - collector
     image_templates:
       - "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly-arm64:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}{{ end }}"
-    dockerfile: ./docker/Dockerfile.scratch
+    dockerfile: "./docker/Dockerfile{{ if .IsNightly }}.nightly{{ else }}.scratch{{ end }}"
     use: buildx
     build_flag_templates:
       - "--label=created={{.Date}}"
@@ -108,7 +108,7 @@ dockers:
       - collector
     image_templates:
       - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
-    dockerfile: ./docker/Dockerfile.scratch
+    dockerfile: "./docker/Dockerfile{{ if .IsNightly }}.nightly{{ else }}.scratch{{ end }}"
     use: buildx
     build_flag_templates:
       - "--label=created={{.Date}}"
