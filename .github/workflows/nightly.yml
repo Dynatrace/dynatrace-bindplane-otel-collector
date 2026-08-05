@@ -1,16 +1,34 @@
 name: Nightly Build
 
 # Nightly test builds of the collector binary for all release platforms.
-# Artifacts stay on GitHub (workflow artifacts, 2-day retention); no
-# updater, packaging, signing, or publishing to external infrastructure.
+# Binaries are uploaded as workflow artifacts (2-day retention). Linux
+# container images are pushed to ghcr.io/dynatrace/dbdot-nightly — a
+# package separate from the release images (ghcr.io/dynatrace/dbdot).
+# No updater, packaging, or signing.
 on:
   schedule:
     # 06:00 UTC daily; scheduled runs always use the default branch.
     - cron: "0 6 * * *"
   workflow_dispatch:
+    inputs:
+      edge_components_ref:
+        description: >
+          Git ref (branch, tag, or SHA) of
+          Dynatrace/dt-otelcol-edge-processing-components to build the
+          collector with. Empty = version pinned in the manifest.
+        required: false
+        type: string
+      push_images:
+        description: >
+          Push the built container images to ghcr.io/dynatrace/dbdot-nightly.
+          Uncheck to test the build without publishing anything.
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: nightly
@@ -47,6 +65,25 @@ jobs:
           app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
           private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
 
+      - name: Pin DT edge components to requested ref
+        if: inputs.edge_components_ref != ''
+        env:
+          # The Makefile exports GOPRIVATE, but this step calls go directly.
+          GOPRIVATE: github.com/Dynatrace/*
+          EDGE_REF: ${{ inputs.edge_components_ref }}
+        run: |
+          # Pin every module the manifest pulls from the edge components repo,
+          # so new components are covered without touching this step.
+          MODS=$(grep -o 'github.com/Dynatrace/dt-otelcol-edge-processing-components/[^ ]*' manifests/dbdot/manifest.yaml | sort -u)
+          # go list needs a module context; resolve refs from a throwaway module.
+          RESOLVE_DIR=$(mktemp -d)
+          (cd "${RESOLVE_DIR}" && go mod init resolve >/dev/null)
+          for MOD in ${MODS}; do
+            VERSION=$(cd "${RESOLVE_DIR}" && go list -m "${MOD}@${EDGE_REF}" | awk '{print $2}')
+            echo "Resolved ${MOD}@${EDGE_REF} -> ${VERSION}"
+            yq -i ".replaces += [\"${MOD} => ${MOD} ${VERSION}\"]" manifests/dbdot/manifest.yaml
+          done
+
       - name: Install ocb
         run: make install-ocb
 
@@ -60,3 +97,64 @@ jobs:
           path: dist/
           retention-days: 2
           if-no-files-found: error
+
+      # Container images: goreleaser in nightly mode against the dedicated
+      # .goreleaser-docker-nightly.yml. Nightly mode needs no tag and creates
+      # no GitHub release; only the dbdot-nightly* images are published.
+      - name: Stage binaries for goreleaser
+        # Into tmp/ (where the config's prebuilt paths point) — goreleaser's
+        # --clean wipes dist/, so it can't consume them in place.
+        run: |
+          mkdir -p tmp
+          for ARCH in amd64 arm64; do
+            cp "dist/collector_linux_${ARCH}" "tmp/collector_linux_${ARCH}"
+          done
+
+      - name: Compute nightly image tags
+        env:
+          EDGE_REF: ${{ inputs.edge_components_ref }}
+        run: |
+          # Pin goreleaser's version detection to the nearest root release tag
+          # (v*). Left to itself, git describe can land on a Go module subpath
+          # tag like cmd/plugindocgen/v0.0.5, which isn't semver and breaks
+          # the nightly version template.
+          echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match 'v[0-9]*' --abbrev=0)" >> "$GITHUB_ENV"
+
+          # Edge-ref builds get their own tag and never move :latest, so they
+          # can't overwrite the real nightly. Docker tags only allow
+          # [A-Za-z0-9_.-]; sanitize refs like "feat/foo".
+          if [ -n "${EDGE_REF}" ]; then
+            echo "NIGHTLY_TAG=edge-${EDGE_REF//[^a-zA-Z0-9_.-]/-}" >> "$GITHUB_ENV"
+            echo "NIGHTLY_PUSH_LATEST=false" >> "$GITHUB_ENV"
+          else
+            echo "NIGHTLY_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
+            echo "NIGHTLY_PUSH_LATEST=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Login to GitHub Container Registry
+        # Scheduled runs always push; workflow dispatch pushes unless
+        # push_images is unchecked.
+        if: github.event_name == 'schedule' || inputs.push_images
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push nightly container images
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          distribution: goreleaser-pro
+          version: "v2.12.5"
+          # --skip=publish: build the images but push nothing when
+          # push_images is unchecked on a manual dispatch.
+          args: release --clean --nightly --timeout 120m --config .goreleaser-docker-nightly.yml ${{ (github.event_name == 'workflow_dispatch' && !inputs.push_images) && '--skip=publish' || '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
