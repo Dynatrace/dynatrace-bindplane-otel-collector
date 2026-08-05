@@ -6,6 +6,19 @@ before:
   hooks:
     - make release-prep CURR_VERSION={{ .Version }}
 
+# Nightly builds (nightly.yml runs `goreleaser release --nightly`) share this
+# config. Nightly mode needs no tag at HEAD and creates no GitHub release; it
+# still builds and pushes docker images/manifests, retargeted below via
+# {{ .IsNightly }} at the separate ghcr.io/dynatrace/dbdot-nightly* packages.
+# The nightly workflow must set two env vars:
+#   NIGHTLY_TAG         image tag — commit sha, or edge-<ref> for builds
+#                       pinned to an edge-components git ref
+#   NIGHTLY_PUSH_LATEST "true" to also move dbdot-nightly:latest; edge-ref
+#                       builds set "false" so they can't masquerade as the
+#                       real nightly
+nightly:
+  version_template: "{{ incpatch .Version }}-{{ .ShortCommit }}-nightly"
+
 # https://goreleaser.com/customization/build/
 # https://goreleaser.com/customization/builds/#import-pre-built-binaries
 builds:
@@ -43,7 +56,7 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
+      - "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly-amd64:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}{{ end }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -67,7 +80,7 @@ dockers:
     ids:
       - collector
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
+      - "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly-arm64:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}{{ end }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -84,6 +97,9 @@ dockers:
   - id: scratch-ppc64le
     goos: linux
     goarch: ppc64le
+    # Nightlies ship amd64/arm64 only.
+    skip_build: "{{ .IsNightly }}"
+    skip_push: "{{ .IsNightly }}"
     retry:
       attempts: 10
       delay: 30s
@@ -107,12 +123,27 @@ dockers:
       - LICENSE
 
 docker_manifests:
+  # Release manifest — skipped on nightlies.
   - name_template: "ghcr.io/dynatrace/dbdot:{{ .Version }}"
     image_templates:
       - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
       - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
       - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
-    skip_push: false
+    skip_push: "{{ .IsNightly }}"
+  # Nightly manifests — skipped on releases. Templates must render a valid
+  # (if meaningless) name in release mode too, hence the :unused fallbacks;
+  # skip_push keeps them from ever being pushed there.
+  - name_template: "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-nightly:unused{{ end }}"
+    image_templates:
+      - "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly-amd64:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-nightly-amd64:unused{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly-arm64:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-nightly-arm64:unused{{ end }}"
+    skip_push: "{{ not .IsNightly }}"
+  # Rolling latest — only for real nightlies, never edge-ref builds.
+  - name_template: "ghcr.io/dynatrace/dbdot-nightly:latest"
+    image_templates:
+      - "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly-amd64:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-nightly-amd64:unused{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/dynatrace/dbdot-nightly-arm64:{{ .Env.NIGHTLY_TAG }}{{ else }}ghcr.io/dynatrace/dbdot-nightly-arm64:unused{{ end }}"
+    skip_push: "{{ if .IsNightly }}{{ if eq .Env.NIGHTLY_PUSH_LATEST \"true\" }}false{{ else }}true{{ end }}{{ else }}true{{ end }}"
 changelog:
   # Set this to true if you don't want any changelog at all.
   #

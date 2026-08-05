@@ -98,11 +98,33 @@ jobs:
           retention-days: 2
           if-no-files-found: error
 
-      # Container images: same Dockerfile and staging layout as the release
-      # flow (.goreleaser-docker.yml), but built with plain buildx from the
-      # binaries in dist/ — no goreleaser-pro, no GCS round-trip.
-      - name: Stage container dependencies
-        run: make release-prep CURR_VERSION=0.0.0-nightly
+      # Container images: goreleaser in nightly mode, sharing
+      # .goreleaser-docker.yml with the release flow. Nightly mode needs no
+      # tag and creates no GitHub release; {{ .IsNightly }} in the config
+      # retargets images at ghcr.io/dynatrace/dbdot-nightly*.
+      - name: Stage binaries for goreleaser
+        # Into tmp/ (where the config's prebuilt paths point) — goreleaser's
+        # --clean wipes dist/, so it can't consume them in place.
+        run: |
+          mkdir -p tmp
+          for ARCH in amd64 arm64 ppc64le; do
+            cp "dist/collector_linux_${ARCH}" "tmp/collector_linux_${ARCH}"
+          done
+
+      - name: Compute nightly image tags
+        env:
+          EDGE_REF: ${{ inputs.edge_components_ref }}
+        run: |
+          # Edge-ref builds get their own tag and never move :latest, so they
+          # can't overwrite the real nightly. Docker tags only allow
+          # [A-Za-z0-9_.-]; sanitize refs like "feat/foo".
+          if [ -n "${EDGE_REF}" ]; then
+            echo "NIGHTLY_TAG=edge-${EDGE_REF//[^a-zA-Z0-9_.-]/-}" >> "$GITHUB_ENV"
+            echo "NIGHTLY_PUSH_LATEST=false" >> "$GITHUB_ENV"
+          else
+            echo "NIGHTLY_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
+            echo "NIGHTLY_PUSH_LATEST=true" >> "$GITHUB_ENV"
+          fi
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
@@ -121,45 +143,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push nightly container images
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          distribution: goreleaser-pro
+          version: "v2.12.5"
+          # --skip=publish: build the images but push nothing when
+          # push_images is unchecked on a manual dispatch.
+          args: release --clean --nightly --timeout 120m --config .goreleaser-docker.yml ${{ (github.event_name == 'workflow_dispatch' && !inputs.push_images) && '--skip=publish' || '' }}
         env:
-          IMAGE: ghcr.io/dynatrace/dbdot-nightly
-          EDGE_REF: ${{ inputs.edge_components_ref }}
-          PUSH: ${{ github.event_name == 'schedule' || inputs.push_images }}
-        run: |
-          # Minimal build context (mirrors goreleaser's extra_files staging);
-          # the repo root would ship build/, dist/, and .git/ to the daemon.
-          mkdir -p ctx/release_deps ctx/config
-          cp -r release_deps/plugins ctx/release_deps/plugins
-          cp release_deps/config.yaml ctx/release_deps/config.yaml
-          cp config/logging.stdout.yaml ctx/config/logging.stdout.yaml
-          cp LICENSE ctx/
-
-          PUSH_FLAG=""
-          [ "${PUSH}" = "true" ] && PUSH_FLAG="--push"
-
-          ARCH_TAGS=""
-          for ARCH in amd64 arm64; do
-            cp "dist/collector_linux_${ARCH}" ctx/dbdot-collector
-            docker buildx build ${PUSH_FLAG} \
-              --platform "linux/${ARCH}" \
-              --file docker/Dockerfile.scratch \
-              --label "revision=${GITHUB_SHA}" \
-              --tag "${IMAGE}:${GITHUB_RUN_ID}-${ARCH}" \
-              ctx
-            ARCH_TAGS="${ARCH_TAGS} ${IMAGE}:${GITHUB_RUN_ID}-${ARCH}"
-          done
-
-          if [ "${PUSH}" != "true" ]; then
-            echo "push_images is false: images built but not pushed, skipping manifest creation"
-            exit 0
-          fi
-
-          # Experimental edge-ref builds get their own tag so they can never
-          # overwrite the real nightly under :latest or the commit sha.
-          if [ -n "${EDGE_REF}" ]; then
-            # Docker tags only allow [A-Za-z0-9_.-]; sanitize refs like "feat/foo".
-            TAG_ARGS="--tag ${IMAGE}:edge-${EDGE_REF//[^a-zA-Z0-9_.-]/-}"
-          else
-            TAG_ARGS="--tag ${IMAGE}:latest --tag ${IMAGE}:${GITHUB_SHA}"
-          fi
-          docker buildx imagetools create ${TAG_ARGS} ${ARCH_TAGS}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
