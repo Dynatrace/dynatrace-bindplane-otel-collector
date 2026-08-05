@@ -1,0 +1,105 @@
+version: 2
+
+project_name: dbdot-collector
+
+# Nightly container images. .github/workflows/nightly.yml runs
+# `goreleaser release --nightly` against this config: no tag at HEAD is
+# required and no GitHub release is created — only docker images and
+# manifests are published, to ghcr.io/dynatrace/dbdot-nightly*, a package
+# separate from the release images (ghcr.io/dynatrace/dbdot*, built by
+# .goreleaser-docker.yml — mirror image-content changes between the two).
+# Nightlies ship amd64/arm64 only; no ppc64le.
+#
+# The workflow must set two env vars:
+#   NIGHTLY_TAG         image tag — commit sha, or edge-<ref> for builds
+#                       pinned to an edge-components git ref
+#   NIGHTLY_PUSH_LATEST "true" to also move dbdot-nightly:latest; edge-ref
+#                       builds set "false" so they can't masquerade as the
+#                       real nightly
+
+before:
+  hooks:
+    - make release-prep CURR_VERSION={{ .Version }}
+
+# Only used in binary/label metadata — image tags come from NIGHTLY_TAG.
+nightly:
+  version_template: "{{ incpatch .Version }}-{{ .ShortCommit }}-nightly"
+
+# https://goreleaser.com/customization/builds/#import-pre-built-binaries
+builds:
+  - id: collector
+    builder: prebuilt
+    binary: dbdot-collector
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    prebuilt:
+      path: tmp/collector_{{ .Os }}_{{ .Arch }}
+
+dockers:
+  - id: scratch-amd64
+    goos: linux
+    goarch: amd64
+    retry:
+      attempts: 10
+      delay: 30s
+      max_delay: 1m
+    ids:
+      - collector
+    image_templates:
+      - "ghcr.io/dynatrace/dbdot-nightly-amd64:{{ .Env.NIGHTLY_TAG }}"
+    dockerfile: ./docker/Dockerfile.scratch
+    use: buildx
+    build_flag_templates:
+      - "--label=created={{.Date}}"
+      - "--label=title={{.ProjectName}}"
+      - "--label=revision={{.FullCommit}}"
+      - "--label=version={{.Version}}"
+      - "--platform=linux/amd64"
+    extra_files:
+      - release_deps/plugins
+      - release_deps/config.yaml
+      - config/logging.stdout.yaml
+      - LICENSE
+  - id: scratch-arm64
+    goos: linux
+    goarch: arm64
+    retry:
+      attempts: 10
+      delay: 30s
+      max_delay: 1m
+    ids:
+      - collector
+    image_templates:
+      - "ghcr.io/dynatrace/dbdot-nightly-arm64:{{ .Env.NIGHTLY_TAG }}"
+    dockerfile: ./docker/Dockerfile.scratch
+    use: buildx
+    build_flag_templates:
+      - "--label=created={{.Date}}"
+      - "--label=title={{.ProjectName}}"
+      - "--label=revision={{.FullCommit}}"
+      - "--label=version={{.Version}}"
+      - "--platform=linux/arm64"
+    extra_files:
+      - release_deps/plugins
+      - release_deps/config.yaml
+      - config/logging.stdout.yaml
+      - LICENSE
+
+docker_manifests:
+  - name_template: "ghcr.io/dynatrace/dbdot-nightly:{{ .Env.NIGHTLY_TAG }}"
+    image_templates:
+      - "ghcr.io/dynatrace/dbdot-nightly-amd64:{{ .Env.NIGHTLY_TAG }}"
+      - "ghcr.io/dynatrace/dbdot-nightly-arm64:{{ .Env.NIGHTLY_TAG }}"
+    skip_push: false
+  # Rolling latest — skipped for edge-ref builds.
+  - name_template: "ghcr.io/dynatrace/dbdot-nightly:latest"
+    image_templates:
+      - "ghcr.io/dynatrace/dbdot-nightly-amd64:{{ .Env.NIGHTLY_TAG }}"
+      - "ghcr.io/dynatrace/dbdot-nightly-arm64:{{ .Env.NIGHTLY_TAG }}"
+    skip_push: "{{ if eq .Env.NIGHTLY_PUSH_LATEST \"true\" }}false{{ else }}true{{ end }}"
+
+changelog:
+  disable: true
