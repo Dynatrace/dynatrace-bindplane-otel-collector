@@ -114,6 +114,12 @@ jobs:
         env:
           EDGE_REF: ${{ inputs.edge_components_ref }}
         run: |
+          # Pin goreleaser's version detection to the nearest root release tag
+          # (v*). Left to itself, git describe can land on a Go module subpath
+          # tag like cmd/plugindocgen/v0.0.5, which isn't semver and breaks
+          # the nightly version template.
+          echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match 'v[0-9]*' --abbrev=0)" >> "$GITHUB_ENV"
+
           # Edge-ref builds get their own tag and never move :latest, so they
           # can't overwrite the real nightly. Docker tags only allow
           # [A-Za-z0-9_.-]; sanitize refs like "feat/foo".
