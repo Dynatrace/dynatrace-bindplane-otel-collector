@@ -170,7 +170,7 @@ usage()
   USAGE=$(cat <<EOF
 Usage:
   $(fg_yellow '-v, --version')
-      Defines the version of the Bindplane Agent.
+      Defines the version of DBDOT.
       If not provided, this will default to the latest version.
       Alternatively the COLLECTOR_VERSION environment variable can be
       set to configure the agent version.
@@ -479,7 +479,7 @@ latest_version()
 # This will install the package by downloading & unpacking the tarball into the install directory
 install_package()
 {
-  banner "Installing Bindplane Agent"
+  banner "Installing DBDOT"
   increase_indent 
 
   # Remove temporary directory, if it exists
@@ -566,7 +566,7 @@ install_package()
   rm -rf "$TMP_DIR" || error_exit "$LINENO" "Failed to remove temp dir: $TMP_DIR"
   succeeded
 
-  success "Bindplane Agent installation complete!"
+  success "DBDOT installation complete!"
   decrease_indent
 }
 
@@ -619,7 +619,7 @@ display_results()
 
 uninstall()
 {
-  banner "Uninstalling Bindplane Agent"
+  banner "Uninstalling DBDOT"
   increase_indent
 
   if [ ! -f "$INSTALL_DIR/dbdot-collector" ]; then

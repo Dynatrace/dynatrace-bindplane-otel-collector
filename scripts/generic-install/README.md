@@ -2,7 +2,7 @@
 
 These scripts (`install_macos.sh` and `install_unix.sh`) provide automated installation and management of Agents across macOS and Unix/Linux systems. They handle downloading, configuring, and managing services with support for OpAMP integration.
 
-They are designed to be compatible with OpenTelemetry Collector distributions build using the [OTel Distro Builder](https://github.com/observIQ/otel-distro-builder). They are not used at all by the Bindplane Agent, only hosted in this repository.
+They are designed to be compatible with OpenTelemetry Collector distributions build using the [OTel Distro Builder](https://github.com/observIQ/otel-distro-builder). They are not used at all by DBDOT, only hosted in this repository.
 
 Instead, Bindplane will reference these scripts when installing an Agent of a distribution built using the OTel Distro Builder tool.
 
