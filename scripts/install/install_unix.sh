@@ -207,7 +207,7 @@ usage()
   USAGE=$(cat <<EOF
 Usage:
   $(fg_yellow '-v, --version')
-      Defines the version of the Bindplane Agent.
+      Defines the version of DBDOT.
       If not provided, this will default to the latest version.
       Alternatively the COLLECTOR_VERSION environment variable can be
       set to configure the agent version.
@@ -218,12 +218,12 @@ Usage:
 
   $(fg_yellow '-l, --url')
       Defines the URL that the components will be downloaded from.
-      If not provided, this will default to Bindplane Agent\'s GitHub releases.
+      If not provided, this will default to '$DOWNLOAD_BASE'.
       Example: '-l http://my.domain.org/dbdot-collector' will download from there.
 
   $(fg_yellow '-gl, --gpg-tar-url')
       Defines the URL that the GPG tar file will be downloaded from.
-      If not provided, this will default to Bindplane Agent\'s GitHub releases.
+      If not provided, this will default to '$DOWNLOAD_BASE'.
       Example: '-gl http://my.domain.org/dbdot-gpg-keys.tar.gz' will download from there.
 
   $(fg_yellow '-b, --base-url')
@@ -356,32 +356,6 @@ succeeded()
 failed()
 {
   error "Failed!"
-}
-
-# This will validate that the version is at least v1.82.0
-validate_version()
-{
-  if [ -z "$version" ]; then
-    return 0  # No version specified, let the script handle it
-  fi
-
-  info "Validating version compatibility..."
-
-  # Remove 'v' prefix if present
-  version_clean=$(echo "$version" | sed 's/^v//')
-
-  # Extract major and minor version numbers
-  major=$(echo "$version_clean" | cut -d'.' -f1)
-  minor=$(echo "$version_clean" | cut -d'.' -f2)
-
-  # Check if major version is 1 and minor version is >= 82
-  if [ "$major" = "1" ] && [ "$minor" -ge 82 ] 2>/dev/null; then
-    succeeded
-    return 0
-  else
-    failed
-    error_exit "$LINENO" "Version $version is not supported. This script supports collector v1 version v1.82.0 or newer. Please use the script versioned with your desired collector version."
-  fi
 }
 
 # This will set all installation variables
@@ -834,7 +808,7 @@ latest_version()
 # extracting the binaries, and then removing the archive.
 install_package()
 {
-  banner "Installing Bindplane Agent"
+  banner "Installing DBDOT"
   increase_indent
 
   # if the user didn't specify a local file then download the package
@@ -969,7 +943,7 @@ install_package()
     esac
   fi
 
-  success "Bindplane Agent installation complete!"
+  success "DBDOT installation complete!"
   decrease_indent
 }
 
@@ -1211,7 +1185,7 @@ display_results()
     increase_indent
     info "$(fg_cyan "https://github.com/dynatrace/dynatrace-bindplane-otel-collector/tree/main")$(reset)"
     decrease_indent
-    info "If you have any other questions please contact us at $(fg_cyan support@binplane.com)$(reset)"
+    info "If you have any other questions please contact us at $(fg_cyan support@bindplane.com)$(reset)"
     increase_indent
     decrease_indent
     decrease_indent
@@ -1240,7 +1214,7 @@ uninstall_package()
 uninstall()
 {
   set_package_type
-  banner "Uninstalling Bindplane Agent"
+  banner "Uninstalling DBDOT"
   increase_indent
 
   info "Checking permissions..."
@@ -1352,7 +1326,6 @@ main()
     error_exit "$LINENO" "Could not determine version to install"
   fi
 
-  validate_version
   interactive_check
   connection_check
   offline_check
