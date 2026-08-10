@@ -37,6 +37,7 @@ COPY --from=stage --chown=otel:otel /etc/otel /etc/otel
 COPY --from=stage --chown=otel:otel /etc/otel/storage /etc/otel/storage
 
 COPY dbdot-collector /collector/dbdot-collector
+COPY container-init /collector/container-init
 
 ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
 ENV BINDPLANE_COLLECTOR_STORAGE=/etc/otel/storage

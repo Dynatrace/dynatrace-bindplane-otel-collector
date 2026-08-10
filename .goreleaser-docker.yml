@@ -20,6 +20,21 @@ builds:
       - ppc64le
     prebuilt:
       path: tmp/collector_{{ .Os }}_{{ .Arch }}
+  # Unlike the collector (built by ocb/make and imported prebuilt),
+  # container-init is a plain Go module goreleaser can build itself.
+  - id: container-init
+    dir: cmd/container-init
+    binary: container-init
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - ppc64le
 
 # Build container images with docker buildx (mutli arch builds).
 # A single scratch-based image per arch: collector binary, passwd/group,
@@ -42,6 +57,7 @@ dockers:
       max_delay: 1m
     ids:
       - collector
+      - container-init
     image_templates:
       - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
@@ -66,6 +82,7 @@ dockers:
       max_delay: 1m
     ids:
       - collector
+      - container-init
     image_templates:
       - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
@@ -90,6 +107,7 @@ dockers:
       max_delay: 1m
     ids:
       - collector
+      - container-init
     image_templates:
       - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
