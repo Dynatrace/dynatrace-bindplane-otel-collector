@@ -37,6 +37,19 @@ builds:
       - arm64
     prebuilt:
       path: tmp/collector_{{ .Os }}_{{ .Arch }}
+  - id: container-init
+    dir: cmd/container-init
+    binary: container-init
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - ppc64le
 
 dockers:
   - id: scratch-amd64
@@ -48,6 +61,7 @@ dockers:
       max_delay: 1m
     ids:
       - collector
+      - container-init
     image_templates:
       - "ghcr.io/dynatrace/dbdot-nightly-amd64:{{ .Env.NIGHTLY_TAG }}"
     dockerfile: ./docker/Dockerfile.scratch
@@ -72,6 +86,7 @@ dockers:
       max_delay: 1m
     ids:
       - collector
+      - container-init
     image_templates:
       - "ghcr.io/dynatrace/dbdot-nightly-arm64:{{ .Env.NIGHTLY_TAG }}"
     dockerfile: ./docker/Dockerfile.scratch
