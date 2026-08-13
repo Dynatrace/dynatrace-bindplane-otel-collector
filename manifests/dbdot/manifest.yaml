@@ -82,9 +82,10 @@ exporters:
   - gomod: github.com/observiq/bindplane-otel-contrib/exporter/qradar v1.12.0
   - gomod: github.com/observiq/bindplane-otel-contrib/exporter/snowflakeexporter v1.12.0
   - gomod: github.com/observiq/bindplane-otel-contrib/exporter/webhookexporter v1.12.0
-  # This project doesn't have a tagged release of this module yet. Will need to generate a ref until tags are ready.
   # Need `GOPRIVATE=github.com/Dynatrace/*` set in order to access this component.
-  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.0.0-20260731083904-5047d1f6edf0
+  # Component does not have official releases yet. The version reported is mapped to the OTel version it is built on.
+  # Component replace statement below.
+  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.158.0
 
 processors:
   - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.158.0
@@ -229,9 +230,10 @@ receivers:
   - gomod: github.com/observiq/bindplane-otel-contrib/receiver/splunksearchapireceiver v1.12.0
   - gomod: github.com/observiq/bindplane-otel-contrib/receiver/telemetrygeneratorreceiver v1.12.0
   - gomod: github.com/observiq/bindplane-otel-contrib/receiver/windowseventtracereceiver v1.12.0
-  # This project doesn't have a tagged release of this module yet. Will need to generate a ref until tags are ready.
   # Need `GOPRIVATE=github.com/Dynatrace/*` set in order to access this component.
-  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.156.2-0.20260729144335-d8b0138eb7b9
+  # Component does not have official releases yet. The version reported is mapped to the OTel version it is built on.
+  # Component replace statement below.
+  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.158.0
 
 connectors:
   - gomod: go.opentelemetry.io/collector/connector/forwardconnector v0.158.0
@@ -272,3 +274,8 @@ replaces:
 
   # The JMX receiver was removed in OTel v0.157.0. Pinned to a fork that we must maintain until we can migrate users to a new solution.
   -  github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/jmxreceiver v0.0.0-20260807210806-19b5f8384444
+  
+  # Point the edge processing components at a specifc git ref since they don't have official releases yet
+  # Current git-ref: https://github.com/Dynatrace/dt-otelcol-edge-processing-components/commit/cdad26cf81a868ef270fb1ab7456d0b52a8b0eab
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.0.0-20260813153951-cdad26cf81a8
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver => github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.156.2-0.20260813153951-cdad26cf81a8
