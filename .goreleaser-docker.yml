@@ -20,8 +20,6 @@ builds:
       - ppc64le
     prebuilt:
       path: tmp/collector_{{ .Os }}_{{ .Arch }}
-  # Unlike the collector (built by ocb/make and imported prebuilt),
-  # container-init is a plain Go module goreleaser can build itself.
   - id: container-init
     dir: cmd/container-init
     binary: container-init
