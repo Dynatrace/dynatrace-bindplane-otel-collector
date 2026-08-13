@@ -50,7 +50,6 @@ AGENT_LDFLAGS = -s -w \
 	-X github.com/observiq/bindplane-otel-contrib/pkg/version.date=$(BUILD_DATE)
 
 # AGENT_BUILD_TAGS are the build tags that should be used when building DBDOT
-# 'bindplane' builds with logic used by the v1 OpAMP implementation
 # 'embed_library' used by the telemetry generator receiver to use blitz (PR#3525)
 AGENT_BUILD_TAGS = embed_library
 
@@ -82,7 +81,7 @@ version:
 #   - $(GOBIN)/builder (else $$HOME/go/bin/builder)
 #
 # Install with: make install-ocb
-OCB_VERSION ?= v0.156.0
+OCB_VERSION ?= v0.158.0
 OCB ?= $(shell command -v $${OCB:-builder} 2>/dev/null || echo $${GOBIN:-$$HOME/go/bin}/builder)
 
 # Installs the ocb builder at the pinned version. The single source of truth
