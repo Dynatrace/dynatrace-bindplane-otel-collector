@@ -74,6 +74,8 @@ type Options struct {
 //  4. Bootstraps manager.yaml from env vars if absent (managed mode entry).
 //  5. Launches the appropriate RunnableService (managed or standalone).
 func Run(opts Options) {
+	setLegacyEnvVars()
+
 	logOpts, err := loadLoggingOptions(opts.LoggingConfigPath)
 	if err != nil {
 		log.Fatalf("Failed to get log options: %v", err)
@@ -114,6 +116,28 @@ func Run(opts Options) {
 
 	if err := service.RunService(logger, runnableService); err != nil {
 		logger.Fatal("RunService returned error", zap.Error(err))
+	}
+}
+
+// setLegacyEnvVars syncs the legacy OIQ_* and generic BINDPLANE_* environment
+// variables in both directions: new packages only set BINDPLANE_*, while
+// installs upgraded in place may only set OIQ_*. Whichever of the pair is set
+// fills in the missing one, so configs referencing either name keep working.
+// Must run before logging setup, which expands OIQ_OTEL_COLLECTOR_HOME. If
+// both are set, both are left as-is.
+func setLegacyEnvVars() {
+	for legacy, generic := range map[string]string{
+		"OIQ_OTEL_COLLECTOR_HOME":    "BINDPLANE_COLLECTOR_HOME",
+		"OIQ_OTEL_COLLECTOR_STORAGE": "BINDPLANE_COLLECTOR_STORAGE",
+	} {
+		legacyVal, legacyOK := os.LookupEnv(legacy)
+		genericVal, genericOK := os.LookupEnv(generic)
+		switch {
+		case legacyOK && !genericOK:
+			_ = os.Setenv(generic, legacyVal)
+		case genericOK && !legacyOK:
+			_ = os.Setenv(legacy, genericVal)
+		}
 	}
 }
 
