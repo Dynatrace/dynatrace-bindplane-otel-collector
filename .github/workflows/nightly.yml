@@ -74,14 +74,22 @@ jobs:
         run: |
           # Pin every module the manifest pulls from the edge components repo,
           # so new components are covered without touching this step.
-          MODS=$(grep -o 'github.com/Dynatrace/dt-otelcol-edge-processing-components/[^ ]*' manifests/dbdot/manifest.yaml | sort -u)
+          # Only gomod entries should be matched.
+          MODS=$(awk '$1 == "-" && $2 == "gomod:" && $3 ~ /^github.com\/Dynatrace\/dt-otelcol-edge-processing-components\//{print $3}' manifests/dbdot/manifest.yaml | sort -u)
           # go list needs a module context; resolve refs from a throwaway module.
           RESOLVE_DIR=$(mktemp -d)
           (cd "${RESOLVE_DIR}" && go mod init resolve >/dev/null)
           for MOD in ${MODS}; do
             VERSION=$(cd "${RESOLVE_DIR}" && go list -m "${MOD}@${EDGE_REF}" | awk '{print $2}')
+            if [ -z "${VERSION}" ]; then
+              echo "Failed to resolve ${MOD}@${EDGE_REF}" >&2
+              exit 1
+            fi
             echo "Resolved ${MOD}@${EDGE_REF} -> ${VERSION}"
-            yq -i ".replaces += [\"${MOD} => ${MOD} ${VERSION}\"]" manifests/dbdot/manifest.yaml
+            # Drop any standing pin for this module before adding ours —
+            # duplicate replaces for one module are a go.mod error.
+            MOD="${MOD}" PIN="${MOD} => ${MOD} ${VERSION}" \
+              yq -i '.replaces |= map(select((split(" ") | .[0]) != env(MOD))) + [env(PIN)]' manifests/dbdot/manifest.yaml
           done
 
       - name: Install ocb
