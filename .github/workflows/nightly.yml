@@ -73,8 +73,8 @@ jobs:
           EDGE_REF: ${{ inputs.edge_components_ref }}
         run: |
           # Pin every module the manifest pulls from the edge components repo,
-          # so new components are covered without touching this step. Only
-          # gomod entries — the same repo path also appears in comments/URLs.
+          # so new components are covered without touching this step.
+          # Only gomod entries should be matched.
           MODS=$(awk '$1 == "-" && $2 == "gomod:" && $3 ~ /^github.com\/Dynatrace\/dt-otelcol-edge-processing-components\//{print $3}' manifests/dbdot/manifest.yaml | sort -u)
           # go list needs a module context; resolve refs from a throwaway module.
           RESOLVE_DIR=$(mktemp -d)
