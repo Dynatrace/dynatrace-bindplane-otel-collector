@@ -1,3 +1,5 @@
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Dynatrace/dynatrace-bindplane-otel-collector/badge)](https://scorecard.dev/viewer/?uri=github.com/Dynatrace/dynatrace-bindplane-otel-collector)
+
 <a href="https://bindplane.com">
   <p align="center">
     <picture>
