@@ -38,6 +38,12 @@ VERSION ?= $(if $(CURRENT_TAG),$(CURRENT_TAG),$(PREVIOUS_TAG)-SNAPSHOT-$(SNAPSHO
 # template appends its own -SNAPSHOT-<sha> suffix, so passing VERSION here would double it.
 SNAPSHOT_TAG := $(if $(CURRENT_TAG),$(CURRENT_TAG),$(PREVIOUS_TAG))
 
+# Timeout for the local snapshot goreleaser targets. goreleaser defaults to 1h, which a
+# full cross-compile can exceed on a slower workstation, so the run gets killed partway
+# through. CI uses 120m on larger runners; local gets more headroom. Override on the
+# command line if your machine needs a different budget.
+GORELEASER_TIMEOUT ?= 180m
+
 # Build-info stamps. These get linked into the binary via -ldflags so
 # `collector --version` shows real values instead of "unknown".
 GIT_HASH ?= $(shell git rev-parse HEAD)
@@ -430,7 +436,7 @@ release-test:
 # If there are no MSIs in the root dir, we'll create dummy ones so that goreleaser can complete successfully
 	if [ ! -e "./dbdot-collector-amd64.msi" ]; then touch ./dbdot-collector-amd64.msi; fi
 	if [ ! -e "./dbdot-collector-arm64.msi" ]; then touch ./dbdot-collector-arm64.msi; fi
-	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --skip=publish --skip=validate --skip=sign --clean --snapshot
+	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
 
 .PHONY: release-containers-test
 release-containers-test:
@@ -439,7 +445,7 @@ release-containers-test:
 	mv ./dist/collector_linux_amd64 ./tmp/collector_linux_amd64
 	mv ./dist/collector_linux_arm64 ./tmp/collector_linux_arm64
 	mv ./dist/collector_linux_ppc64le ./tmp/collector_linux_ppc64le
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --skip=publish --skip=validate --skip=sign --clean --snapshot --config .goreleaser-docker.yml
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot --config .goreleaser-docker.yml
 
 .PHONY: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le
 agent-linux-amd64:
@@ -480,11 +486,11 @@ agent-windows-arm64:
 
 build-single:
 	$(MAKE)
-	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --skip=publish --skip=sign --clean --skip=validate --snapshot --single-target
+	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=sign --clean --skip=validate --snapshot --single-target
 
 .PHONY: release-test-single
 release-test-single:
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release -f .goreleaser.arm64.yml --skip=publish --clean --skip=validate --snapshot
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release -f .goreleaser.arm64.yml --timeout $(GORELEASER_TIMEOUT) --skip=publish --clean --skip=validate --snapshot
 
 .PHONY: for-all
 for-all:
