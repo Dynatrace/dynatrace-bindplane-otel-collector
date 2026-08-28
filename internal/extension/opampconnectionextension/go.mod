@@ -3,7 +3,7 @@ module github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extensio
 go 1.26.4
 
 require (
-	github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report v0.0.6
+	github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report v0.9.0
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/observiq/bindplane-otel-contrib/extension/pebbleextension v1.13.0
