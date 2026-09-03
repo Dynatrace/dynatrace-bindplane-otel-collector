@@ -31,7 +31,7 @@ func TestInstallDir(t *testing.T) {
 		{
 			name:            "default install dir when no config files exist",
 			configOverrides: []string{"nonexistent1.conf", "nonexistent2.conf"},
-			expectedDir:     "/opt/dbdot-collector",
+			expectedDir:     "/opt/dynatrace-bindplane-otel-collector",
 		},
 		{
 			name:            "custom install dir",

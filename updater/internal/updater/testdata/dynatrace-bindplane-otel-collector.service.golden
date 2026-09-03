@@ -8,10 +8,10 @@ Type=simple
 User=root
 Group=dbdot
 Environment=PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
-Environment=BINDPLANE_COLLECTOR_HOME=/opt/dbdot-collector
-Environment=BINDPLANE_COLLECTOR_STORAGE=/opt/dbdot-collector/storage
-WorkingDirectory=/opt/dbdot-collector
-ExecStart=/opt/dbdot-collector/dbdot-collector --config config.yaml
+Environment=BINDPLANE_COLLECTOR_HOME=/opt/dynatrace-bindplane-otel-collector
+Environment=BINDPLANE_COLLECTOR_STORAGE=/opt/dynatrace-bindplane-otel-collector/storage
+WorkingDirectory=/opt/dynatrace-bindplane-otel-collector
+ExecStart=/opt/dynatrace-bindplane-otel-collector/dynatrace-bindplane-otel-collector --config config.yaml
 LimitNOFILE=65000
 SuccessExitStatus=0
 TimeoutSec=20

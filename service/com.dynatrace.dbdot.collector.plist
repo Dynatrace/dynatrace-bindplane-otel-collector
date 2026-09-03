@@ -13,7 +13,7 @@
     </dict>
     <key>ProgramArguments</key>
     <array>
-        <string>[INSTALLDIR]dbdot-collector</string>
+        <string>[INSTALLDIR]dynatrace-bindplane-otel-collector</string>
         <string>--config</string>
         <string>[INSTALLDIR]config.yaml</string>
         <string>--logging</string>

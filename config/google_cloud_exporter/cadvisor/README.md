@@ -37,10 +37,10 @@ services:
     - /var/lib/docker/:/var/lib/docker:ro
 
   agent:
-    image: dynatrace/dbdot-collector:latest
+    image: dynatrace/dynatrace-bindplane-otel-collector:latest
     restart: always
-    container_name: dbdot-collector
-    hostname: dbdot-collector
+    container_name: dynatrace-bindplane-otel-collector
+    hostname: dynatrace-bindplane-otel-collector
     deploy:
       resources:
         limits:

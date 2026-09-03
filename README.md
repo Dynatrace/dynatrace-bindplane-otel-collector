@@ -127,9 +127,9 @@ With the DBDOT Collector installed, it will start collecting basic metrics about
 
 | OS      | Default Location                                                |
 | :------ | :-------------------------------------------------------------- |
-| Linux   | `/opt/dbdot-collector/config.yaml`                      |
+| Linux   | `/opt/dynatrace-bindplane-otel-collector/config.yaml`                      |
 | Windows | `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\config.yaml` |
-| macOS   | `/opt/dbdot-collector/config.yaml`                      |
+| macOS   | `/opt/dynatrace-bindplane-otel-collector/config.yaml`                      |
 
 For more information on configuration see the [Configuration section](#configuration).
 
@@ -214,7 +214,7 @@ service:
 Starting in v1.80.2 of the DBDOT collector, OpenTelemetry feature gates can be configured at run time using a program argument or environment variable. To configure via a run time argument, you can do the following:
 
 ```sh
-./dbdot-collector --config ./path/to/config.yaml --feature-gates otel.SomeFeature,-otel.OtherFeature
+./dynatrace-bindplane-otel-collector --config ./path/to/config.yaml --feature-gates otel.SomeFeature,-otel.OtherFeature
 ```
 
 This would enable the `otel.SomeFeature` feature gate and disable the `otel.OtherFeature` feature gate.

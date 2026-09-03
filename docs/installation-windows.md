@@ -43,7 +43,7 @@ The script accepts the following parameters:
 
 ### Manual Installation
 
-For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://dbdot.bindplane.com/v<version>/dbdot-collector-amd64.msi` (or `dbdot-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
+For versions prior to v1.96.0, or if you prefer to install without the script, download the MSI directly from `https://dbdot.bindplane.com/v<version>/dynatrace-bindplane-otel-collector-amd64.msi` (or `dynatrace-bindplane-otel-collector-arm64.msi` for ARM64) and double click it to open the installation wizard.
 
 ### Signature Verification
 
@@ -64,7 +64,7 @@ To read more about the generated connection configuration file see [OpAMP docs](
 
 ## Configuring the Agent
 
-After installing, the `dbdot-collector` service will be running and ready for configuration!
+After installing, the `dynatrace-bindplane-otel-collector` service will be running and ready for configuration!
 
 The agent logs to `C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log\collector.log` by default.
 
@@ -90,7 +90,7 @@ Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service
 
 Alternatively, the PowerShell command below may be run to restart the agent service.
 ```pwsh
-Restart-Service -Name "dbdot-collector"
+Restart-Service -Name "dynatrace-bindplane-otel-collector"
 ```
 
 ## Stopping the Agent
@@ -106,7 +106,7 @@ Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service
 
 Alternatively, the PowerShell command below may be run to stop the agent service.
 ```pwsh
-Stop-Service -Name "dbdot-collector"
+Stop-Service -Name "dynatrace-bindplane-otel-collector"
 ```
 
 ## Starting the Agent
@@ -122,7 +122,7 @@ Locate the "Dynatrace Bindplane Distribution of OpenTelemetry Collector" service
 
 Alternatively, the PowerShell command below may be run to start the agent service.
 ```pwsh
-Start-Service -Name "dbdot-collector"
+Start-Service -Name "dynatrace-bindplane-otel-collector"
 ```
 
 ## Uninstalling

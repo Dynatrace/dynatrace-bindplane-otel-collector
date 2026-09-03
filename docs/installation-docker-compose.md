@@ -28,8 +28,8 @@ On startup the collector will create a `manager.yaml` in the config directory ba
 
 ```yaml
 services:
-  dbdot-collector:
-    image: ghcr.io/dynatrace/dbdot:0.0.4
+  dynatrace-bindplane-otel-collector:
+    image: ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:0.0.4
     command: ["--config=/etc/otel/storage/config.yaml"]
     volumes:
       - ./config:/etc/otel/config
@@ -42,14 +42,14 @@ services:
     environment:
       OPAMP_ENDPOINT: <your-endpoint> # use "wss://app.bindplane.com/v1/opamp" for Bindplane Cloud
       OPAMP_SECRET_KEY: <your-secret-key>
-      OPAMP_AGENT_NAME: dbdot-collector
+      OPAMP_AGENT_NAME: dynatrace-bindplane-otel-collector
       CONFIG_YAML_PATH: /etc/otel/storage/config.yaml
       MANAGER_YAML_PATH: /etc/otel/config/manager.yaml
       LOGGING_YAML_PATH: /etc/otel/storage/logging.yaml
 
 ```
 
-> Images are published to `ghcr.io/dynatrace/dbdot` with the version number as the tag (no `v` prefix, no `latest` tag). Replace `0.0.4` with the [release](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases) you want to run.
+> Images are published to `ghcr.io/dynatrace/dynatrace-bindplane-otel-collector` with the version number as the tag (no `v` prefix, no `latest` tag). Replace `0.0.4` with the [release](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases) you want to run.
 
 > The container runs as a non-root user (UID 10005), so the mounted `config` and `storage` directories must be writable by that UID.
 

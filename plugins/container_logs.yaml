@@ -23,7 +23,7 @@ parameters:
     description: A list of file glob patterns to exclude from reading
     default:
       # Excludes logs for the collector
-      - "/var/log/containers/dbdot-collector-*"
+      - "/var/log/containers/dynatrace-bindplane-otel-collector-*"
       - "/var/log/containers/dbdot-*-collector-*"
   - name: body_json_parsing
     type: bool

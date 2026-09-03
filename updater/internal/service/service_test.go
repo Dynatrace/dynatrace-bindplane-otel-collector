@@ -39,9 +39,9 @@ func TestReplaceInstallDir(t *testing.T) {
 			output:     []byte("no install dir"),
 		},
 		{
-			input:      []byte("[INSTALLDIR]dbdot-collector"),
+			input:      []byte("[INSTALLDIR]dynatrace-bindplane-otel-collector"),
 			installDir: "some/install/directory",
-			output:     []byte(filepath.Join("some", "install", "directory", "dbdot-collector")),
+			output:     []byte(filepath.Join("some", "install", "directory", "dynatrace-bindplane-otel-collector")),
 		},
 	}
 
