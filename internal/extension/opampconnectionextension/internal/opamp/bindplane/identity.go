@@ -21,6 +21,7 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
 	"github.com/observiq/bindplane-otel-contrib/pkg/osinfo"
 	"github.com/open-telemetry/opamp-go/protobufs"
+	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +40,7 @@ type identity struct {
 }
 
 // newIdentity constructs a new identity for this collector
-func newIdentity(logger *zap.Logger, config opamp.Config, version string) *identity {
+func newIdentity(logger *zap.Logger, config opamp.Config, buildInfo component.BuildInfo) *identity {
 	// Grab various fields from OS
 	hostname, err := osinfo.Hostname()
 	if err != nil {
@@ -54,8 +55,8 @@ func newIdentity(logger *zap.Logger, config opamp.Config, version string) *ident
 	return &identity{
 		agentID:     config.AgentID,
 		agentName:   config.AgentName,
-		serviceName: "com.dynatrace.dbdot.collector", // Hardcoded defines this type of agent to the server
-		version:     version,
+		serviceName: buildInfo.Command, // Defines this type of agent to the server
+		version:     buildInfo.Version,
 		labels:      config.Labels,
 		oSArch:      runtime.GOARCH,
 		oSDetails:   name,

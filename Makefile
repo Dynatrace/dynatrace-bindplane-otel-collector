@@ -49,12 +49,21 @@ GORELEASER_TIMEOUT ?= 180m
 GIT_HASH ?= $(shell git rev-parse HEAD)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 
+# AGENT_NAME / AGENT_DESCRIPTION populate component.BuildInfo. AGENT_NAME is
+# also the OpAMP agent type (service.name) Bindplane uses to identify DBDOT.
+AGENT_NAME = com.dynatrace.dbdot.collector
+AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
+OPAMP_EXT_COLLECTOR_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector
+
 # AGENT_LDFLAGS stamps version + git hash + build date into the v1 collector
-# binaries (both consume github.com/observiq/bindplane-otel-contrib/pkg/version).
+# binaries (both consume github.com/observiq/bindplane-otel-contrib/pkg/version),
+# plus the DBDOT name/description into the opamp connection extension.
 AGENT_LDFLAGS = -s -w \
 	-X github.com/observiq/bindplane-otel-contrib/pkg/version.version=$(VERSION) \
 	-X github.com/observiq/bindplane-otel-contrib/pkg/version.gitHash=$(GIT_HASH) \
-	-X github.com/observiq/bindplane-otel-contrib/pkg/version.date=$(BUILD_DATE)
+	-X github.com/observiq/bindplane-otel-contrib/pkg/version.date=$(BUILD_DATE) \
+	-X $(OPAMP_EXT_COLLECTOR_PKG).buildName=$(AGENT_NAME) \
+	-X '$(OPAMP_EXT_COLLECTOR_PKG).buildDescription=$(AGENT_DESCRIPTION)'
 
 # AGENT_BUILD_TAGS are the build tags that should be used when building DBDOT
 # 'embed_library' used by the telemetry generator receiver to use blitz (PR#3525)

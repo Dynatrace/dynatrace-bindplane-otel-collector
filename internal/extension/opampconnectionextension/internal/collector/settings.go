@@ -15,8 +15,6 @@
 package collector
 
 import (
-	"os"
-
 	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/aesprovider"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
@@ -29,15 +27,27 @@ import (
 	"go.uber.org/zap"
 )
 
-const buildDescription = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
+// buildName and buildDescription are stamped at link time via -X (see
+// AGENT_LDFLAGS in the Makefile). The defaults describe a generic upstream
+// collector so an unstamped build is obviously unstamped.
+var (
+	buildName        = "otelcol"
+	buildDescription = "OpenTelemetry Collector"
+)
 
-// NewSettings returns new settings for the collector with default values.
-func NewSettings(configPaths []string, version string, loggingOpts []zap.Option, factories otelcol.Factories) (*otelcol.CollectorSettings, error) {
-	buildInfo := component.BuildInfo{
-		Command:     os.Args[0],
+// BuildInfo returns the collector's build info. Command doubles as the OpAMP
+// agent type (service.name) reported to Bindplane.
+func BuildInfo(version string) component.BuildInfo {
+	return component.BuildInfo{
+		Command:     buildName,
 		Description: buildDescription,
 		Version:     version,
 	}
+}
+
+// NewSettings returns new settings for the collector with default values.
+func NewSettings(configPaths []string, version string, loggingOpts []zap.Option, factories otelcol.Factories) (*otelcol.CollectorSettings, error) {
+	buildInfo := BuildInfo(version)
 
 	configProviderSettings := otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
