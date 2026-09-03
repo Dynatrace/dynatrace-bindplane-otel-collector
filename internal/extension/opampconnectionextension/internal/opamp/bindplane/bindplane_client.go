@@ -39,6 +39,7 @@ import (
 	"github.com/open-telemetry/opamp-go/client"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"
+	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 )
 
@@ -106,7 +107,7 @@ type NewClientArgs struct {
 	DefaultLogger *zap.Logger
 	Config        opamp.Config
 	Collector     collector.Collector
-	Version       string
+	BuildInfo     component.BuildInfo
 
 	TmpPath              string
 	ManagerConfigPath    string
@@ -140,7 +141,7 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 
 	bindplaneClient := &Client{
 		logger:                  clientLogger,
-		ident:                   newIdentity(clientLogger, args.Config, args.Version),
+		ident:                   newIdentity(clientLogger, args.Config, args.BuildInfo),
 		configManager:           configManager,
 		downloadableFileManager: newDownloadableFileManager(clientLogger, args.TmpPath),
 		collector:               args.Collector,

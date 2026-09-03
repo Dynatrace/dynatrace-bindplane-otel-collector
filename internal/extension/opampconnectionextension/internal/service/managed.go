@@ -71,7 +71,7 @@ func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, man
 		DefaultLogger:        logger,
 		Config:               *opampConfig,
 		Collector:            col,
-		Version:              version.Version(),
+		BuildInfo:            collector.BuildInfo(version.Version()),
 		TmpPath:              "./tmp",
 		ManagerConfigPath:    managerConfigPath,
 		CollectorConfigPath:  collectorConfigPath,

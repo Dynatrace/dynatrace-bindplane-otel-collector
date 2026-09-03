@@ -23,6 +23,7 @@ import (
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 )
 
@@ -51,7 +52,7 @@ func Test_newIdentity(t *testing.T) {
 
 	expectedVersion := "0.0.0"
 
-	got := newIdentity(zap.NewNop(), cfg, expectedVersion)
+	got := newIdentity(zap.NewNop(), cfg, component.BuildInfo{Command: "com.dynatrace.dbdot.collector", Version: expectedVersion})
 
 	// Check all fields from config
 	require.Equal(t, cfg.AgentID, got.agentID)

@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -99,7 +100,7 @@ func Test_managerReload(t *testing.T) {
 				client := &Client{
 					logger:             zap.NewNop(),
 					opampClient:        mockOpAmpClient,
-					ident:              newIdentity(zap.NewNop(), *currConfig, "0.0.0"),
+					ident:              newIdentity(zap.NewNop(), *currConfig, component.BuildInfo{Version: "0.0.0"}),
 					currentConfig:      *currConfig,
 					measurementsSender: newMeasurementsSender(zap.NewNop(), nil, mockOpAmpClient, nil, 0, nil),
 					topologySender:     newTopologySender(zap.NewNop(), nil, mockOpAmpClient, nil, nil),
@@ -162,7 +163,7 @@ func Test_managerReload(t *testing.T) {
 				client := &Client{
 					logger:        zap.NewNop(),
 					opampClient:   mockOpAmpClient,
-					ident:         newIdentity(zap.NewNop(), *currConfig, "0.0.0"),
+					ident:         newIdentity(zap.NewNop(), *currConfig, component.BuildInfo{Version: "0.0.0"}),
 					currentConfig: *currConfig,
 				}
 				reloadFunc := managerReload(client, managerFilePath)
@@ -234,7 +235,7 @@ labels: env=prod
 				client := &Client{
 					logger:             zap.NewNop(),
 					opampClient:        mockOpAmpClient,
-					ident:              newIdentity(zap.NewNop(), *currConfig, "0.0.0"),
+					ident:              newIdentity(zap.NewNop(), *currConfig, component.BuildInfo{Version: "0.0.0"}),
 					currentConfig:      *currConfig,
 					measurementsSender: newMeasurementsSender(zap.NewNop(), nil, mockOpAmpClient, nil, 0, nil),
 					topologySender:     newTopologySender(zap.NewNop(), nil, mockOpAmpClient, nil, nil),
