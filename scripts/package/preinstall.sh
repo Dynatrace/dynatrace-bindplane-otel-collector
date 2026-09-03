@@ -18,8 +18,8 @@ set -e
 # Read's optional package overrides. Users should deploy the override
 # file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
-[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
+[ -f /etc/default/dynatrace-bindplane-otel-collector ] && . /etc/default/dynatrace-bindplane-otel-collector
+[ -f /etc/sysconfig/dynatrace-bindplane-otel-collector ] && . /etc/sysconfig/dynatrace-bindplane-otel-collector
 
 : "${DBDOT_SKIP_RUNTIME_USER_CREATION:=false}"
 

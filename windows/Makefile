@@ -22,6 +22,6 @@ test-uninstall-msi:
 
 .PHONY: clean
 clean:
-	rm -rf go-msi.exe config.yaml cinc-auditor.msi dbdot-collector*.exe dbdot-collector*.msi \
+	rm -rf go-msi.exe config.yaml cinc-auditor.msi dynatrace-bindplane-otel-collector*.exe dynatrace-bindplane-otel-collector*.msi \
 		opentelemetry-java-contrib-jmx-metrics.jar wix-binaries.zip wix.dynamic.json \
 		wix plugins LICENSE VERSION.txt

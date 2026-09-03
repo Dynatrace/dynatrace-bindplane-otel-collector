@@ -22,7 +22,7 @@ Set the variables by creating a [systemd override](https://wiki.archlinux.org/ti
 
 Run the following command
 ```bash
-sudo systemctl edit dbdot-collector
+sudo systemctl edit dynatrace-bindplane-otel-collector
 ```
 
 If this is the first time an override is being created, the file will be empty. Paste the following contents into the file. If the `Service` section is already present, append the two `Environment` lines to the `Service` section.
@@ -37,5 +37,5 @@ Environment=POSTGRESQL_PASSWORD=otel
 After restarting the agent, the configuration will attempt to use the username:password `otel:otel`.
 
 ```bash
-sudo systemctl restart dbdot-collector
+sudo systemctl restart dynatrace-bindplane-otel-collector
 ```

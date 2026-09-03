@@ -83,7 +83,7 @@ version:
 .DEFAULT_GOAL := build-binaries
 
 # ocb-driven build:
-#   1. Run the OTel collector builder against manifests/dbdot/manifest.yaml
+#   1. Run the OTel collector builder against manifests/dynatrace-bindplane-otel-collector/manifest.yaml
 #      to generate ./build/ (components.go, go.mod, etc).
 #   2. Overwrite the generated main.go with the v1 entry point shipped by
 #      the opampconnectionextension at cmd/main/main.go. That entry point
@@ -105,7 +105,7 @@ OCB ?= $(shell command -v $${OCB:-builder} 2>/dev/null || echo $${GOBIN:-$$HOME/
 .PHONY: install-ocb
 install-ocb:
 	go install go.opentelemetry.io/collector/cmd/builder@$(OCB_VERSION)
-MANIFEST ?= manifests/dbdot/manifest.yaml
+MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
 BUILD_DIR ?= ./build
 AGENT_MAIN ?= internal/extension/opampconnectionextension/cmd/main/main.go
 
@@ -443,8 +443,8 @@ release-prep-gpg:
 .PHONY: release-test
 release-test:
 # If there are no MSIs in the root dir, we'll create dummy ones so that goreleaser can complete successfully
-	if [ ! -e "./dbdot-collector-amd64.msi" ]; then touch ./dbdot-collector-amd64.msi; fi
-	if [ ! -e "./dbdot-collector-arm64.msi" ]; then touch ./dbdot-collector-arm64.msi; fi
+	if [ ! -e "./dynatrace-bindplane-otel-collector-amd64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-amd64.msi; fi
+	if [ ! -e "./dynatrace-bindplane-otel-collector-arm64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-arm64.msi; fi
 	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
 
 .PHONY: release-containers-test

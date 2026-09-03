@@ -19,11 +19,11 @@ set -e
 # Read's optional package overrides. Users should deploy the override
 # file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
-[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
+[ -f /etc/default/dynatrace-bindplane-otel-collector ] && . /etc/default/dynatrace-bindplane-otel-collector
+[ -f /etc/sysconfig/dynatrace-bindplane-otel-collector ] && . /etc/sysconfig/dynatrace-bindplane-otel-collector
 
 # The collectors installation directory
-: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
+: "${DBDOT_CONFIG_HOME:=/opt/dynatrace-bindplane-otel-collector}"
 
 # Whether or not to run the collector as an unprivileged user.
 : "${DBDOT_UNPRIVILEGED:=false}"
@@ -38,12 +38,12 @@ install() {
     chmod 0755 "${DBDOT_CONFIG_HOME}"
     chown "$DBDOT_USER:$DBDOT_GROUP" "${DBDOT_CONFIG_HOME}"
 
-    share_dir="/usr/share/dbdot-collector"
-    stage_dir="${share_dir}/stage/dbdot-collector"
+    share_dir="/usr/share/dynatrace-bindplane-otel-collector"
+    stage_dir="${share_dir}/stage/dynatrace-bindplane-otel-collector"
 
     # Rename binaries in staging directory to avoid Linux binary locking issues
     # during copy operation
-    mv "${stage_dir}/dbdot-collector" "${stage_dir}/dbdot-collector.new"
+    mv "${stage_dir}/dynatrace-bindplane-otel-collector" "${stage_dir}/dynatrace-bindplane-otel-collector.new"
 
     # Prepare staged files with runtime ownership so destination does not need
     # post-copy ownership changes. This helps to ensure permissions do not flap
@@ -66,7 +66,7 @@ install() {
       "${DBDOT_CONFIG_HOME}"
 
     # Perform atomic moves for binary files to replace running binaries
-    mv "${DBDOT_CONFIG_HOME}/dbdot-collector.new" "${DBDOT_CONFIG_HOME}/dbdot-collector"
+    mv "${DBDOT_CONFIG_HOME}/dynatrace-bindplane-otel-collector.new" "${DBDOT_CONFIG_HOME}/dynatrace-bindplane-otel-collector"
 
     rm -rf "$share_dir"
 }
@@ -80,7 +80,7 @@ install_service() {
 }
 
 install_systemd_service() {
-  config_file="/usr/lib/systemd/system/dbdot-collector.service"
+  config_file="/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
 
   if [ ! -f "$config_file" ]; then
     echo "Installing systemd service to $config_file"
@@ -104,7 +104,7 @@ Environment=PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 Environment=BINDPLANE_COLLECTOR_HOME=${DBDOT_CONFIG_HOME}
 Environment=BINDPLANE_COLLECTOR_STORAGE=${DBDOT_CONFIG_HOME}/storage
 WorkingDirectory=${DBDOT_CONFIG_HOME}
-ExecStart=${DBDOT_CONFIG_HOME}/dbdot-collector --config config.yaml
+ExecStart=${DBDOT_CONFIG_HOME}/dynatrace-bindplane-otel-collector --config config.yaml
 LimitNOFILE=65000
 SuccessExitStatus=0
 TimeoutSec=20
@@ -120,7 +120,7 @@ EOF
   chmod 0640 "$config_file"
 
   # Ensure the override dir exists.
-  override_dir="/etc/systemd/system/dbdot-collector.service.d"
+  override_dir="/etc/systemd/system/dynatrace-bindplane-otel-collector.service.d"
   if [ ! -d "$override_dir" ]; then
     mkdir -p "$override_dir"
     echo "Created systemd override directory at $override_dir"
@@ -139,7 +139,7 @@ EOF
 }
 
 install_initd_service() {
-  config_file="/etc/init.d/dbdot-collector"
+  config_file="/etc/init.d/dynatrace-bindplane-otel-collector"
 
   if [ ! -f "$config_file" ]; then
     echo "Installing init.d service to $config_file"
@@ -154,17 +154,17 @@ install_initd_service() {
 # DBDOT OTEL daemon
 # chkconfig: 2345 99 05
 # description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
-# processname: dbdot-collector
-# pidfile: /var/run/dbdot-collector.pid
+# processname: dynatrace-bindplane-otel-collector
+# pidfile: /var/run/dynatrace-bindplane-otel-collector.pid
 
 ### BEGIN INIT INFO
-# Provides: dbdot-collector
+# Provides: dynatrace-bindplane-otel-collector
 # Required-Start:
 # Required-Stop:
 # Should-Start:
 # Default-Start: 3 5
 # Default-Stop: 0 1 2 6  
-# Description: Start the dbdot-collector service
+# Description: Start the dynatrace-bindplane-otel-collector service
 ### END INIT INFO
 
 # Source function library.
@@ -214,7 +214,7 @@ fi
 # with force-reload (in case signalling is not supported) are
 # considered a success.
 
-BINARY=dbdot-collector
+BINARY=dynatrace-bindplane-otel-collector
 PROGRAM=${DBDOT_CONFIG_HOME}/"\$BINARY"
 START_CMD="nohup ${DBDOT_CONFIG_HOME}/\$BINARY > /dev/null 2>&1 &"
 LOCKFILE=/var/lock/"\$BINARY"
@@ -412,8 +412,8 @@ EOF
 
 manage_systemd_service() {
   # Ensure sysv script isn't present, and if it is remove it
-  if [ -f /etc/init.d/dbdot-collector ]; then
-    rm -f /etc/init.d/dbdot-collector
+  if [ -f /etc/init.d/dynatrace-bindplane-otel-collector ]; then
+    rm -f /etc/init.d/dynatrace-bindplane-otel-collector
   fi
 
   systemctl daemon-reload
@@ -422,7 +422,7 @@ manage_systemd_service() {
 
   cat << EOF
 
-The "dbdot-collector" service has been configured!
+The "dynatrace-bindplane-otel-collector" service has been configured!
 
 The collector's config file can be found here: 
   ${DBDOT_CONFIG_HOME}/config.yaml
@@ -433,24 +433,24 @@ To view logs from the collector, run:
 For more information on configuring the collector, see the docs:
   https://github.com/dynatrace/dynatrace-bindplane-otel-collector/tree/main
 
-To stop the dbdot-collector service, run:
-  sudo systemctl stop dbdot-collector
+To stop the dynatrace-bindplane-otel-collector service, run:
+  sudo systemctl stop dynatrace-bindplane-otel-collector
 
-To start the dbdot-collector service, run:
-  sudo systemctl start dbdot-collector
+To start the dynatrace-bindplane-otel-collector service, run:
+  sudo systemctl start dynatrace-bindplane-otel-collector
 
-To restart the dbdot-collector service, run:
-  sudo systemctl restart dbdot-collector
+To restart the dynatrace-bindplane-otel-collector service, run:
+  sudo systemctl restart dynatrace-bindplane-otel-collector
 
 To enable the service on startup, run:
-  sudo systemctl enable dbdot-collector
+  sudo systemctl enable dynatrace-bindplane-otel-collector
 
 If you have any other questions please contact us at support@bindplane.com
 EOF
 }
 
 manage_sysv_service() {
-  chmod 755 /etc/init.d/dbdot-collector
+  chmod 755 /etc/init.d/dynatrace-bindplane-otel-collector
   echo "configured sysv service"
 }
 
@@ -484,13 +484,13 @@ manage_service() {
 
 finish_permissions() {
   # Goreleaser does not set plugin file permissions, so do them here
-  # We also change the owner of the binary to dbdot-collector
-  chown -R "$DBDOT_USER:$DBDOT_GROUP" ${DBDOT_CONFIG_HOME}/dbdot-collector ${DBDOT_CONFIG_HOME}/plugins/*
+  # We also change the owner of the binary to dynatrace-bindplane-otel-collector
+  chown -R "$DBDOT_USER:$DBDOT_GROUP" ${DBDOT_CONFIG_HOME}/dynatrace-bindplane-otel-collector ${DBDOT_CONFIG_HOME}/plugins/*
   chmod 0640 ${DBDOT_CONFIG_HOME}/plugins/*
 
-  # Initialize the log file to ensure it is owned by dbdot-collector.
+  # Initialize the log file to ensure it is owned by dynatrace-bindplane-otel-collector.
   # This prevents the service (running as root) from assigning ownership to
-  # the root user. By doing so, we allow the user to switch to dbdot-collector
+  # the root user. By doing so, we allow the user to switch to dynatrace-bindplane-otel-collector
   # user for 'non root' installs.
   touch ${DBDOT_CONFIG_HOME}/log/collector.log
   chown "$DBDOT_USER:$DBDOT_GROUP" ${DBDOT_CONFIG_HOME}/log/collector.log

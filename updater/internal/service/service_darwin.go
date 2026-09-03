@@ -41,7 +41,7 @@ func WithServiceFile(svcFilePath string) Option {
 	}
 }
 
-// NewService returns an instance of the Service interface for managing the dbdot-collector service on the current OS.
+// NewService returns an instance of the Service interface for managing the dynatrace-bindplane-otel-collector service on the current OS.
 func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	darwinSvc := &darwinService{
 		newServiceFilePath:       filepath.Join(path.ServiceFileDir(installDir), "com.dynatrace.dbdot.collector.plist"),

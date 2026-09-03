@@ -16,7 +16,7 @@
 
 set -e
 
-service_name="dbdot-collector"
+service_name="dynatrace-bindplane-otel-collector"
 
 # Check if this is an uninstall or an upgrade
 # RPM: $1 is the number of packages remaining that provide this package

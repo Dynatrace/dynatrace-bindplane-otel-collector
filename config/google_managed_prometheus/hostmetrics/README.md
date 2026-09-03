@@ -10,8 +10,8 @@ See the [prerequisites](../README.md) doc for Google Managed Prometheus.
 
 An example configuration is located [here](./config.yaml).
 
-1. Copy [config.yaml](./config.yaml) to `/opt/dbdot-collector/config.yaml`
-2. Restart the agent: `sudo systemctl restart dbdot-collector`
+1. Copy [config.yaml](./config.yaml) to `/opt/dynatrace-bindplane-otel-collector/config.yaml`
+2. Restart the agent: `sudo systemctl restart dynatrace-bindplane-otel-collector`
 
 ## Process metrics
 

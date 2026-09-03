@@ -21,8 +21,8 @@ DOWNLOAD_BASE="https://dbdot.bindplane.com"
 
 # Script Constants
 PREREQS="printf sed uname tr find grep"
-TMP_DIR="${TMPDIR:-"/tmp/"}dbdot-collector" # Allow this to be overriden by cannonical TMPDIR env var
-INSTALL_DIR="/opt/dbdot-collector"
+TMP_DIR="${TMPDIR:-"/tmp/"}dynatrace-bindplane-otel-collector" # Allow this to be overriden by cannonical TMPDIR env var
+INSTALL_DIR="/opt/dynatrace-bindplane-otel-collector"
 MANAGEMENT_YML_PATH="$INSTALL_DIR/manager.yaml"
 SCRIPT_NAME="$0"
 INDENT_WIDTH='  '
@@ -182,12 +182,12 @@ Usage:
   $(fg_yellow '-l, --url')
       Defines the URL that the components will be downloaded from.
       If not provided, this will default to '$DOWNLOAD_BASE'.
-      Example: '-l http://my.domain.org/dbdot-collector' will download from there.
+      Example: '-l http://my.domain.org/dynatrace-bindplane-otel-collector' will download from there.
 
   $(fg_yellow '-b, --base-url')
-      Defines the base of the download URL as '{base_url}/v{version}/dbdot-collector-v{version}-darwin-{os_arch}.tar.gz'.
+      Defines the base of the download URL as '{base_url}/v{version}/dynatrace-bindplane-otel-collector-v{version}-darwin-{os_arch}.tar.gz'.
       If not provided, this will default to '$DOWNLOAD_BASE'.
-      Example: '-b http://my.domain.org/dbdot-collector/binaries' will be used as the base of the download URL.
+      Example: '-b http://my.domain.org/dynatrace-bindplane-otel-collector/binaries' will be used as the base of the download URL.
    
   $(fg_yellow '-e, --endpoint')
       Defines the endpoint of an OpAMP compatible management server for this agent install.
@@ -429,7 +429,7 @@ set_download_urls()
       base_url=$DOWNLOAD_BASE
     fi
 
-    collector_download_url="$base_url/v$version/dbdot-collector-v${version}-darwin-${os_arch}.tar.gz"
+    collector_download_url="$base_url/v$version/dynatrace-bindplane-otel-collector-v${version}-darwin-${os_arch}.tar.gz"
   else
     collector_download_url="$url"
   fi
@@ -488,12 +488,12 @@ install_package()
 
   # Download into tmp dir
   info "Downloading tarball into temporary directory..."
-  curl -L "$collector_download_url" -o "$TMP_DIR/dbdot-collector.tar.gz" --progress-bar --fail || error_exit "$LINENO" "Failed to download package"
+  curl -L "$collector_download_url" -o "$TMP_DIR/dynatrace-bindplane-otel-collector.tar.gz" --progress-bar --fail || error_exit "$LINENO" "Failed to download package"
   succeeded
 
   # unpack
   info "Unpacking tarball..."
-  tar -xzf "$TMP_DIR/dbdot-collector.tar.gz" -C "$TMP_DIR/artifacts" || error_exit "$LINENO" "Failed to unack archive $TMP_DIR/dbdot-collector.tar.gz"
+  tar -xzf "$TMP_DIR/dynatrace-bindplane-otel-collector.tar.gz" -C "$TMP_DIR/artifacts" || error_exit "$LINENO" "Failed to unack archive $TMP_DIR/dynatrace-bindplane-otel-collector.tar.gz"
   succeeded
 
   mkdir -p "$INSTALL_DIR" || error_exit "$LINENO" "Failed to create directory $INSTALL_DIR"
@@ -622,7 +622,7 @@ uninstall()
   banner "Uninstalling DBDOT"
   increase_indent
 
-  if [ ! -f "$INSTALL_DIR/dbdot-collector" ]; then
+  if [ ! -f "$INSTALL_DIR/dynatrace-bindplane-otel-collector" ]; then
     # If the agent binary is not present, we assume that the agent is not installed
     # In this case, do nothing.
     info "No install detected, skipping..."

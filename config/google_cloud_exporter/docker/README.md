@@ -15,7 +15,7 @@ The provided configuration assumes the agent is running on the Docker system. By
 The user running the agent must have permission to read the [docker socket](https://docs.docker.com/engine/install/linux-postinstall/).
 
 ```bash
-sudo usermod -aG docker dbdot-collector
+sudo usermod -aG docker dynatrace-bindplane-otel-collector
 ```
 
 ## Deployment
@@ -38,7 +38,7 @@ docker run -d \
     --volume="$(pwd)/credentials.json:/etc/otel/credentials.json" \
     -e "GOOGLE_APPLICATION_CREDENTIALS=/etc/otel/credentials.json" \
     -e "DOCKER_AGENT_HOSTNAME=$(hostname)" \
-    dynatrace/dbdot-collector:latest
+    dynatrace/dynatrace-bindplane-otel-collector:latest
 ```
 
 Run with Docker Compose
@@ -51,7 +51,7 @@ services:
     # Run as root if using a configuration that requires
     # root privileges.
     #user: root
-    image: dynatrace/dbdot-collector:latest
+    image: dynatrace/dynatrace-bindplane-otel-collector:latest
     restart: always
     deploy:
       resources:

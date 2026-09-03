@@ -12,9 +12,9 @@ Push the agent image to your GCR account:
 - replace `myproject` with your gcr project
 
 ```bash
-docker pull ghcr.io/dynatrace/dbdot:0.0.4
-docker tag ghcr.io/dynatrace/dbdot:0.0.4 gcr.io/myproject/dbdot:0.0.4
-docker push gcr.io/myproject/dbdot:0.0.4
+docker pull ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:0.0.4
+docker tag ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:0.0.4 gcr.io/myproject/dynatrace-bindplane-otel-collector:0.0.4
+docker push gcr.io/myproject/dynatrace-bindplane-otel-collector:0.0.4
 ```
 
 ## Deployment

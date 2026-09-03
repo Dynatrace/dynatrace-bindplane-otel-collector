@@ -1,5 +1,5 @@
 dist:
-  name: dbdot-collector
+  name: dynatrace-bindplane-otel-collector
   description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
   module: github.com/dynatrace/dynatrace-bindplane-otel-collector/build
   version: 0.0.0

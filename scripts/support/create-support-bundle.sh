@@ -19,7 +19,7 @@ PREREQS="printf sed uname sudo tar gzip curl"
 INDENT_WIDTH='  '
 indent=""
 
-collector_dir=/opt/dbdot-collector
+collector_dir=/opt/dynatrace-bindplane-otel-collector
 
 # Colors
 num_colors=$(tput colors 2>/dev/null)
@@ -294,7 +294,7 @@ function bundle_files() {
     # Grab the logs from journalctl -- in some cases, the collector.log file 
     # may be empty, but there may be logs in journalctl
     info "Collecting logs from journalctl..."
-    journalctl -u dbdot-collector.service -n 50 > journalctl.log
+    journalctl -u dynatrace-bindplane-otel-collector.service -n 50 > journalctl.log
     tar --append --file="$tar_filename" journalctl.log
     rm journalctl.log
 
