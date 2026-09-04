@@ -108,7 +108,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gotools-
       - name: Install Tools
-        run: make install-tools
+        run: bash .github/scripts/retry.sh make install-tools
 
   check-fmt:
     if: ${{ needs.optimize_ci.outputs.skip != 'true' && github.actor != 'dependabot[bot]' && needs.detect-changes.outputs.go == 'true' }}
@@ -145,7 +145,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gotools-
       - name: Install Tools
-        run: make install-tools
+        run: bash .github/scripts/retry.sh make install-tools
       - name: Check Formatting
         run: make check-fmt
 
@@ -220,7 +220,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gotools-
       - name: Install Tools
-        run: make install-tools
+        run: bash .github/scripts/retry.sh make install-tools
       - name: Check License Headers
         run: make check-license
 
@@ -259,7 +259,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gotools-
       - name: Install Tools
-        run: make install-tools
+        run: bash .github/scripts/retry.sh make install-tools
       - name: Run Gosec Security Scanner
         run: make gosec
 
@@ -298,7 +298,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gotools-
       - name: Install Tools
-        run: make install-tools
+        run: bash .github/scripts/retry.sh make install-tools
       - name: Check for Misspelled Words in Doc Files
         run: make misspell
 
@@ -337,7 +337,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gotools-
       - name: Install Tools
-        run: make install-tools
+        run: bash .github/scripts/retry.sh make install-tools
       - name: Run Revive Linter
         run: make lint
 
