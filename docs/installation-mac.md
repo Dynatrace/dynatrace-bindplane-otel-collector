@@ -28,7 +28,7 @@ After installing the `dynatrace-bindplane-otel-collector` you can change the con
 
 The default configuration file can be found at `/opt/dynatrace-bindplane-otel-collector/config.yaml`.
 
-After changing the configuration file run `sudo launchctl unload /Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist; sudo launchctl load /Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist` for the changes to take effect.
+After changing the configuration file run `sudo launchctl unload /Library/LaunchDaemons/com.dynatrace.bindplane.otel.collector.plist; sudo launchctl load /Library/LaunchDaemons/com.dynatrace.bindplane.otel.collector.plist` for the changes to take effect.
 
 For more information on configuring the agent, see the [OpenTelemetry docs](https://opentelemetry.io/docs/collector/configuration/).
 
@@ -44,10 +44,10 @@ The agent uses `launchctl` to control the agent lifecycle using the following co
 
 ```sh
 # Start the agent
-sudo launchctl load /Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist
+sudo launchctl load /Library/LaunchDaemons/com.dynatrace.bindplane.otel.collector.plist
 
 # Stop the agent
-sudo launchctl unload /Library/LaunchDaemons/com.dynatrace.dbdot.collector.plist
+sudo launchctl unload /Library/LaunchDaemons/com.dynatrace.bindplane.otel.collector.plist
 ```
 
 ## Uninstalling

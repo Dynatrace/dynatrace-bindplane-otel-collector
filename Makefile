@@ -428,7 +428,7 @@ release-prep:
 	@cp -r ./plugins release_deps/
 	@cp config/example.yaml release_deps/config.yaml
 	@cp config/logging.yaml release_deps/logging.yaml
-	@cp service/com.dynatrace.dbdot.collector.plist release_deps/com.dynatrace.dbdot.collector.plist
+	@cp service/com.dynatrace.bindplane.otel.collector.plist release_deps/com.dynatrace.bindplane.otel.collector.plist
 	@jq ".files[] | select(.service != null)" windows/wix.json >> release_deps/windows_service.json
 
 .PHONY: release-prep-gpg

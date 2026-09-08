@@ -1,4 +1,4 @@
-// Copyright  observIQ, Inc.
+// Copyright  Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// launchdStderrPath is where com.observiq.collector.plist points launchd's
+// launchdStderrPath is where com.dynatrace.bindplane.otel.collector.plist points launchd's
 // StandardErrorPath. launchd opens it O_APPEND and owns the redirect; the
 // process only sees it as fd 2.
-const launchdStderrPath = "/var/log/observiq_collector.err"
+const launchdStderrPath = "/var/log/dynatrace_bindplane_otel_collector.err"
 
 // RunService runs the given service, calling its start and stop functions.
 func RunService(logger *zap.Logger, rSvc RunnableService) error {

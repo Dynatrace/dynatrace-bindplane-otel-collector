@@ -1,4 +1,4 @@
-// Copyright  observIQ, Inc.
+// Copyright Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,13 +25,13 @@ import (
 
 func TestRollStderrFile(t *testing.T) {
 	t.Run("missing file is a no-op", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "observiq_collector.err")
+		path := filepath.Join(t.TempDir(), "dynatrace_bindplane_otel_collector.err")
 		require.NoError(t, rollStderrFile(path))
 		require.NoFileExists(t, path+".1")
 	})
 
 	t.Run("empty file is left in place", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "observiq_collector.err")
+		path := filepath.Join(t.TempDir(), "dynatrace_bindplane_otel_collector.err")
 		require.NoError(t, os.WriteFile(path, nil, 0660))
 		require.NoError(t, rollStderrFile(path))
 		require.FileExists(t, path)
@@ -39,7 +39,7 @@ func TestRollStderrFile(t *testing.T) {
 	})
 
 	t.Run("non-empty file rolls to backup, replacing previous backup", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "observiq_collector.err")
+		path := filepath.Join(t.TempDir(), "dynatrace_bindplane_otel_collector.err")
 		require.NoError(t, os.WriteFile(path, []byte("current"), 0660))
 		require.NoError(t, os.WriteFile(path+".1", []byte("old backup"), 0660))
 
@@ -54,7 +54,7 @@ func TestRollStderrFile(t *testing.T) {
 
 func TestCapStderrFile(t *testing.T) {
 	t.Run("under cap is untouched", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "observiq_collector.err")
+		path := filepath.Join(t.TempDir(), "dynatrace_bindplane_otel_collector.err")
 		require.NoError(t, os.WriteFile(path, []byte("small"), 0660))
 
 		require.NoError(t, capStderrFile(path, stderrMaxBytes))
@@ -66,7 +66,7 @@ func TestCapStderrFile(t *testing.T) {
 	})
 
 	t.Run("threshold 1 archives any non-empty file", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "observiq_collector.err")
+		path := filepath.Join(t.TempDir(), "dynatrace_bindplane_otel_collector.err")
 		require.NoError(t, os.WriteFile(path, []byte("last run"), 0660))
 
 		require.NoError(t, capStderrFile(path, 1))
@@ -80,7 +80,7 @@ func TestCapStderrFile(t *testing.T) {
 	})
 
 	t.Run("over cap copies to backup and truncates, appends continue", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "observiq_collector.err")
+		path := filepath.Join(t.TempDir(), "dynatrace_bindplane_otel_collector.err")
 		big := bytes.Repeat([]byte("x"), stderrMaxBytes)
 		require.NoError(t, os.WriteFile(path, big, 0660))
 
