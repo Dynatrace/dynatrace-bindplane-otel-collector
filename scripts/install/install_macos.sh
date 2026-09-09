@@ -655,7 +655,7 @@ uninstall()
   succeeded
 
   info "Removing any existing log files"
-  rm -f "/var/log/dbdot_collector.err" || error_exit "$LINENO" "Failed to remove /var/log/dbdot_collector.err"
+  rm -f "/var/log/dynatrace_bindplane_otel_collector.err" || error_exit "$LINENO" "Failed to remove /var/log/dynatrace_bindplane_otel_collector.err"
   succeeded
 
   decrease_indent

@@ -76,7 +76,7 @@ For more information on configuring the agent, see the [OpenTelemetry docs](http
 
 Logs from the agent will appear in `<install_dir>/log` (`C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log` by default).
 
-Stderr for the agent process can be found at `<install_dir>/log/dbdot_collector.err` (`C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log\dbdot_collector.err` by default).
+Stderr for the agent process can be found at `<install_dir>/log/dynatrace_bindplane_otel_collector.err` (`C:\Program Files\Dynatrace Bindplane Distribution of OpenTelemetry Collector\log\dynatrace_bindplane_otel_collector.err` by default).
 
 ## Restarting the Agent
 Restarting the agent may be done through the services dialog.

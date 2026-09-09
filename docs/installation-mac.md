@@ -36,7 +36,7 @@ For more information on configuring the agent, see the [OpenTelemetry docs](http
 
 Logs from the agent will appear in `/opt/dynatrace-bindplane-otel-collector/log`. You may run `sudo tail -F /opt/dynatrace-bindplane-otel-collector/log/collector.log` to view them.
 
-Stderr for the agent process can be found at `/var/log/dbdot_collector.err`.
+Stderr for the agent process can be found at `/var/log/dynatrace_bindplane_otel_collector.err`.
 
 ## Agent Services Commands
 

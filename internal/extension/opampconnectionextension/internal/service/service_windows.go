@@ -183,7 +183,7 @@ func checkIsService() (bool, error) {
 	return isWindowsService, nil
 }
 
-// redirectStderr redirects stderr so that panic information is output to $INSTALL_DIR/log/dbdot_collector.err,
+// redirectStderr redirects stderr so that panic information is output to $INSTALL_DIR/log/dynatrace_bindplane_otel_collector.err,
 // instead of it being dropped by Windows services.
 // Most output should go through the zap logger instead of to stderr.
 func redirectStderr() error {
@@ -192,7 +192,7 @@ func redirectStderr() error {
 		return errors.New("BINDPLANE_COLLECTOR_HOME environment variable not set")
 	}
 
-	path := filepath.Clean(filepath.Join(homeDir, "log", "dbdot_collector.err"))
+	path := filepath.Clean(filepath.Join(homeDir, "log", "dynatrace_bindplane_otel_collector.err"))
 
 	// Roll any previous contents to a backup so the file can't accumulate
 	// across service restarts. Must happen before the file is opened below.
