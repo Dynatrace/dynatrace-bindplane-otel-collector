@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.dynatrace.dbdot.collector</string>
+    <string>com.dynatrace.bindplane.otel.collector</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>BINDPLANE_COLLECTOR_HOME</key>
@@ -30,6 +30,6 @@
     <key>ExitTimeOut</key>
     <integer>20</integer>
     <key>StandardErrorPath</key>
-    <string>/var/log/dbdot_collector.err</string>
+    <string>/var/log/dynatrace_bindplane_otel_collector.err</string>
 </dict>
 </plist>

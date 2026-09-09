@@ -16,7 +16,7 @@
 set -e
 
 # Collector Constants
-SERVICE_NAME="com.dynatrace.dbdot.collector"
+SERVICE_NAME="com.dynatrace.bindplane.otel.collector"
 DOWNLOAD_BASE="https://dbdot.bindplane.com"
 
 # Script Constants

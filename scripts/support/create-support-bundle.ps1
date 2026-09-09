@@ -50,13 +50,13 @@ $response = Read-Host -Prompt "Do you want to include only the most recent logs 
 if ($response -eq "n") {
     Copy-Item "$collector_dir\log\*" -Destination "$output_dir\" -Force
 } else {
-    if (Test-Path "$collector_dir\log\dbdot_collector.err") {
-        Write-Host "Adding $collector_dir\log\dbdot_collector.err"
-        Copy-Item "$collector_dir\log\dbdot_collector.err" -Destination "$output_dir\" -Force
+    if (Test-Path "$collector_dir\log\dynatrace_bindplane_otel_collector.err") {
+        Write-Host "Adding $collector_dir\log\dynatrace_bindplane_otel_collector.err"
+        Copy-Item "$collector_dir\log\dynatrace_bindplane_otel_collector.err" -Destination "$output_dir\" -Force
     }
-    if (Test-Path "$collector_dir\log\observiq_collector.err.1") {
-        Write-Host "Adding $collector_dir\log\observiq_collector.err.1"
-        Copy-Item "$collector_dir\log\observiq_collector.err.1" -Destination "$output_dir\" -Force
+    if (Test-Path "$collector_dir\log\dynatrace_bindplane_otel_collector.err.1") {
+        Write-Host "Adding $collector_dir\log\dynatrace_bindplane_otel_collector.err.1"
+        Copy-Item "$collector_dir\log\dynatrace_bindplane_otel_collector.err.1" -Destination "$output_dir\" -Force
     }
     Write-Host "Adding $collector_dir\log\collector.log"
     Copy-Item "$collector_dir\log\collector.log" -Destination "$output_dir\" -Force
