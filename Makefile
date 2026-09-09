@@ -51,7 +51,7 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # AGENT_NAME / AGENT_DESCRIPTION populate component.BuildInfo. AGENT_NAME is
 # also the OpAMP agent type (service.name) Bindplane uses to identify DBDOT.
-AGENT_NAME = com.dynatrace.dbdot.collector
+AGENT_NAME = com.dynatrace.bindplane.otel.collector
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
 OPAMP_EXT_COLLECTOR_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector
 
