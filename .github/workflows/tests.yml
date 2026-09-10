@@ -91,7 +91,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: internal/extension/opampconnectionextension/go.mod
           cache: false
