@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0 # version ldflags derive from git tags
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: internal/extension/opampconnectionextension/go.mod
           cache: false
@@ -99,7 +99,7 @@ jobs:
         run: make build-all-agent
 
       - name: Upload nightly binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nightly-binaries-${{ github.sha }}
           path: dist/

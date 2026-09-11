@@ -21,9 +21,9 @@ jobs:
             msi_arch: arm64
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: internal/extension/opampconnectionextension/go.mod
           cache-dependency-path: "**/go.sum"
@@ -89,7 +89,7 @@ jobs:
           smctl sign --keypair-alias ${{ secrets.DBDOT_DIGICERT_KEYPAIR_ALIAS }} --input C:/build/${{ matrix.msi_name }} --config-file C:\Users\RUNNER~1\AppData\Local\Temp\smtools-windows-x64\pkcs11properties.cfg
         shell: cmd
       - name: Upload MSI
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.msi_name }}
           path: C:/build/${{ matrix.msi_name }}
@@ -121,7 +121,7 @@ jobs:
       - name: Install Gcloud SDK
         uses: google-github-actions/setup-gcloud@v2
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: internal/extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -142,11 +142,11 @@ jobs:
       - name: Install ocb
         run: make install-ocb
       - name: Retrieve Windows AMD64 MSI Installer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dbdot-collector-amd64.msi
       - name: Retrieve Windows ARM64 MSI Installer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dbdot-collector-arm64.msi
       - name: Install cosign
