@@ -162,3 +162,27 @@ jobs:
           name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts.tar.gz
           path: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts.tar.gz
           retention-days: 1
+
+  # The rehearsal runs goreleaser with --skip=publish, so there is no GitHub
+  # release to read. Verify the artifact bundle the release-test job uploads.
+  verify-windows-release:
+    needs: [release-test]
+    runs-on: windows-2022
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+      - name: Download Artifact Bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: dynatrace-bindplane-otel-collector-${{ inputs.version }}-artifacts.tar.gz
+          path: bundle
+      - name: Unpack Artifact Bundle
+        run: |
+          mkdir artifacts
+          tar -xzvf "bundle/dynatrace-bindplane-otel-collector-$env:VERSION-artifacts.tar.gz" -C artifacts
+        shell: pwsh
+        env:
+          VERSION: ${{ inputs.version }}
+      - name: Verify Windows Signatures
+        run: ./scripts/ci/verify-windows-signatures.ps1 -Root ./artifacts
+        shell: pwsh
