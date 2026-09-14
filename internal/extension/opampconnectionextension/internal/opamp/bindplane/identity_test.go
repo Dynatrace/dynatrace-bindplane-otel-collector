@@ -52,7 +52,7 @@ func Test_newIdentity(t *testing.T) {
 
 	expectedVersion := "0.0.0"
 
-	got := newIdentity(zap.NewNop(), cfg, component.BuildInfo{Command: "com.dynatrace.dbdot.collector", Version: expectedVersion})
+	got := newIdentity(zap.NewNop(), cfg, component.BuildInfo{Command: "com.dynatrace.bindplane.otel.collector", Version: expectedVersion})
 
 	// Check all fields from config
 	require.Equal(t, cfg.AgentID, got.agentID)
@@ -65,7 +65,7 @@ func Test_newIdentity(t *testing.T) {
 	require.NotEmpty(t, got.mac)
 
 	// Check hardcoded/fields from runtime and other packages
-	require.Equal(t, got.serviceName, "com.dynatrace.dbdot.collector")
+	require.Equal(t, got.serviceName, "com.dynatrace.bindplane.otel.collector")
 	require.Equal(t, got.version, expectedVersion)
 	require.Equal(t, got.oSArch, runtime.GOARCH)
 	require.Equal(t, got.oSType, runtime.GOOS)
@@ -84,7 +84,7 @@ func TestToAgentDescription(t *testing.T) {
 			ident: &identity{
 				agentID:     testAgentID,
 				agentName:   nil,
-				serviceName: "com.dynatrace.dbdot.collector",
+				serviceName: "com.dynatrace.bindplane.otel.collector",
 				version:     "v1.2.3",
 				labels:      nil,
 				oSArch:      "amd64",
@@ -96,7 +96,7 @@ func TestToAgentDescription(t *testing.T) {
 			expected: &protobufs.AgentDescription{
 				IdentifyingAttributes: []*protobufs.KeyValue{
 					opamp.StringKeyValue("service.instance.id", testAgentID.String()),
-					opamp.StringKeyValue("service.name", "com.dynatrace.dbdot.collector"),
+					opamp.StringKeyValue("service.name", "com.dynatrace.bindplane.otel.collector"),
 					opamp.StringKeyValue("service.version", "v1.2.3"),
 					opamp.StringKeyValue("service.instance.name", "my-linux-box"),
 				},
@@ -115,7 +115,7 @@ func TestToAgentDescription(t *testing.T) {
 			ident: &identity{
 				agentID:     testAgentID,
 				agentName:   &agentNameContents,
-				serviceName: "com.dynatrace.dbdot.collector",
+				serviceName: "com.dynatrace.bindplane.otel.collector",
 				version:     "v1.2.3",
 				labels:      &labelsContents,
 				oSArch:      "amd64",
@@ -127,7 +127,7 @@ func TestToAgentDescription(t *testing.T) {
 			expected: &protobufs.AgentDescription{
 				IdentifyingAttributes: []*protobufs.KeyValue{
 					opamp.StringKeyValue("service.instance.id", testAgentID.String()),
-					opamp.StringKeyValue("service.name", "com.dynatrace.dbdot.collector"),
+					opamp.StringKeyValue("service.name", "com.dynatrace.bindplane.otel.collector"),
 					opamp.StringKeyValue("service.version", "v1.2.3"),
 					opamp.StringKeyValue("service.instance.name", agentNameContents),
 				},
@@ -159,7 +159,7 @@ func Test_identityCopy(t *testing.T) {
 	ident := &identity{
 		agentID:     testAgentID,
 		agentName:   &agentNameContents,
-		serviceName: "com.dynatrace.dbdot.collector",
+		serviceName: "com.dynatrace.bindplane.otel.collector",
 		version:     "v1.2.3",
 		labels:      &labelsContents,
 		oSArch:      "amd64",
