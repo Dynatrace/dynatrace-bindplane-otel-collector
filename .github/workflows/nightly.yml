@@ -2,8 +2,8 @@ name: Nightly Build
 
 # Nightly test builds of the collector binary for all release platforms.
 # Binaries are uploaded as workflow artifacts (2-day retention). Linux
-# container images are pushed to ghcr.io/dynatrace/dbdot-nightly — a
-# package separate from the release images (ghcr.io/dynatrace/dbdot).
+# container images are pushed to ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-nightly — a
+# package separate from the release images (ghcr.io/dynatrace/dynatrace-bindplane-otel-collector).
 # No updater, packaging, or signing.
 on:
   schedule:
@@ -20,7 +20,7 @@ on:
         type: string
       push_images:
         description: >
-          Push the built container images to ghcr.io/dynatrace/dbdot-nightly.
+          Push the built container images to ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-nightly.
           Uncheck to test the build without publishing anything.
         required: false
         type: boolean
@@ -75,7 +75,7 @@ jobs:
           # Pin every module the manifest pulls from the edge components repo,
           # so new components are covered without touching this step.
           # Only gomod entries should be matched.
-          MODS=$(awk '$1 == "-" && $2 == "gomod:" && $3 ~ /^github.com\/Dynatrace\/dt-otelcol-edge-processing-components\//{print $3}' manifests/dbdot/manifest.yaml | sort -u)
+          MODS=$(awk '$1 == "-" && $2 == "gomod:" && $3 ~ /^github.com\/Dynatrace\/dt-otelcol-edge-processing-components\//{print $3}' manifests/dynatrace-bindplane-otel-collector/manifest.yaml | sort -u)
           # go list needs a module context; resolve refs from a throwaway module.
           RESOLVE_DIR=$(mktemp -d)
           (cd "${RESOLVE_DIR}" && go mod init resolve >/dev/null)
@@ -89,7 +89,7 @@ jobs:
             # Drop any standing pin for this module before adding ours —
             # duplicate replaces for one module are a go.mod error.
             MOD="${MOD}" PIN="${MOD} => ${MOD} ${VERSION}" \
-              yq -i '.replaces |= map(select((split(" ") | .[0]) != env(MOD))) + [env(PIN)]' manifests/dbdot/manifest.yaml
+              yq -i '.replaces |= map(select((split(" ") | .[0]) != env(MOD))) + [env(PIN)]' manifests/dynatrace-bindplane-otel-collector/manifest.yaml
           done
 
       - name: Install ocb
@@ -108,7 +108,7 @@ jobs:
 
       # Container images: goreleaser in nightly mode against the dedicated
       # .goreleaser-docker-nightly.yml. Nightly mode needs no tag and creates
-      # no GitHub release; only the dbdot-nightly* images are published.
+      # no GitHub release; only the dynatrace-bindplane-otel-collector-nightly* images are published.
       - name: Stage binaries for goreleaser
         # Into tmp/ (where the config's prebuilt paths point) — goreleaser's
         # --clean wipes dist/, so it can't consume them in place.

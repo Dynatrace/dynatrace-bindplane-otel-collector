@@ -1,4 +1,4 @@
-// Copyright  observIQ, Inc.
+// Copyright Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-// The stderr file (observiq_collector.err) captures output that does not go
+// The stderr file (dynatrace_bindplane_otel_collector.err) captures output that does not go
 // through the zap logger (runtime panics, high-volume component error spew).
 // It historically had no size cap and has filled OS drives (10+ GB observed).
 // These constants bound it to cap + 1 backup.

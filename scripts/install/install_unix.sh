@@ -18,18 +18,18 @@ set -e
 # Reads optional package overrides. Users should deploy the override
 # file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
-[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
+[ -f /etc/default/dynatrace-bindplane-otel-collector ] && . /etc/default/dynatrace-bindplane-otel-collector
+[ -f /etc/sysconfig/dynatrace-bindplane-otel-collector ] && . /etc/sysconfig/dynatrace-bindplane-otel-collector
 
 # The collectors installation directory
-: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
+: "${DBDOT_CONFIG_HOME:=/opt/dynatrace-bindplane-otel-collector}"
 
 # Allow configurable runtime user/group (used for permissions and manager.yaml)
 : "${DBDOT_USER:=dbdot}"
 : "${DBDOT_GROUP:=dbdot}"
 
 # Agent Constants
-PACKAGE_NAME="dbdot-collector"
+PACKAGE_NAME="dynatrace-bindplane-otel-collector"
 DOWNLOAD_BASE="https://dbdot.bindplane.com"
 
 # Determine if we need service or systemctl for prereqs
@@ -52,7 +52,7 @@ non_interactive=false
 error_mode=false
 skip_gpg_check=false
 
-# package_out_file_path is the full path to the downloaded package (e.g. "/tmp/dbdot-collector_linux_amd64.deb")
+# package_out_file_path is the full path to the downloaded package (e.g. "/tmp/dynatrace-bindplane-otel-collector_linux_amd64.deb")
 package_out_file_path="unknown"
 
 # gpg_tar_out_file_path is the full path to the downloaded GPG tar.gz file (e.g. "/tmp/dbdot-gpg-keys.tar.gz")
@@ -219,7 +219,7 @@ Usage:
   $(fg_yellow '-l, --url')
       Defines the URL that the components will be downloaded from.
       If not provided, this will default to '$DOWNLOAD_BASE'.
-      Example: '-l http://my.domain.org/dbdot-collector' will download from there.
+      Example: '-l http://my.domain.org/dynatrace-bindplane-otel-collector' will download from there.
 
   $(fg_yellow '-gl, --gpg-tar-url')
       Defines the URL that the GPG tar file will be downloaded from.
@@ -232,11 +232,11 @@ Usage:
       and
       '{base_url}/v{version}/gpg-keys.tar.gz'
       If not provided, this will default to '$DOWNLOAD_BASE'.
-      Example: '-b http://my.domain.org/dbdot-collector/binaries' will be used as the base of the download URL.
+      Example: '-b http://my.domain.org/dynatrace-bindplane-otel-collector/binaries' will be used as the base of the download URL.
 
   $(fg_yellow '-f, --file')
       Install Agent from a local file instead of downloading from a URL.
-      Example: '-f /path/to/dbdot-collector_v1.2.12_linux_amd64.deb' will install from the local file.
+      Example: '-f /path/to/dynatrace-bindplane-otel-collector_v1.2.12_linux_amd64.deb' will install from the local file.
       Required if '--gpg-tar-file' is specified.
 
   $(fg_yellow '-gf, --gpg-tar-file')
@@ -843,7 +843,7 @@ install_package()
   # if target install directory doesn't exist and we're using dpkg ensure a clean state 
   # by checking for the package and running purge if it exists.
   if [ ! -d "${DBDOT_CONFIG_HOME}" ] && [ "$package_type" = "deb" ]; then
-    dpkg -s "dbdot-collector" > /dev/null 2>&1 && dpkg --purge "dbdot-collector" > /dev/null 2>&1
+    dpkg -s "dynatrace-bindplane-otel-collector" > /dev/null 2>&1 && dpkg --purge "dynatrace-bindplane-otel-collector" > /dev/null 2>&1
   fi
 
   # Verify the package signature, with optional user override on failure
@@ -913,31 +913,31 @@ install_package()
   fi
 
   if [ "$SVC_PRE" = "systemctl" ]; then
-    if [ "$(systemctl is-enabled dbdot-collector)" = "enabled" ]; then
+    if [ "$(systemctl is-enabled dynatrace-bindplane-otel-collector)" = "enabled" ]; then
       # The unit is already enabled; It may be running, too, if this was an upgrade.
       # We'll want to restart, which will start it if it wasn't running already,
       # and restart in the case that this was an upgrade on a running agent.
       info "Restarting service..."
-      systemctl restart dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
+      systemctl restart dynatrace-bindplane-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
       succeeded
     else
       info "Enabling service..."
-      systemctl enable --now dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
+      systemctl enable --now dynatrace-bindplane-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
       succeeded
     fi
   else
-    case "$(service dbdot-collector status)" in
+    case "$(service dynatrace-bindplane-otel-collector status)" in
       *running*)
         # The service is running.
         # We'll want to restart.
         info "Restarting service..."
-        service dbdot-collector restart > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
+        service dynatrace-bindplane-otel-collector restart > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
         succeeded
         ;;
       *)
         info "Enabling and starting service..."
-        chkconfig dbdot-collector on > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
-        service dbdot-collector start > /dev/null 2>&1 || error_exit "$LINENO" "Failed to start service"
+        chkconfig dynatrace-bindplane-otel-collector on > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
+        service dynatrace-bindplane-otel-collector start > /dev/null 2>&1 || error_exit "$LINENO" "Failed to start service"
         succeeded
         ;;
     esac
@@ -1167,13 +1167,13 @@ display_results()
     info "Agent Home:         $(fg_cyan "${DBDOT_CONFIG_HOME}")$(reset)"
     info "Agent Config:       $(fg_cyan "${DBDOT_CONFIG_HOME}/config.yaml")$(reset)"
     if [ "$SVC_PRE" = "systemctl" ]; then
-      info "Start Command:      $(fg_cyan "sudo systemctl start dbdot-collector")$(reset)"
-      info "Stop Command:       $(fg_cyan "sudo systemctl stop dbdot-collector")$(reset)"
-      info "Status Command:     $(fg_cyan "sudo systemctl status dbdot-collector")$(reset)"
+      info "Start Command:      $(fg_cyan "sudo systemctl start dynatrace-bindplane-otel-collector")$(reset)"
+      info "Stop Command:       $(fg_cyan "sudo systemctl stop dynatrace-bindplane-otel-collector")$(reset)"
+      info "Status Command:     $(fg_cyan "sudo systemctl status dynatrace-bindplane-otel-collector")$(reset)"
     else
-      info "Start Command:      $(fg_cyan "sudo service dbdot-collector start")$(reset)"
-      info "Stop Command:       $(fg_cyan "sudo service dbdot-collector stop")$(reset)"
-      info "Status Command:     $(fg_cyan "sudo service dbdot-collector status")$(reset)"
+      info "Start Command:      $(fg_cyan "sudo service dynatrace-bindplane-otel-collector start")$(reset)"
+      info "Stop Command:       $(fg_cyan "sudo service dynatrace-bindplane-otel-collector stop")$(reset)"
+      info "Status Command:     $(fg_cyan "sudo service dynatrace-bindplane-otel-collector status")$(reset)"
     fi
     info "Logs Command:       $(fg_cyan "sudo tail -F ${DBDOT_CONFIG_HOME}/log/collector.log")$(reset)"
     info "Uninstall Command:  $(fg_cyan "sudo sh -c \"\$(curl -fsSlL ${DOWNLOAD_BASE}/v${version}/install_unix.sh)\" install_unix.sh -r")$(reset)"
@@ -1198,10 +1198,10 @@ uninstall_package()
 {
   case "$package_type" in
     deb)
-      dpkg -r "dbdot-collector" > /dev/null 2>&1
+      dpkg -r "dynatrace-bindplane-otel-collector" > /dev/null 2>&1
       ;;
     rpm)
-      rpm -e "dbdot-collector" > /dev/null 2>&1
+      rpm -e "dynatrace-bindplane-otel-collector" > /dev/null 2>&1
       ;;
     *)
       error "Unrecognized package type"
@@ -1223,20 +1223,20 @@ uninstall()
 
   if [ "$SVC_PRE" = "systemctl" ]; then
     info "Stopping service..."
-    systemctl stop dbdot-collector > /dev/null || error_exit "$LINENO" "Failed to stop service"
+    systemctl stop dynatrace-bindplane-otel-collector > /dev/null || error_exit "$LINENO" "Failed to stop service"
     succeeded
 
     info "Disabling service..."
-    systemctl disable dbdot-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to disable service"
+    systemctl disable dynatrace-bindplane-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to disable service"
     succeeded
   else
     info "Stopping service..."
-    service dbdot-collector stop
+    service dynatrace-bindplane-otel-collector stop
     succeeded
 
     info "Disabling service..."
-    chkconfig dbdot-collector on
-    # rm -f /etc/init.d/dbdot-collector
+    chkconfig dynatrace-bindplane-otel-collector on
+    # rm -f /etc/init.d/dynatrace-bindplane-otel-collector
     succeeded
   fi
 

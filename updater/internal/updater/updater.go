@@ -41,7 +41,7 @@ import (
 const (
 	// DefaultSystemdUnitFilePath is the default path to the systemd unit file
 	// for the collector service.
-	DefaultSystemdUnitFilePath = "/usr/lib/systemd/system/dbdot-collector.service"
+	DefaultSystemdUnitFilePath = "/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
 )
 
 // Updater is a struct that can be used to perform a collector update
@@ -98,8 +98,8 @@ func (u *Updater) readGroupFromSystemdFile() (string, error) {
 // generateLinuxServiceFiles writes necessary service files to the install directory
 // to be copied to their final locations by the updater.
 func (u *Updater) generateLinuxServiceFiles() error {
-	systemdServiceFilePath := filepath.Join(u.installDir, "install", "dbdot-collector.service")
-	initServiceFilePath := filepath.Join(u.installDir, "install", "dbdot-collector")
+	systemdServiceFilePath := filepath.Join(u.installDir, "install", "dynatrace-bindplane-otel-collector.service")
+	initServiceFilePath := filepath.Join(u.installDir, "install", "dynatrace-bindplane-otel-collector")
 
 	// Install dir needs to be pre-created if it does not exist already.
 	if err := os.MkdirAll(filepath.Dir(systemdServiceFilePath), 0750); err != nil {
@@ -113,9 +113,9 @@ func (u *Updater) generateLinuxServiceFiles() error {
 	}
 
 	// Get the install directory from path package. This will default
-	// to /opt/dbdot-collector unless DBDOT_CONFIG_HOME is set
-	// in a package config file such as /etc/default/dbdot-collector
-	// or /etc/sysconfig/dbdot-collector.
+	// to /opt/dynatrace-bindplane-otel-collector unless DBDOT_CONFIG_HOME is set
+	// in a package config file such as /etc/default/dynatrace-bindplane-otel-collector
+	// or /etc/sysconfig/dynatrace-bindplane-otel-collector.
 	installDir, err := path.InstallDir(u.logger, path.DefaultConfigOverrides)
 	if err != nil {
 		return fmt.Errorf("read working directory from systemd file %s: %w", u.installedSystemdUnitPath, err)

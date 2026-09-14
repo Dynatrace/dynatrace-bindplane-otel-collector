@@ -11,7 +11,7 @@ collector_home="C:/Program Files/Dynatrace Bindplane Distribution of OpenTelemet
 end
 
 [
-    "#{collector_home}/dbdot-collector.exe",
+    "#{collector_home}/dynatrace-bindplane-otel-collector.exe",
     "#{collector_home}/config.yaml",
     "#{collector_home}/plugins/elasticsearch_logs.yaml",
     "#{collector_home}/plugins/mysql_logs.yaml",
@@ -23,7 +23,7 @@ end
     end
 end
 
-describe service('dbdot-collector') do
+describe service('dynatrace-bindplane-otel-collector') do
     it { should be_installed }
     it { should be_enabled }
     it { should be_running }

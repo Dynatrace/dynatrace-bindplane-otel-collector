@@ -19,11 +19,11 @@ set -e
 # Read's optional package overrides. Users should deploy the override
 # file before installing DBDOT for the first time. The override should
 # not be modified unless uninstalling and re-installing.
-[ -f /etc/default/dbdot-collector ] && . /etc/default/dbdot-collector
-[ -f /etc/sysconfig/dbdot-collector ] && . /etc/sysconfig/dbdot-collector
+[ -f /etc/default/dynatrace-bindplane-otel-collector ] && . /etc/default/dynatrace-bindplane-otel-collector
+[ -f /etc/sysconfig/dynatrace-bindplane-otel-collector ] && . /etc/sysconfig/dynatrace-bindplane-otel-collector
 
 # The collectors installation directory
-: "${DBDOT_CONFIG_HOME:=/opt/dbdot-collector}"
+: "${DBDOT_CONFIG_HOME:=/opt/dynatrace-bindplane-otel-collector}"
 
 # Check if this is an uninstall or an upgrade
 # RPM: $1 is the number of packages remaining that provide this package
@@ -71,13 +71,13 @@ if is_uninstall "$1"; then
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/log"
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/VERSION.txt"
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/updater"
-    remove_file_or_dir "${DBDOT_CONFIG_HOME}/dbdot-collector"
+    remove_file_or_dir "${DBDOT_CONFIG_HOME}/dynatrace-bindplane-otel-collector"
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/install"
 
     # Remove the service definitions written by postinstall.sh.
-    remove_file_or_dir "/usr/lib/systemd/system/dbdot-collector.service"
-    remove_file_or_dir "/etc/systemd/system/dbdot-collector.service.d"
-    remove_file_or_dir "/etc/init.d/dbdot-collector"
+    remove_file_or_dir "/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
+    remove_file_or_dir "/etc/systemd/system/dynatrace-bindplane-otel-collector.service.d"
+    remove_file_or_dir "/etc/init.d/dynatrace-bindplane-otel-collector"
     if command -v systemctl > /dev/null 2>&1; then
         systemctl daemon-reload || true
     fi

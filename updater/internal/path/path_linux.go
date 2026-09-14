@@ -26,20 +26,20 @@ import (
 )
 
 // DefaultLinuxInstallDir is the install directory of the collector on linux.
-const DefaultLinuxInstallDir = "/opt/dbdot-collector"
+const DefaultLinuxInstallDir = "/opt/dynatrace-bindplane-otel-collector"
 
 // SystemdFilePath is the path for systemd service
-const SystemdFilePath = "/usr/lib/systemd/system/dbdot-collector.service"
+const SystemdFilePath = "/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
 
 // SysVFilePath is the path for sysv service
-const SysVFilePath = "/etc/init.d/dbdot-collector"
+const SysVFilePath = "/etc/init.d/dynatrace-bindplane-otel-collector"
 
 // DefaultConfigOverrides is a list of config files that can be used to override
 // package installation behavior. The updater needs to respect these config
 // options, such as DBDOT_CONFIG_HOME
 var DefaultConfigOverrides = []string{
-	"/etc/default/dbdot-collector",
-	"/etc/sysconfig/dbdot-collector",
+	"/etc/default/dynatrace-bindplane-otel-collector",
+	"/etc/sysconfig/dynatrace-bindplane-otel-collector",
 }
 
 const (

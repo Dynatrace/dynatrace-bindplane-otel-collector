@@ -41,11 +41,11 @@ set /p response="Do you want to include only the most recent logs? [Y/n] "
 if /I "%response%"=="n" (
     xcopy /Y "%collector_dir%\log\*" "%output_dir%\"
 ) else (
-    if exist "%collector_dir%\log\dbdot_collector.err" (
-        xcopy /Y "%collector_dir%\log\dbdot_collector.err" "%output_dir%\"
+    if exist "%collector_dir%\log\dynatrace_bindplane_otel_collector.err" (
+        xcopy /Y "%collector_dir%\log\dynatrace_bindplane_otel_collector.err" "%output_dir%\"
     )
-    if exist "%collector_dir%\log\observiq_collector.err.1" (
-        xcopy /Y "%collector_dir%\log\observiq_collector.err.1" "%output_dir%\"
+    if exist "%collector_dir%\log\dynatrace_bindplane_otel_collector.err.1" (
+        xcopy /Y "%collector_dir%\log\dynatrace_bindplane_otel_collector.err.1" "%output_dir%\"
     )
     xcopy /Y "%collector_dir%\log\collector.log" "%output_dir%\"
 )

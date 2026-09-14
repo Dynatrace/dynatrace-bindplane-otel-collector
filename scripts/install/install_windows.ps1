@@ -116,8 +116,8 @@ $ErrorActionPreference = "Stop"
 # ---- Constants ---------------------------------------------------------------
 
 $DOWNLOAD_BASE = "https://dbdot.bindplane.com"
-$MSI_NAME_AMD64 = "dbdot-collector-amd64.msi"
-$MSI_NAME_ARM64 = "dbdot-collector-arm64.msi"
+$MSI_NAME_AMD64 = "dynatrace-bindplane-otel-collector-amd64.msi"
+$MSI_NAME_ARM64 = "dynatrace-bindplane-otel-collector-arm64.msi"
 $PRODUCT_DISPLAY_NAME = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
 # DBDOT's own UpgradeCode, stable across DBDOT releases; defined in windows/wix.json
 # ("upgrade-code"). Distinct from the legacy observIQ/Bindplane code, so DBDOT is a
@@ -328,7 +328,7 @@ function Main {
     }
 
     $tmpDir = [System.IO.Path]::GetTempPath()
-    $logPath = Join-Path $tmpDir "dbdot-collector-install.log"
+    $logPath = Join-Path $tmpDir "dynatrace-bindplane-otel-collector-install.log"
     $cleanupMsi = $false
 
     if ($MsiFile) {

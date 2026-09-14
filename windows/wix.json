@@ -9,9 +9,9 @@
   "upgrade-code": "CDE0E02B-C29C-43AA-A6A3-063A84DC7EDF",
   "files": [
     {
-      "path": "dbdot-collector.exe",
+      "path": "dynatrace-bindplane-otel-collector.exe",
       "service": {
-        "name": "dbdot-collector",
+        "name": "dynatrace-bindplane-otel-collector",
         "start": "delayed",
         "display-name": "Dynatrace Bindplane Distribution of OpenTelemetry Collector",
         "description": "Dynatrace Bindplane Distribution of OpenTelemetry Collector.",

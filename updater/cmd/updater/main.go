@@ -32,7 +32,7 @@ func main() {
 	pflag.Parse()
 
 	if *showVersion {
-		fmt.Println("dbdot-collector updater version", version.Version())
+		fmt.Println("dynatrace-bindplane-otel-collector updater version", version.Version())
 		fmt.Println("commit:", version.GitHash())
 		fmt.Println("built at:", version.Date())
 		return

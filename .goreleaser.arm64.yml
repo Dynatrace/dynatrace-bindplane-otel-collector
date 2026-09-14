@@ -1,6 +1,6 @@
 version: 2
 
-project_name: dbdot-collector
+project_name: dynatrace-bindplane-otel-collector
 
 before:
   hooks:
@@ -21,7 +21,7 @@ after:
 builds:
   - id: collector
     builder: prebuilt
-    binary: dbdot-collector
+    binary: dynatrace-bindplane-otel-collector
     goos:
       - linux
     goarch:
@@ -54,7 +54,7 @@ dockers:
     # GHCR only, matching .goreleaser-docker.yml. Docker Hub and GAR
     # publishing should be added back under Dynatrace-owned orgs/registries.
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-arm64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:

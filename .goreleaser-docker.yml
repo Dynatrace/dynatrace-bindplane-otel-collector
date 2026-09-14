@@ -1,6 +1,6 @@
 version: 2
 
-project_name: dbdot-collector
+project_name: dynatrace-bindplane-otel-collector
 
 before:
   hooks:
@@ -11,7 +11,7 @@ before:
 builds:
   - id: collector
     builder: prebuilt
-    binary: dbdot-collector
+    binary: dynatrace-bindplane-otel-collector
     goos:
       - linux
     goarch:
@@ -56,8 +56,8 @@ release:
 # Images are currently published to GHCR only. Docker Hub and Google
 # Artifact Registry publishing should be added back once Dynatrace-owned
 # orgs/registries exist for them, e.g.:
-#   - "dynatrace/dbdot-<arch>:{{ .Version }}"
-#   - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dbdot-<arch>:{{ .Version }}"
+#   - "dynatrace/dynatrace-bindplane-otel-collector-<arch>:{{ .Version }}"
+#   - "us-central1-docker.pkg.dev/{{ .Env.GAR_PROJECT_ID }}/collector/dynatrace-bindplane-otel-collector-<arch>:{{ .Version }}"
 # (plus the matching docker_manifests entries and registry logins in
 # .github/workflows/release-containers.yml).
 dockers:
@@ -72,7 +72,7 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-amd64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -97,7 +97,7 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-arm64:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -122,7 +122,7 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-ppc64le:{{ .Version }}"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -138,11 +138,11 @@ dockers:
       - LICENSE
 
 docker_manifests:
-  - name_template: "ghcr.io/dynatrace/dbdot:{{ .Version }}"
+  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}"
     image_templates:
-      - "ghcr.io/dynatrace/dbdot-amd64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-arm64:{{ .Version }}"
-      - "ghcr.io/dynatrace/dbdot-ppc64le:{{ .Version }}"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-amd64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-ppc64le:{{ .Version }}"
     skip_push: false
 changelog:
   # Set this to true if you don't want any changelog at all.

@@ -15,7 +15,7 @@ RUN mkdir \
     && chmod 0750 /etc/otel/storage
 
 RUN mkdir /licenses
-COPY LICENSE /licenses/dbdot-collector.license
+COPY LICENSE /licenses/dynatrace-bindplane-otel-collector.license
 
 COPY release_deps/plugins /etc/otel/plugins
 COPY config/logging.stdout.yaml /etc/otel/logging.yaml
@@ -36,7 +36,7 @@ COPY --from=stage --chown=otel:otel /licenses /licenses
 COPY --from=stage --chown=otel:otel /etc/otel /etc/otel
 COPY --from=stage --chown=otel:otel /etc/otel/storage /etc/otel/storage
 
-COPY dbdot-collector /collector/dbdot-collector
+COPY dynatrace-bindplane-otel-collector /collector/dynatrace-bindplane-otel-collector
 COPY container-init /collector/container-init
 
 ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
@@ -44,4 +44,4 @@ ENV BINDPLANE_COLLECTOR_STORAGE=/etc/otel/storage
 
 USER otel
 WORKDIR /etc/otel
-ENTRYPOINT ["/collector/dbdot-collector"]
+ENTRYPOINT ["/collector/dynatrace-bindplane-otel-collector"]
