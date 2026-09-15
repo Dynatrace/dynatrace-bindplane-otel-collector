@@ -3,7 +3,7 @@ module github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/processo
 go 1.26.4
 
 require (
-	github.com/observiq/bindplane-otel-contrib/pkg/snapshot v1.13.0
+	github.com/observiq/bindplane-otel-contrib/pkg/snapshot v1.14.0
 	github.com/open-telemetry/opamp-go v0.23.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampcustommessages v0.160.0
 	github.com/stretchr/testify v1.12.1
