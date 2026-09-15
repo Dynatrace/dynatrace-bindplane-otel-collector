@@ -9,92 +9,11 @@ permissions:
 
 jobs:
   build-msi:
-    runs-on: windows-2022
-    strategy:
-      matrix:
-        include:
-          - arch: amd64
-            msi_name: dynatrace-bindplane-otel-collector-amd64.msi
-            msi_arch: x64
-          - arch: arm64
-            msi_name: dynatrace-bindplane-otel-collector-arm64.msi
-            msi_arch: arm64
-    steps:
-      - name: Checkout Sources
-        uses: actions/checkout@v7
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: internal/extension/opampconnectionextension/go.mod
-          cache-dependency-path: "**/go.sum"
-      - name: Grant access to private Dynatrace Go modules
-        uses: ./.github/actions/private-go-modules
-        with:
-          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
-          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
-      - name: Install ocb
-        run: make install-ocb
-        shell: bash
-      - name: Prepare Release Dependencies
-        run: make release-prep CURR_VERSION=${VERSION#v}
-        shell: bash
-        env:
-          VERSION: ${{ github.ref_name }}
-      - name: Build Windows Binaries
-        run: make build-windows-${{ matrix.arch }}
-      - name: Copy Shared Files to MSI Build Directory
-        run: |
-          cp -r release_deps/plugins windows/
-          cp config/example.yaml windows/config.yaml
-          cp config/logging.yaml windows/logging.yaml
-          cp LICENSE windows/LICENSE
-          cp release_deps/VERSION.txt windows/VERSION.txt
-      - name: Copy Binaries
-        run: |
-          cp dist/collector_windows_${{ matrix.arch }}.exe windows/dynatrace-bindplane-otel-collector.exe
-          cp dist/updater_windows_${{ matrix.arch }}.exe windows/updater.exe
-      # HACK: Copy build directory to C drive to avoid this error, since there must be a relative path from the tempdir that go-msi uses
-      # for the MSI to build properly
-      - name: Copy Build Dir
-        run: |
-          cp -r windows C:/build
-          echo "C:/build" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      # Installs go-msi and wix.
-      - name: Install Build Tools
-        run: |
-          curl -f -L -o go-msi.exe https://github.com/observIQ/go-msi/releases/download/v2.2.0/go-msi.exe
-          curl -f -L -o wix314-binaries.zip https://github.com/wixtoolset/wix3/releases/download/wix314rtm/wix314-binaries.zip
-          unzip wix314-binaries.zip
-        working-directory: C:/build
-      - name: Build MSI
-        run: go-msi.exe make -m ${{ matrix.msi_name }} --version ${{ github.ref_name }} --arch ${{ matrix.msi_arch }}
-        working-directory: C:/build
-      - name: Install DigiCert Client tools from Github Custom Actions marketplace
-        uses: digicert/ssm-code-signing@v1.0.0
-      - name: Set up certificate
-        run: |
-          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
-        shell: bash
-      - name: Set variables for signing
-        id: variables
-        run: |
-          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
-          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
-        shell: bash
-      - name: Sign MSI
-        run: |
-          smctl sign --keypair-alias ${{ secrets.DBDOT_DIGICERT_KEYPAIR_ALIAS }} --input C:/build/${{ matrix.msi_name }} --config-file C:\Users\RUNNER~1\AppData\Local\Temp\smtools-windows-x64\pkcs11properties.cfg
-        shell: cmd
-      - name: Upload MSI
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.msi_name }}
-          path: C:/build/${{ matrix.msi_name }}
-          # Short lived because Go Releaser will upload the msi to a release (github release, gcs, etc)
-          retention-days: 1
+    uses: ./.github/workflows/build-signed-windows.yml
+    with:
+      version: ${{ github.ref_name }}
+      sign_install_script: true
+    secrets: inherit
 
   release:
     needs: [build-msi]
@@ -140,7 +59,8 @@ jobs:
           app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
           private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
       - name: Install ocb
-        run: make install-ocb
+        timeout-minutes: 10
+        run: bash .github/scripts/retry.sh make install-ocb
       - name: Retrieve Windows AMD64 MSI Installer
         uses: actions/download-artifact@v8
         with:
@@ -150,7 +70,8 @@ jobs:
         with:
           name: dynatrace-bindplane-otel-collector-arm64.msi
       - name: Install cosign
-        run: go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
+        timeout-minutes: 10
+        run: bash .github/scripts/retry.sh go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
       - name: Build cosign key file
         run: 'echo "$COSIGN_PRIVATE_KEY" >> cosign.key'
         shell: bash
@@ -173,6 +94,23 @@ jobs:
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
+      # Staged into place by goreleaser's overlay before-hook, not here:
+      # goreleaser validates git state before running its hooks, so touching
+      # the tracked script from a workflow step fails the release with
+      # "git is in a dirty state". The download directory is gitignored.
+      - name: Retrieve Signed Windows Install Script
+        uses: actions/download-artifact@v8
+        with:
+          name: signed-install-script
+          path: signed-install-script
+      # The Windows binaries goreleaser packages must be the signed ones from
+      # the build-msi job, not the unsigned copies its before-hook builds here.
+      - name: Retrieve Signed Windows Binaries
+        uses: actions/download-artifact@v8
+        with:
+          pattern: signed-windows-*
+          merge-multiple: true
+          path: signed-windows
       - name: Write signing key for nFPM
         shell: bash
         run: |
@@ -189,6 +127,8 @@ jobs:
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          SIGNED_WINDOWS_DIR: signed-windows
+          SIGNED_INSTALL_SCRIPT: signed-install-script/install_windows.ps1
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
           SIGNING_KEY_FILE: ci-signing-key.asc
       # Create artifact bundle and upload to release
@@ -233,3 +173,29 @@ jobs:
       #     repository: TODO-DBDOT-INSTALLER-TESTING-REPO
       #     event-type: upstream_prerelease
       #     client-payload: '{ "version": "${{ github.ref_name }}" }'
+
+  # Gate the prerelease on the executables actually being signed, not just the
+  # MSI. Releases publish as a prerelease first, so a failure here blocks
+  # promotion instead of arriving after customers have the artifacts.
+  verify-windows-release:
+    needs: [release]
+    runs-on: windows-2022
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+      - name: Download Windows Release Artifacts
+        run: |
+          mkdir artifacts
+          gh release download "$env:TAG" `
+            --repo "$env:GITHUB_REPOSITORY" `
+            --dir artifacts `
+            --pattern "*-windows-*.zip" `
+            --pattern "*.msi" `
+            --pattern "install_windows.ps1"
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify Windows Signatures
+        run: ./scripts/ci/verify-windows-signatures.ps1 -Root ./artifacts
+        shell: pwsh

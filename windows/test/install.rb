@@ -28,3 +28,9 @@ describe service('dynatrace-bindplane-otel-collector') do
     it { should be_enabled }
     it { should be_running }
 end
+
+describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Application\dynatrace-bindplane-otel-collector') do
+    it { should exist }
+    its('EventMessageFile') { should match(/EventCreate\.exe$/) }
+    its('TypesSupported') { should cmp 7 }
+end
