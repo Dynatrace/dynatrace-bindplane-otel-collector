@@ -31,6 +31,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -68,15 +71,11 @@ jobs:
           app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
           private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
       - name: Install ocb
-        uses: nick-fields/retry@v4
-        with:
-          max_attempts: 3
-          retry_wait_seconds: 30
-          timeout_minutes: 10
-          shell: bash
-          command: make install-ocb
+        timeout-minutes: 10
+        shell: bash
+        run: bash .github/scripts/retry.sh make install-ocb
       - name: Install DigiCert Client tools from Github Custom Actions marketplace
-        uses: digicert/ssm-code-signing@v1.0.0
+        uses: digicert/ssm-code-signing@b300bb7e8c2ab85257d660fe5b6c6374131ca2ef # v1.0.0
       - name: Set up certificate
         run: |
           echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
