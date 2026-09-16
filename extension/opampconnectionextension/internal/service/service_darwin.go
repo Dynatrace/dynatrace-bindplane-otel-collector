@@ -25,10 +25,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// launchdStderrPath is where com.dynatrace.bindplane.otel.collector.plist points launchd's
+// launchdStderrPath is where the distro's launchd plist points
 // StandardErrorPath. launchd opens it O_APPEND and owns the redirect; the
 // process only sees it as fd 2.
-const launchdStderrPath = "/var/log/dynatrace_bindplane_otel_collector.err"
+var launchdStderrPath = "/var/log/" + stderrLogName
 
 // RunService runs the given service, calling its start and stop functions.
 func RunService(logger *zap.Logger, rSvc RunnableService) error {

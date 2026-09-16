@@ -25,8 +25,16 @@ import (
 	"go.uber.org/zap"
 )
 
-// CollectorPackageName is the name for the top level packages for this collector
-const CollectorPackageName = "dynatrace-bindplane-otel-collector"
+// collectorPackageName is the key under which the collector's own package is
+// tracked in package_statuses.json and offered in PackagesAvailable. Stamped at
+// link time via -X (see AGENT_LDFLAGS and UPDATER_LDFLAGS in the Makefile); the
+// collector and updater binaries must be stamped with the same value or
+// updates never complete. The default is a generic placeholder so an unstamped
+// build is obviously unstamped.
+var collectorPackageName = "otelcol"
+
+// CollectorPackageName is the name of the top level package for this collector.
+func CollectorPackageName() string { return collectorPackageName }
 
 // DefaultFileName is the default name of the file use to store state
 const DefaultFileName = "package_statuses.json"

@@ -103,7 +103,7 @@ func Run(opts Options) {
 			logger.Error("Error occurred while checking for collector config rollbacks", zap.Error(err))
 		}
 
-		runnableService, err = service.NewManagedCollectorService(col, logger, opts.ManagerConfigPath, collectorConfigPath, opts.LoggingConfigPath)
+		runnableService, err = service.NewManagedCollectorService(col, opts.Factories, logger, opts.Version, opts.ManagerConfigPath, collectorConfigPath, opts.LoggingConfigPath)
 		if err != nil {
 			logger.Fatal("Failed to initiate managed mode", zap.Error(err))
 		}

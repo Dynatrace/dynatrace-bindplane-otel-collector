@@ -79,6 +79,9 @@ func newMeasurementsSender(l *zap.Logger, reporter MeasurementsReporter, opampCl
 
 // Start starts the sender. It may be called multiple times, even if the sender is already started.
 func (m *measurementsSender) Start() {
+	if m == nil {
+		return
+	}
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
@@ -97,6 +100,9 @@ func (m *measurementsSender) Start() {
 
 // SetInterval changes the interval of the measurements sender.
 func (m *measurementsSender) SetInterval(d time.Duration) {
+	if m == nil {
+		return
+	}
 	// Drain any stale value to prevent blocking when the loop isn't running.
 	select {
 	case <-m.changeIntervalChan:
@@ -109,6 +115,9 @@ func (m *measurementsSender) SetInterval(d time.Duration) {
 }
 
 func (m *measurementsSender) SetExtraAttributes(extraAttributes map[string]string) {
+	if m == nil {
+		return
+	}
 	// Drain any stale value to prevent blocking when the loop isn't running.
 	select {
 	case <-m.changeAttributesChan:
@@ -121,6 +130,9 @@ func (m *measurementsSender) SetExtraAttributes(extraAttributes map[string]strin
 }
 
 func (m *measurementsSender) Stop() {
+	if m == nil {
+		return
+	}
 	m.mux.Lock()
 	defer m.mux.Unlock()
 

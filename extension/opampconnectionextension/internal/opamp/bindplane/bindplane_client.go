@@ -34,7 +34,6 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report"
 	"github.com/observiq/bindplane-otel-contrib/pkg/measurements"
-	"github.com/observiq/bindplane-otel-contrib/pkg/version"
 	"github.com/observiq/bindplane-otel-contrib/processor/topologyprocessor"
 	"github.com/open-telemetry/opamp-go/client"
 	"github.com/open-telemetry/opamp-go/client/types"
@@ -63,16 +62,6 @@ var (
 	_ opampconnectionextension.Client = (*Client)(nil)
 )
 
-// hardcodedCustomCapabilities are the custom capabilities that this client
-// always advertises to the OpAMP server regardless of what components have
-// registered via an opamp_connection extension. The Bindplane client's
-// measurements and topology senders rely on the server knowing about these
-// capabilities even when no component has explicitly registered them.
-var hardcodedCustomCapabilities = []string{
-	measurements.ReportMeasurementsV1Capability,
-	topologyprocessor.ReportTopologyCapability,
-}
-
 // Client represents a client that is connected to Iris via OpAmp
 type Client struct {
 	opampClient             client.OpAMPClient
@@ -89,6 +78,12 @@ type Client struct {
 	measurementsSender      *measurementsSender
 	topologySender          *topologySender
 	sendGate                *sendGate
+
+	// customCapabilities are always advertised to the server, on top of
+	// whatever components register via an opamp_connection extension. They
+	// are the capabilities the measurements and topology senders need the
+	// server to know about, and are set only for the reporters wired in.
+	customCapabilities []string
 
 	// To signal if we are disconnecting already and not take any actions on connection failures
 	disconnecting bool
@@ -109,10 +104,12 @@ type NewClientArgs struct {
 	Collector     collector.Collector
 	BuildInfo     component.BuildInfo
 
-	TmpPath              string
-	ManagerConfigPath    string
-	CollectorConfigPath  string
-	LoggerConfigPath     string
+	TmpPath             string
+	ManagerConfigPath   string
+	CollectorConfigPath string
+	LoggerConfigPath    string
+	// MeasurementsReporter and TopologyReporter may be nil; the matching
+	// sender is then not created and its capability is not advertised.
 	MeasurementsReporter MeasurementsReporter
 	TopologyReporter     TopologyReporter
 }
@@ -146,11 +143,17 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 		downloadableFileManager: newDownloadableFileManager(clientLogger, args.TmpPath),
 		collector:               args.Collector,
 		currentConfig:           args.Config,
-		packagesStateProvider:   newPackagesStateProvider(clientLogger, packagestate.DefaultFileName),
+		packagesStateProvider:   newPackagesStateProvider(clientLogger, packagestate.DefaultFileName, args.BuildInfo.Version),
 		updaterManager:          updaterManger,
 		reportManager:           reportManager,
 		managerConfigPath:       args.ManagerConfigPath,
 		sendGate:                newSendGate(),
+	}
+	if args.MeasurementsReporter != nil {
+		bindplaneClient.customCapabilities = append(bindplaneClient.customCapabilities, measurements.ReportMeasurementsV1Capability)
+	}
+	if args.TopologyReporter != nil {
+		bindplaneClient.customCapabilities = append(bindplaneClient.customCapabilities, topologyprocessor.ReportTopologyCapability)
 	}
 
 	// Parse URL to determin scheme
@@ -182,24 +185,27 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 		return nil, fmt.Errorf("error setting custom capabilities: %w", err)
 	}
 
-	// Create measurements sender
-	bindplaneClient.measurementsSender = newMeasurementsSender(
-		clientLogger,
-		args.MeasurementsReporter,
-		bindplaneClient.opampClient,
-		bindplaneClient.sendGate,
-		args.Config.MeasurementsInterval,
-		args.Config.ExtraMeasurementsAttributes,
-	)
-
-	// Create topology sender
-	bindplaneClient.topologySender = newTopologySender(
-		clientLogger,
-		args.TopologyReporter,
-		bindplaneClient.opampClient,
-		bindplaneClient.sendGate,
-		args.Config.TopologyInterval,
-	)
+	// Create senders only for the reporters wired in. Sender methods are
+	// nil-receiver safe, so callers need no guards.
+	if args.MeasurementsReporter != nil {
+		bindplaneClient.measurementsSender = newMeasurementsSender(
+			clientLogger,
+			args.MeasurementsReporter,
+			bindplaneClient.opampClient,
+			bindplaneClient.sendGate,
+			args.Config.MeasurementsInterval,
+			args.Config.ExtraMeasurementsAttributes,
+		)
+	}
+	if args.TopologyReporter != nil {
+		bindplaneClient.topologySender = newTopologySender(
+			clientLogger,
+			args.TopologyReporter,
+			bindplaneClient.opampClient,
+			bindplaneClient.sendGate,
+			args.Config.TopologyInterval,
+		)
+	}
 
 	return bindplaneClient, nil
 }
@@ -256,10 +262,10 @@ func (c *Client) Connect(ctx context.Context) error {
 	// Use HeaderFunc to dynamically set headers, allowing them to update when agent ID changes
 	headerFunc := func(header http.Header) http.Header {
 		header.Set("Authorization", fmt.Sprintf("Secret-Key %s", c.currentConfig.GetSecretKey()))
-		header.Set("User-Agent", fmt.Sprintf("dynatrace-bindplane-otel-collector/%s", version.Version()))
+		header.Set("User-Agent", fmt.Sprintf("%s/%s", packagestate.CollectorPackageName(), c.ident.version))
 		header.Set("OpAMP-Version", opamp.Version())
 		header.Set("Agent-ID", c.ident.agentID.String())
-		header.Set("Agent-Version", version.Version())
+		header.Set("Agent-Version", c.ident.version)
 		header.Set("Agent-Hostname", c.ident.hostname)
 		header.Set("X-Bindplane-Agent-Id-Format", c.ident.agentID.Type())
 		return header
@@ -347,13 +353,8 @@ func (c *Client) Disconnect(ctx context.Context) error {
 	c.safeSetDisconnecting(true)
 	c.collector.Stop(ctx)
 
-	// Reset the measurements registry to prevent resending old metrics on reconnect
-	if c.measurementsSender != nil {
-		c.measurementsSender.Stop()
-	}
-	if c.topologySender != nil {
-		c.topologySender.Stop()
-	}
+	c.measurementsSender.Stop()
+	c.topologySender.Stop()
 
 	return c.opampClient.Stop(ctx)
 }
@@ -361,13 +362,13 @@ func (c *Client) Disconnect(ctx context.Context) error {
 // SetCustomCapabilities implements opampconnectionextension.Client.
 //
 // It merges the supplied capabilities with the set that this client always
-// advertises (see hardcodedCustomCapabilities) and forwards the merged list
+// advertises (see customCapabilities) and forwards the merged list
 // to the underlying OpAMP client. This lets the opamp_connection
 // extension's registry request its own capability set without clobbering
 // the measurements and topology capabilities the Bindplane client requires.
 func (c *Client) SetCustomCapabilities(customCapabilities *protobufs.CustomCapabilities) error {
 	merged := append([]string(nil), customCapabilities.GetCapabilities()...)
-	for _, capability := range hardcodedCustomCapabilities {
+	for _, capability := range c.customCapabilities {
 		if !slices.Contains(merged, capability) {
 			merged = append(merged, capability)
 		}
@@ -398,18 +399,18 @@ func (c *Client) onConnectHandler(_ context.Context) {
 		c.logger.Error("Problem with PackageStatuses", zap.Error(err))
 		return
 	}
-	collectorPkgStatus := pkgStatuses.Packages[packagestate.CollectorPackageName]
+	collectorPkgStatus := pkgStatuses.Packages[packagestate.CollectorPackageName()]
 
 	// If in the middle of an install and we just connected, this is most likely because the collector was just spun up fresh by the Updater.
 	// If the current version matches the server offered version, this implies a good install and so we should set the PackageStatuses and
 	// send it to the OpAMP Server. If the version does not match, just change the PackageStatues JSON so that the Updater can start rollback.
 	if collectorPkgStatus.Status == protobufs.PackageStatusEnum_PackageStatusEnum_Installing {
-		if collectorPkgStatus.ServerOfferedVersion != version.Version() {
+		if collectorPkgStatus.ServerOfferedVersion != c.ident.version {
 			errMsg := fmt.Sprintf("Failed because of collector version mismatch: expected %s, actual %s",
-				collectorPkgStatus.ServerOfferedVersion, version.Version())
+				collectorPkgStatus.ServerOfferedVersion, c.ident.version)
 			c.logger.Error("Collector version mismatch after update",
 				zap.String("expected_version", collectorPkgStatus.ServerOfferedVersion),
-				zap.String("actual_version", version.Version()),
+				zap.String("actual_version", c.ident.version),
 			)
 			c.failPackageInstall(pkgStatuses, errMsg, false)
 
@@ -487,7 +488,7 @@ func (c *Client) onMessageFuncHandler(ctx context.Context, msg *types.MessageDat
 			r.ProcessMessage(msg.CustomMessage)
 		}
 	}
-	if msg.CustomCapabilities != nil {
+	if msg.CustomCapabilities != nil && c.measurementsSender != nil {
 		if slices.Contains(msg.CustomCapabilities.Capabilities, measurements.ReportMeasurementsV1Capability) {
 			c.logger.Info("Server supports custom throughput message measurements, starting measurements sender.")
 			c.measurementsSender.Start()
@@ -495,6 +496,8 @@ func (c *Client) onMessageFuncHandler(ctx context.Context, msg *types.MessageDat
 			c.logger.Info("Server does not support custom throughput message measurements, stopping measurements sender.")
 			c.measurementsSender.Stop()
 		}
+	}
+	if msg.CustomCapabilities != nil && c.topologySender != nil {
 		if slices.Contains(msg.CustomCapabilities.Capabilities, topologyprocessor.ReportTopologyCapability) {
 			c.logger.Info("Server supports custom topology messages, starting topology sender.")
 			c.topologySender.Start()
@@ -636,8 +639,8 @@ func (c *Client) onPackagesAvailableHandler(availablePkgs *protobufs.PackagesAva
 	}
 
 	// Start update if applicable
-	if curPkgStatuses.Packages[packagestate.CollectorPackageName].Status == protobufs.PackageStatusEnum_PackageStatusEnum_Installing {
-		collectorDownloadableFile := availablePkgs.GetPackages()[packagestate.CollectorPackageName].GetFile()
+	if curPkgStatuses.Packages[packagestate.CollectorPackageName()].Status == protobufs.PackageStatusEnum_PackageStatusEnum_Installing {
+		collectorDownloadableFile := availablePkgs.GetPackages()[packagestate.CollectorPackageName()].GetFile()
 		c.startCollectorPackageInstall(curPkgStatuses, collectorDownloadableFile)
 	}
 
@@ -650,7 +653,7 @@ func (c *Client) buildInitialPackageStatus(pkgName string, availablePkg *protobu
 	var initPkgStatus *protobufs.PackageStatus
 
 	switch pkgName {
-	case packagestate.CollectorPackageName:
+	case packagestate.CollectorPackageName():
 		initPkgStatus = c.buildInitialCollectorPackageStatus(pkgName, availablePkg, lastPkgStatus)
 	// If it's not an expected package, return a failed status
 	default:
@@ -675,14 +678,14 @@ func (c *Client) buildInitialCollectorPackageStatus(pkgName string, availablePkg
 	lastPkgStatus *protobufs.PackageStatus) *protobufs.PackageStatus {
 	initPkgStatus := &protobufs.PackageStatus{
 		Name:                 pkgName,
-		AgentHasVersion:      version.Version(),
+		AgentHasVersion:      c.ident.version,
 		ServerOfferedVersion: availablePkg.GetVersion(),
 		ServerOfferedHash:    availablePkg.GetHash(),
 		Status:               protobufs.PackageStatusEnum_PackageStatusEnum_Installed,
 	}
 
 	// If the new version is the same as the current version we are already installed
-	if version.Version() == availablePkg.GetVersion() {
+	if c.ident.version == availablePkg.GetVersion() {
 		c.logger.Info("Package update ignored because no new version offered",
 			zap.String("package", pkgName))
 		initPkgStatus.AgentHasHash = availablePkg.GetHash()
@@ -692,13 +695,13 @@ func (c *Client) buildInitialCollectorPackageStatus(pkgName string, availablePkg
 
 	// Only grab agentHash from last status if that version matches the current one
 	if lastPkgStatus != nil {
-		if lastPkgStatus.GetAgentHasVersion() == version.Version() {
+		if lastPkgStatus.GetAgentHasVersion() == c.ident.version {
 			initPkgStatus.AgentHasHash = lastPkgStatus.GetAgentHasHash()
 		} else {
 			c.logger.Debug(
 				fmt.Sprintf(
 					"Current version: %s and last reported package status version: %s differ",
-					version.Version(),
+					c.ident.version,
 					lastPkgStatus.GetAgentHasVersion()),
 				zap.String("package", pkgName))
 		}
@@ -733,7 +736,7 @@ func (c *Client) buildInitialCollectorPackageStatus(pkgName string, availablePkg
 func (c *Client) startCollectorPackageInstall(curPkgStatuses *protobufs.PackageStatuses, collectorFile *protobufs.DownloadableFile) {
 	c.logger.Info("Package update started",
 		zap.String("AllPackagesHash", hex.EncodeToString(curPkgStatuses.ServerProvidedAllPackagesHash)),
-		zap.String("package", packagestate.CollectorPackageName))
+		zap.String("package", packagestate.CollectorPackageName()))
 	// Start installing from file if applicable
 	if collectorFile != nil {
 		c.safeSetUpdatingPackage(true)
@@ -775,7 +778,7 @@ func (c *Client) tryToFailPackageInstall(errMsg string, sendStatusNow bool) {
 		return
 	}
 
-	collectorPackageStatus := pkgStatuses.Packages[packagestate.CollectorPackageName]
+	collectorPackageStatus := pkgStatuses.Packages[packagestate.CollectorPackageName()]
 	// If we were not installing before the connection, nothing else to do
 	if collectorPackageStatus.Status != protobufs.PackageStatusEnum_PackageStatusEnum_Installing {
 		return
@@ -794,7 +797,7 @@ func (c *Client) failPackageInstall(pkgStatuses *protobufs.PackageStatuses, errM
 		return
 	}
 
-	collectorPkgStatus, ok := pkgStatuses.Packages[packagestate.CollectorPackageName]
+	collectorPkgStatus, ok := pkgStatuses.Packages[packagestate.CollectorPackageName()]
 	if !ok {
 		c.logger.Error("Failed to attempt PackageStatuses failure as no collector status provided")
 		return
@@ -806,7 +809,7 @@ func (c *Client) failPackageInstall(pkgStatuses *protobufs.PackageStatuses, errM
 	}
 
 	c.logger.Error(fmt.Sprintf("Package update failed: %s", collectorPkgStatus.ErrorMessage),
-		zap.String("package", packagestate.CollectorPackageName))
+		zap.String("package", packagestate.CollectorPackageName()))
 
 	if err := c.packagesStateProvider.SetLastReportedStatuses(pkgStatuses); err != nil {
 		c.logger.Error("Failed to set failed install package statuses", zap.Error(err))
@@ -825,21 +828,21 @@ func (c *Client) failPackageInstall(pkgStatuses *protobufs.PackageStatuses, errM
 func (c *Client) finishPackageInstall(pkgStatuses *protobufs.PackageStatuses) {
 	c.logger.Info("Package update was successful",
 		zap.String("AllPackagesHash", hex.EncodeToString(pkgStatuses.ServerProvidedAllPackagesHash)),
-		zap.String("package", packagestate.CollectorPackageName))
+		zap.String("package", packagestate.CollectorPackageName()))
 
 	if pkgStatuses == nil {
 		c.logger.Error("Failed to set PackageStatuses to installed as none were provided")
 		return
 	}
 
-	collectorPkgStatus, ok := pkgStatuses.Packages[packagestate.CollectorPackageName]
+	collectorPkgStatus, ok := pkgStatuses.Packages[packagestate.CollectorPackageName()]
 	if !ok {
 		c.logger.Error("Failed to set PackageStatuses to installed as no collector status provided")
 		return
 	}
 
 	collectorPkgStatus.Status = protobufs.PackageStatusEnum_PackageStatusEnum_Installed
-	collectorPkgStatus.AgentHasVersion = version.Version()
+	collectorPkgStatus.AgentHasVersion = c.ident.version
 	collectorPkgStatus.AgentHasHash = collectorPkgStatus.ServerOfferedHash
 
 	if err := c.packagesStateProvider.SetLastReportedStatuses(pkgStatuses); err != nil {
@@ -860,7 +863,7 @@ func (c *Client) getVerifiedPackageStatuses() (*protobufs.PackageStatuses, error
 	}
 
 	// If we have no info on our collector package, nothing else to do
-	if lastPackageStatuses == nil || lastPackageStatuses.Packages == nil || lastPackageStatuses.Packages[packagestate.CollectorPackageName] == nil {
+	if lastPackageStatuses == nil || lastPackageStatuses.Packages == nil || lastPackageStatuses.Packages[packagestate.CollectorPackageName()] == nil {
 		return nil, errors.New("failed to retrieve last reported package status for collector package")
 	}
 

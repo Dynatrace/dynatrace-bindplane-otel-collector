@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-// The stderr file (dynatrace_bindplane_otel_collector.err) captures output that does not go
+// The stderr file (stderrLogName) captures output that does not go
 // through the zap logger (runtime panics, high-volume component error spew).
 // It historically had no size cap and has filled OS drives (10+ GB observed).
 // These constants bound it to cap + 1 backup.

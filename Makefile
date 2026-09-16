@@ -53,27 +53,39 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 # also the OpAMP agent type (service.name) Bindplane uses to identify DBDOT.
 AGENT_NAME = com.dynatrace.bindplane.otel.collector
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
-OPAMP_EXT_COLLECTOR_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/collector
+# PRODUCT_NAME is the product slug: the OpAMP package key the collector and
+# updater agree on, the User-Agent prefix, and (underscored) the stderr log
+# file name that the installers and support scripts reference.
+PRODUCT_NAME = dynatrace-bindplane-otel-collector
+STDERR_LOG_NAME = $(subst -,_,$(PRODUCT_NAME)).err
+OPAMP_EXT_MODULE = github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension
+OPAMP_EXT_COLLECTOR_PKG = $(OPAMP_EXT_MODULE)/internal/collector
+OPAMP_EXT_SERVICE_PKG = $(OPAMP_EXT_MODULE)/internal/service
+OPAMP_EXT_PACKAGESTATE_PKG = $(OPAMP_EXT_MODULE)/packagestate
 
 # AGENT_LDFLAGS stamps version + git hash + build date into the v1 collector
 # binaries (both consume github.com/observiq/bindplane-otel-contrib/pkg/version),
-# plus the DBDOT name/description into the opamp connection extension.
+# plus the DBDOT identity values into the opamp connection extension.
 AGENT_LDFLAGS = -s -w \
 	-X github.com/observiq/bindplane-otel-contrib/pkg/version.version=$(VERSION) \
 	-X github.com/observiq/bindplane-otel-contrib/pkg/version.gitHash=$(GIT_HASH) \
 	-X github.com/observiq/bindplane-otel-contrib/pkg/version.date=$(BUILD_DATE) \
 	-X $(OPAMP_EXT_COLLECTOR_PKG).buildName=$(AGENT_NAME) \
-	-X '$(OPAMP_EXT_COLLECTOR_PKG).buildDescription=$(AGENT_DESCRIPTION)'
+	-X '$(OPAMP_EXT_COLLECTOR_PKG).buildDescription=$(AGENT_DESCRIPTION)' \
+	-X $(OPAMP_EXT_PACKAGESTATE_PKG).collectorPackageName=$(PRODUCT_NAME) \
+	-X $(OPAMP_EXT_SERVICE_PKG).stderrLogName=$(STDERR_LOG_NAME)
 
 # AGENT_BUILD_TAGS are the build tags that should be used when building DBDOT
 # 'embed_library' used by the telemetry generator receiver to use blitz (PR#3525)
 AGENT_BUILD_TAGS = embed_library
 
-# UPDATER_LDFLAGS stamps the same values into the updater binary.
+# UPDATER_LDFLAGS stamps the same values into the updater binary. The package
+# name must match the collector's or the updater never sees the install finish.
 UPDATER_LDFLAGS = -s -w \
 	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.version=$(VERSION) \
 	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.gitHash=$(GIT_HASH) \
-	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.date=$(BUILD_DATE)
+	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.date=$(BUILD_DATE) \
+	-X $(OPAMP_EXT_PACKAGESTATE_PKG).collectorPackageName=$(PRODUCT_NAME)
 
 .PHONY: version
 version:

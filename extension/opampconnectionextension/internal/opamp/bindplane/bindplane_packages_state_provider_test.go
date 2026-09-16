@@ -23,7 +23,6 @@ import (
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate/mocks"
-	"github.com/observiq/bindplane-otel-contrib/pkg/version"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +39,7 @@ func TestNewPackagesStateProvider(t *testing.T) {
 			desc: "New PackagesStateProvider",
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
-				actual := newPackagesStateProvider(logger, "test.json")
+				actual := newPackagesStateProvider(logger, "test.json", testVersion)
 
 				packagesStateProvider, ok := actual.(*packagesStateProvider)
 				require.True(t, ok)
@@ -65,7 +64,8 @@ func TestAllPackagesHash(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 
 				actual, err := p.AllPackagesHash()
@@ -91,7 +91,8 @@ func TestSetAllPackagesHash(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 
 				err := p.SetAllPackagesHash([]byte("hash"))
@@ -116,7 +117,8 @@ func TestPackages(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 
 				actual, err := p.Packages()
@@ -142,7 +144,8 @@ func TestPackageState(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 
 				actual, err := p.PackageState("name")
@@ -168,7 +171,8 @@ func TestSetPackageState(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 
 				err := p.SetPackageState("name", types.PackageState{})
@@ -193,7 +197,8 @@ func TestCreatePackage(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 
 				err := p.CreatePackage("name", protobufs.PackageType_PackageType_TopLevel)
@@ -218,7 +223,8 @@ func TestFileContentHash(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 
 				actual, err := p.FileContentHash("name")
@@ -244,7 +250,8 @@ func TestUpdateContent(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 				var r io.Reader
 
@@ -270,7 +277,8 @@ func TestDeletePackage(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				logger := zap.NewNop()
 				p := &packagesStateProvider{
-					logger: logger,
+					version: testVersion,
+					logger:  logger,
 				}
 
 				err := p.DeletePackage("name")
@@ -286,7 +294,7 @@ func TestDeletePackage(t *testing.T) {
 }
 
 func TestLastReportedStatuses(t *testing.T) {
-	pkgName := packagestate.CollectorPackageName
+	pkgName := packagestate.CollectorPackageName()
 	testCases := []struct {
 		desc     string
 		testFunc func(*testing.T)
@@ -298,6 +306,7 @@ func TestLastReportedStatuses(t *testing.T) {
 				mockManager.On("LoadStatuses").Return(nil, os.ErrNotExist)
 
 				p := &packagesStateProvider{
+					version:             testVersion,
 					packageStateManager: mockManager,
 					logger:              zap.NewNop(),
 				}
@@ -309,7 +318,7 @@ func TestLastReportedStatuses(t *testing.T) {
 				assert.Equal(t, "", actual.ErrorMessage)
 				assert.Equal(t, 1, len(actual.Packages))
 				assert.Equal(t, pkgName, actual.Packages[pkgName].GetName())
-				assert.Equal(t, version.Version(), actual.Packages[pkgName].GetAgentHasVersion())
+				assert.Equal(t, testVersion, actual.Packages[pkgName].GetAgentHasVersion())
 				assert.Nil(t, actual.Packages[pkgName].GetAgentHasHash())
 				assert.Equal(t, "", actual.Packages[pkgName].GetServerOfferedVersion())
 				assert.Nil(t, actual.Packages[pkgName].GetServerOfferedHash())
@@ -325,6 +334,7 @@ func TestLastReportedStatuses(t *testing.T) {
 				mockManager.On("LoadStatuses").Return(nil, expectedErr)
 
 				p := &packagesStateProvider{
+					version:             testVersion,
 					packageStateManager: mockManager,
 					logger:              zap.NewNop(),
 				}
@@ -336,7 +346,7 @@ func TestLastReportedStatuses(t *testing.T) {
 				assert.Equal(t, "", actual.ErrorMessage)
 				assert.Equal(t, 1, len(actual.Packages))
 				assert.Equal(t, pkgName, actual.Packages[pkgName].GetName())
-				assert.Equal(t, version.Version(), actual.Packages[pkgName].GetAgentHasVersion())
+				assert.Equal(t, testVersion, actual.Packages[pkgName].GetAgentHasVersion())
 				assert.Nil(t, actual.Packages[pkgName].GetAgentHasHash())
 				assert.Equal(t, "", actual.Packages[pkgName].GetServerOfferedVersion())
 				assert.Nil(t, actual.Packages[pkgName].GetServerOfferedHash())
@@ -367,6 +377,7 @@ func TestLastReportedStatuses(t *testing.T) {
 				mockManager.On("LoadStatuses").Return(expected, nil)
 
 				p := &packagesStateProvider{
+					version:             testVersion,
 					packageStateManager: mockManager,
 					logger:              zap.NewNop(),
 				}
@@ -422,6 +433,7 @@ func TestSetLastReportedStatuses(t *testing.T) {
 				mockManager.On("SaveStatuses", packageStatuses).Return(expectedErr)
 
 				p := &packagesStateProvider{
+					version:             testVersion,
 					packageStateManager: mockManager,
 					logger:              zap.NewNop(),
 				}
@@ -453,6 +465,7 @@ func TestSetLastReportedStatuses(t *testing.T) {
 				mockManager.On("SaveStatuses", packageStatuses).Return(nil)
 
 				p := &packagesStateProvider{
+					version:             testVersion,
 					packageStateManager: mockManager,
 					logger:              zap.NewNop(),
 				}

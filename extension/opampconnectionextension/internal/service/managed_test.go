@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/otelcol"
 	"go.uber.org/zap"
 )
 
@@ -33,7 +34,7 @@ import (
 // in it's own package so we don't do robust testing here.
 func TestNewManagedCollectorService_BadManagerConfig(t *testing.T) {
 	mockCol := colmocks.NewMockCollector(t)
-	managedService, err := NewManagedCollectorService(mockCol, zap.NewNop(), "./bad_manger.yaml", "./bad_collector.yaml", "./bad_logging.yaml")
+	managedService, err := NewManagedCollectorService(mockCol, otelcol.Factories{}, zap.NewNop(), "v0.0.0-test", "./bad_manger.yaml", "./bad_collector.yaml", "./bad_logging.yaml")
 	assert.ErrorContains(t, err, "failed to parse manager config")
 	assert.Nil(t, managedService)
 }

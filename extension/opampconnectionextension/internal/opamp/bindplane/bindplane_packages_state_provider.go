@@ -23,7 +23,6 @@ import (
 	"os"
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
-	"github.com/observiq/bindplane-otel-contrib/pkg/version"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"go.uber.org/zap"
@@ -36,13 +35,15 @@ var _ types.PackagesStateProvider = (*packagesStateProvider)(nil)
 type packagesStateProvider struct {
 	packageStateManager packagestate.StateManager
 	logger              *zap.Logger
+	version             string
 }
 
 // newPackagesStateProvider creates a new OpAmp PackagesStateProvider
-func newPackagesStateProvider(logger *zap.Logger, jsonPath string) types.PackagesStateProvider {
+func newPackagesStateProvider(logger *zap.Logger, jsonPath, version string) types.PackagesStateProvider {
 	return &packagesStateProvider{
 		packageStateManager: packagestate.NewFileStateManager(logger, jsonPath),
 		logger:              logger,
+		version:             version,
 	}
 }
 
@@ -116,9 +117,9 @@ func (p *packagesStateProvider) LastReportedStatuses() (*protobufs.PackageStatus
 	p.logger.Debug("Retrieve last reported package statuses")
 
 	packages := map[string]*protobufs.PackageStatus{
-		packagestate.CollectorPackageName: {
-			Name:            packagestate.CollectorPackageName,
-			AgentHasVersion: version.Version(),
+		packagestate.CollectorPackageName(): {
+			Name:            packagestate.CollectorPackageName(),
+			AgentHasVersion: p.version,
 			Status:          protobufs.PackageStatusEnum_PackageStatusEnum_Installed,
 		},
 	}
