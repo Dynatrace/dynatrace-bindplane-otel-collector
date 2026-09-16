@@ -56,12 +56,12 @@ AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
 OPAMP_EXT_COLLECTOR_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector
 
 # AGENT_LDFLAGS stamps version + git hash + build date into the v1 collector
-# binaries (both consume github.com/observiq/bindplane-otel-contrib/pkg/version),
+# binaries (both consume github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version),
 # plus the DBDOT name/description into the opamp connection extension.
 AGENT_LDFLAGS = -s -w \
-	-X github.com/observiq/bindplane-otel-contrib/pkg/version.version=$(VERSION) \
-	-X github.com/observiq/bindplane-otel-contrib/pkg/version.gitHash=$(GIT_HASH) \
-	-X github.com/observiq/bindplane-otel-contrib/pkg/version.date=$(BUILD_DATE) \
+	-X github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version.version=$(VERSION) \
+	-X github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version.gitHash=$(GIT_HASH) \
+	-X github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version.date=$(BUILD_DATE) \
 	-X $(OPAMP_EXT_COLLECTOR_PKG).buildName=$(AGENT_NAME) \
 	-X '$(OPAMP_EXT_COLLECTOR_PKG).buildDescription=$(AGENT_DESCRIPTION)'
 

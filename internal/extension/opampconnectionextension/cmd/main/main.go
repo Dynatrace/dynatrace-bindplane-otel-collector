@@ -36,7 +36,7 @@ import (
 	_ "time/tzdata"
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/runtime"
-	"github.com/observiq/bindplane-otel-contrib/pkg/version"
+	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
 	"github.com/spf13/pflag"
 )
 

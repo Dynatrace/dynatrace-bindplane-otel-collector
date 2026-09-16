@@ -83,7 +83,7 @@ The project is structured as an OpenTelemetry Collector distribution with custom
 
 ### Component Organization
 
-Custom components (receivers, processors, exporters, extensions) live in the external `github.com/observiq/bindplane-otel-contrib` repository and are pulled in as dependencies via the manifest. There are no in-tree component directories; new components belong in bindplane-otel-contrib, not here.
+Custom components (receivers, processors, exporters, extensions) live in the external `github.com/dynatrace/dynatrace-bindplane-otel-contrib` repository and are pulled in as dependencies via the manifest. There are no in-tree component directories; new components belong in bindplane-otel-contrib, not here.
 
 ### Key Architectural Patterns
 
