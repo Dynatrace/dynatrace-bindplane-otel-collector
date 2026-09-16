@@ -6,7 +6,7 @@ This describes the DBDOT Collector build as it stands today. The OTel Collector 
 
 1. Reads `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` (or one of the v2 variants).
 2. Generates `./build/components.go` and `./build/go.mod` (v1) or `./builder/...` (v2).
-3. For v1: a Make step copies `internal/extension/opampconnectionextension/cmd/main/main.go` over ocb's generated `main.go`, runs `go mod tidy`, then `go build`.
+3. For v1: a Make step copies `extension/opampconnectionextension/cmd/main/main.go` over ocb's generated `main.go`, runs `go mod tidy`, then `go build`.
 4. For v2: ocb's generated `main.go` is used as-is; ocb runs `go build` itself.
 
 `./build/` and `./builder/` are gitignored; the compiled binary lands in `./dist/`.
@@ -15,7 +15,7 @@ This describes the DBDOT Collector build as it stands today. The OTel Collector 
 
 | File | Build target | Output binary | Shape |
 |---|---|---|---|
-| `manifest.yaml` | `make agent` | `dist/collector_<os>_<arch>` | v1 — in-process managed runtime; `internal/extension/opampconnectionextension/cmd/main/main.go` overlay. |
+| `manifest.yaml` | `make agent` | `dist/collector_<os>_<arch>` | v1 — in-process managed runtime; `extension/opampconnectionextension/cmd/main/main.go` overlay. |
 
 `make verify-manifest` regenerates from `manifest.yaml` and compiles to `/dev/null` — the CI gate against manifest breakage.
 
@@ -71,11 +71,11 @@ bindplane-otel-collector/
 └── dist/                                # compiled binaries (gitignored)
 ```
 
-No top-level `go.mod`. No `cmd/collector/`. No `factories/`. The legacy `opamp/`, `collector/`, `packagestate/`, `internal/{logging,service,report,measurements}/` directories are gone — that code now lives under `internal/extension/opampconnectionextension/`.
+No top-level `go.mod`. No `cmd/collector/`. No `factories/`. The legacy `opamp/`, `collector/`, `packagestate/`, `internal/{logging,service,report,measurements}/` directories are gone — that code now lives under `extension/opampconnectionextension/`.
 
 ## v1 entry point
 
-`internal/extension/opampconnectionextension/cmd/main/main.go` is ~100 lines: parse flags, build factories from ocb's `components()`, call `runtime.Run(Options)`. Everything else lives in the extension module.
+`extension/opampconnectionextension/cmd/main/main.go` is ~100 lines: parse flags, build factories from ocb's `components()`, call `runtime.Run(Options)`. Everything else lives in the extension module.
 
 ```go
 package runtime
@@ -108,7 +108,7 @@ ocb's default `main.go`, no overlay. The binary is a vanilla otel-collector with
 
 `manifest.yaml` carries:
 
-- Two narrow local replaces pointing at the on-disk paths of the internal modules: `internal/extension/opampconnectionextension` and `internal/processor/snapshotprocessor`.
+- Three narrow local replaces pointing at the on-disk paths of the in-tree modules: `extension/opampconnectionextension`, `pkg/snapshotprocessor`, and `pkg/report`. Consumers outside this repo resolve them through per-module tags instead (see `opamp-connection-extension-portability.md`).
 - Six pinning replaces inherited from the legacy `go.mod`: `mattn/go-ieproxy v0.0.1`, `cilium/ebpf v0.11.0`, `DataDog/datadog-agent/comp/core/delegatedauth v0.78.2`, plus three observIQ forks (`windowseventlogreceiver`, `pkg/stanza`, `azureblobreceiver`).
 
 `manifest-v2.yaml` and `manifest-v2-aix.yaml` are unmodified copies of v2.0.1-beta.3 and use a different replace set (notably `cockroachdb/errors v1.13.0` to fix a sentry-go API break).

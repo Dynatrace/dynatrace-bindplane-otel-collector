@@ -93,7 +93,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: internal/extension/opampconnectionextension/go.mod
+          go-version-file: extension/opampconnectionextension/go.mod
           cache: false
 
       - name: Cache Go modules (Ubuntu)

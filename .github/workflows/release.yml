@@ -42,7 +42,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: internal/extension/opampconnectionextension/go.mod
+          go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
       - name: Set up Go cache
         uses: actions/cache@v6

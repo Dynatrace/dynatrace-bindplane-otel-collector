@@ -53,7 +53,7 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 # also the OpAMP agent type (service.name) Bindplane uses to identify DBDOT.
 AGENT_NAME = com.dynatrace.bindplane.otel.collector
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
-OPAMP_EXT_COLLECTOR_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector
+OPAMP_EXT_COLLECTOR_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/collector
 
 # AGENT_LDFLAGS stamps version + git hash + build date into the v1 collector
 # binaries (both consume github.com/observiq/bindplane-otel-contrib/pkg/version),
@@ -107,7 +107,7 @@ install-ocb:
 	go install go.opentelemetry.io/collector/cmd/builder@$(OCB_VERSION)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
 BUILD_DIR ?= ./build
-AGENT_MAIN ?= internal/extension/opampconnectionextension/cmd/main/main.go
+AGENT_MAIN ?= extension/opampconnectionextension/cmd/main/main.go
 
 # verify-manifest is the CI gate: regenerate sources from the manifest and
 # compile them. Fails on any unresolvable component, missing replace, or

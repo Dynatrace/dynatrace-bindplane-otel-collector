@@ -63,7 +63,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: internal/extension/opampconnectionextension/go.mod
+          go-version-file: extension/opampconnectionextension/go.mod
           cache-dependency-path: "**/go.sum"
       - name: Grant access to private Dynatrace Go modules
         uses: ./.github/actions/private-go-modules

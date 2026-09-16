@@ -22,7 +22,7 @@ From the repo root:
 make agent          # v1
 ```
 
-`make agent` runs `builder --skip-compilation` against `manifest.yaml`, overwrites the generated `build/main.go` with `internal/extension/opampconnectionextension/cmd/main/main.go` (so the managed/standalone runtime is wired in), then `go build`s into `./dist/`. `./build/` is gitignored ocb output; the final binary is `./dist/collector_<os>_<arch>`.
+`make agent` runs `builder --skip-compilation` against `manifest.yaml`, overwrites the generated `build/main.go` with `extension/opampconnectionextension/cmd/main/main.go` (so the managed/standalone runtime is wired in), then `go build`s into `./dist/`. `./build/` is gitignored ocb output; the final binary is `./dist/collector_<os>_<arch>`.
 
 `make verify-manifest` regenerates sources from `manifest.yaml` and compiles to `/dev/null` — the CI gate.
 
@@ -36,11 +36,11 @@ make agent          # v1
 
 ## v1 manifest internals
 
-Two components are internal modules under this repo:
+Two components are Go modules in this repo:
 
-- `internal/extension/opampconnectionextension` — bindplane's OpAMP connection extension and the full v1 managed-mode runtime cluster (collector lifecycle, OpAMP client, package state, report manager, measurements, service dispatch).
-- `internal/processor/snapshotprocessor` — bindplane snapshot processor.
+- `extension/opampconnectionextension` — bindplane's OpAMP connection extension and the full v1 managed-mode runtime cluster (collector lifecycle, OpAMP client, package state, report manager, measurements, service dispatch).
+- `pkg/snapshotprocessor` — bindplane snapshot processor.
 
-The v1 manifest references each by its own `gomod:` entry and a narrow local `replace:` pointing at the on-disk path. They stay under `internal/` until they're ready to be published.
+The v1 manifest references each by its own `gomod:` entry and a narrow local `replace:` pointing at the on-disk path. Other distros consume them by tag; see `docs/specs/opamp-connection-extension-portability.md`.
 
 See [`docs/specs/ocb-canonical-build.md`](../../docs/specs/ocb-canonical-build.md) for the broader design context.
