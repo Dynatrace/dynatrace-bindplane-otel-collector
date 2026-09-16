@@ -1,7 +1,7 @@
 # Releasing
 Releases are managed through GitHub releases. The steps to create a release are as follows:
 
-1. Run `make version={VERSION} release` where `{VERSION}` is the version to release. This will create a tag and push it to GitHub.
+1. Run `make version={VERSION} release` where `{VERSION}` is the version to release. This will tag the root and every Go module (`<dir>/{VERSION}`) and push only those tags. The `release` workflow fails if any module tag is missing.
 
 2. The `release` CD workflow will trigger automatically on the tag push. Goreleaser will handle the following without user intervention:
   - Build the binaries for all platforms

@@ -542,23 +542,39 @@ release:
 		echo "version was not set"; \
 		exit 1; \
 	fi
-
-	@if ! [[ "$(version)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
+	@if ! echo "$(version)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$'; then \
 		echo "version $(version) is invalid semver"; \
 		exit 1; \
 	fi
+	# Tag the root and every module, then push only those tags. A checkout of
+	# this fork carries thousands of tags inherited from upstream; `git push
+	# --tags` would push all of them.
+	@set -e; tags="$(version)"; git tag "$(version)"; \
+	for dir in $(ALL_MODULES); do \
+		if [ "$${dir}" = "." ]; then continue; fi; \
+		tag="$${dir#./}/$(version)"; \
+		git tag "$${tag}"; \
+		tags="$${tags} $${tag}"; \
+	done; \
+	git push origin $${tags}
 
-	@git tag $(version)
-	@git push --tags
-
+# check-release-tags fails if any module lacks its <dir>/<version> tag. The
+# release workflow runs it so a root-only tag (v0.9.0, v0.9.1) cannot ship
+# a release that external consumers cannot resolve.
+.PHONY: check-release-tags
+check-release-tags:
+	@if [ -z "$(version)" ]; then \
+		echo "version was not set"; \
+		exit 1; \
+	fi
 	@set -e; for dir in $(ALL_MODULES); do \
-	  if [ $${dir} == \. ]; then \
-	  	continue; \
-	  fi; \
-	  echo "$${dir}" | sed -e "s+^./++" -e 's+$$+/$(version)+' | awk '{print $$1}' | git tag $$(cat); \
+		if [ "$${dir}" = "." ]; then continue; fi; \
+		tag="$${dir#./}/$(version)"; \
+		if [ -z "$$(git tag -l "$${tag}")" ]; then \
+			echo "missing release tag $${tag}"; \
+			exit 1; \
+		fi; \
 	done
-
-	@git push --tags
 
 .PHONY: clean
 clean:

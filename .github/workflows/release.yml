@@ -32,6 +32,10 @@ jobs:
         with:
           # For goreleaser
           fetch-depth: 0
+      - name: Verify per-module release tags
+        # External consumers resolve the extension and pkg modules only through
+        # <dir>/<version> tags. A root-only tag must not ship.
+        run: make check-release-tags version=${{ github.ref_name }}
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:

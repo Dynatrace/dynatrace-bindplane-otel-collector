@@ -67,6 +67,7 @@ trailer by default; please disable or strip it before committing.
 
 ### Release Commands
 - `make release version=vX.X.X` - Create and push release tags
+- `make check-release-tags version=vX.X.X` - Fail if any Go module lacks its `<dir>/vX.X.X` tag (run by the release workflow)
 - `make release-test` - Test release process locally
 - `make release-prep` - Prepare release dependencies
 
