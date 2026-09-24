@@ -115,6 +115,30 @@ if ($response -ne "n") {
 # Capture system info
 Get-ComputerInfo | Out-File "$output_dir/systeminfo.txt"
 
+# Live CPU, memory, and disk stats. Always collected (cheap, non-sensitive).
+$statsFile = "$output_dir/system_stats.txt"
+"=== cpu load (%) ===" | Out-File $statsFile
+try {
+    (Get-CimInstance Win32_Processor -ErrorAction Stop |
+        Measure-Object -Property LoadPercentage -Average).Average | Out-File -Append $statsFile
+} catch { "CPU load unavailable: $($_.Exception.Message)" | Out-File -Append $statsFile }
+"=== memory (KB) ===" | Out-File -Append $statsFile
+try {
+    Get-CimInstance Win32_OperatingSystem -ErrorAction Stop |
+        Select-Object TotalVisibleMemorySize, FreePhysicalMemory |
+        Format-List | Out-File -Append $statsFile
+} catch { "Memory stats unavailable: $($_.Exception.Message)" | Out-File -Append $statsFile }
+"=== disk ===" | Out-File -Append $statsFile
+try {
+    Get-Volume -ErrorAction Stop |
+        Select-Object DriveLetter, FileSystemLabel,
+            @{n='SizeGB';e={[math]::Round($_.Size/1GB,2)}},
+            @{n='FreeGB';e={[math]::Round($_.SizeRemaining/1GB,2)}} |
+        Format-Table -AutoSize | Out-File -Append $statsFile
+} catch { "Disk stats unavailable: $($_.Exception.Message)" | Out-File -Append $statsFile }
+# Redact before bundling, per the bundle-wide redaction rule (df/mounts can name hosts).
+Redact-File $statsFile
+
 # Capture profiles
 $response = Read-Host -Prompt "Collect go pprof profiles [requires PowerShell 6.0.0 or greater]? (Y or n)? "
 
@@ -165,8 +189,8 @@ if ($response -ne "n") {
 $response = Read-Host -Prompt "Collect open file handles? (Y or n)? "
 
 if ($response -ne "n") {
-    $svc = Get-CimInstance Win32_Service -Filter "Name='observiq-otel-collector'" -ErrorAction SilentlyContinue
-    $collectorPid = if ($svc -and $svc.ProcessId) { $svc.ProcessId } else { (Get-Process -Name observiq-otel-collector -ErrorAction SilentlyContinue).Id }
+    $svc = Get-CimInstance Win32_Service -Filter "Name='$collector_service'" -ErrorAction SilentlyContinue
+    $collectorPid = if ($svc -and $svc.ProcessId) { $svc.ProcessId } else { (Get-Process -Name $collector_service -ErrorAction SilentlyContinue).Id }
 
     if ($collectorPid) {
         Get-Process -Id $collectorPid -ErrorAction SilentlyContinue |

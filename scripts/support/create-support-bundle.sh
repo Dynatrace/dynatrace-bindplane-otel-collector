@@ -272,6 +272,16 @@ redact_in_place() {
     "$f"
 }
 
+# Copy a file into the staging dir under a target name, redact it, append to the
+# tar. No-op when the source is absent. Args: src, name-in-tar, tar, stage.
+stage_redacted() {
+    [ -f "$1" ] || return 0
+    info "Adding $(fg_cyan "$1")$(reset) (redacted)"
+    cp "$1" "$4/$2"
+    redact_in_place "$4/$2"
+    tar --append --file="$3" -C "$4" "$2"
+}
+
 function bundle_files() {
     banner "Collecting files for support bundle"
     increase_indent
@@ -386,6 +396,8 @@ function bundle_files() {
 
     collect_handles_limits "$tar_filename"
 
+    collect_system_stats "$tar_filename"
+
     # Compress the tar file
     info "Compressing the tar file..."
     gzip "$tar_filename"
@@ -457,7 +469,7 @@ collect_handles_limits() {
   [[ "$HL" == y* ]] || return 0
   tar_filename="$1"
   increase_indent
-  service="observiq-otel-collector.service"
+  service="${collector_service:-observiq-otel-collector.service}"
   proc="${PROC:-/proc}"
   stage="sb_handles_$$"
   mkdir -p "$stage"
@@ -493,6 +505,28 @@ collect_handles_limits() {
   decrease_indent
 }
 
+# Collect CPU, memory, and disk stats. Always collected (cheap, non-sensitive).
+# PROC defaults to /proc (overridable for tests).
+collect_system_stats() {
+  tar_filename="$1"
+  proc="${PROC:-/proc}"
+  stage="sb_stats_$$"
+  mkdir -p "$stage"
+  info "Collecting CPU, memory, and disk stats..."
+  # Each collector is best-effort; a missing source must not abort the bundle.
+  {
+    echo "=== cpu count ==="; nproc 2>/dev/null || true
+    echo "=== loadavg ==="; cat "$proc/loadavg" 2>/dev/null || true
+    echo "=== meminfo ==="; cat "$proc/meminfo" 2>/dev/null || true
+    echo "=== disk usage (all filesystems) ==="; df -h 2>/dev/null || true
+    echo "=== disk usage (collector dir) ==="; df -h "$collector_dir" 2>/dev/null || true
+  } > "$stage/system_stats.txt"
+  # Redact before bundling, per the bundle-wide redaction rule (#3655).
+  redact_in_place "$stage/system_stats.txt"
+  tar --append --file="$tar_filename" -C "$stage" system_stats.txt
+  rm -rf "$stage"
+}
+
 main() {
   if [ $# -ge 1 ]; then
     while [ -n "$1" ]; do
@@ -514,6 +548,7 @@ main() {
 
   bindplane_banner
   check_prereqs
+  detect_install
   bundle_files
 }
 
