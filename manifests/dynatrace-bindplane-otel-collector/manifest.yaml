@@ -88,7 +88,7 @@ exporters:
   # Need `GOPRIVATE=github.com/Dynatrace/*` set in order to access this component.
   # Component does not have official releases yet. The version reported is mapped to the OTel version it is built on.
   # Component replace statement below.
-  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.160.0
+  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.161.0
 
 processors:
   - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.161.0
@@ -240,7 +240,7 @@ receivers:
   # Need `GOPRIVATE=github.com/Dynatrace/*` set in order to access this component.
   # Component does not have official releases yet. The version reported is mapped to the OTel version it is built on.
   # Component replace statement below.
-  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.160.0
+  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.161.0
 
 connectors:
   - gomod: go.opentelemetry.io/collector/connector/forwardconnector v0.161.0
@@ -282,3 +282,8 @@ replaces:
   # The commit being replaced to is built on the OTel v0.161.0 tag. 
   # https://github.com/observIQ/opentelemetry-collector-contrib/tree/bdot-1.109.0
   -  github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/jmxreceiver v0.0.0-20260928163111-c0a1ce236296
+
+  # Replaces of the DT edge components to a version built on OTel v0.161.0/v1.67.0
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver => github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.160.3-0.20260929174116-abd69314393d
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.160.3-0.20260929174116-abd69314393d
+
