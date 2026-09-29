@@ -146,14 +146,12 @@ nfpms:
           mode: 0640
           owner: root
           group: root
-        type: config|noreplace
       - src: release_deps/logging.yaml
         dst: /usr/share/dynatrace-bindplane-otel-collector/stage/dynatrace-bindplane-otel-collector/logging.yaml
         file_info:
           mode: 0640
           owner: root
           group: root
-        type: config|noreplace
       - src: LICENSE
         dst: /usr/share/dynatrace-bindplane-otel-collector/stage/dynatrace-bindplane-otel-collector/LICENSE
         file_info:
