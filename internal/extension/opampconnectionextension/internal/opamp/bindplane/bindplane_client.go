@@ -100,6 +100,8 @@ type Client struct {
 
 	currentConfig     opamp.Config
 	managerConfigPath string
+
+	availableComponentsMutator func(*protobufs.AvailableComponents)
 }
 
 // NewClientArgs arguments passed when creating a new client
@@ -115,6 +117,10 @@ type NewClientArgs struct {
 	LoggerConfigPath     string
 	MeasurementsReporter MeasurementsReporter
 	TopologyReporter     TopologyReporter
+
+	// AvailableComponentsMutator, if non-nil, is applied to the AvailableComponents
+	// report before it is sent. See runtime.Options.AvailableComponentsMutator.
+	AvailableComponentsMutator func(*protobufs.AvailableComponents)
 }
 
 // NewClient creates a new OpAmp client
@@ -140,17 +146,18 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 	}
 
 	bindplaneClient := &Client{
-		logger:                  clientLogger,
-		ident:                   newIdentity(clientLogger, args.Config, args.BuildInfo),
-		configManager:           configManager,
-		downloadableFileManager: newDownloadableFileManager(clientLogger, args.TmpPath),
-		collector:               args.Collector,
-		currentConfig:           args.Config,
-		packagesStateProvider:   newPackagesStateProvider(clientLogger, packagestate.DefaultFileName),
-		updaterManager:          updaterManger,
-		reportManager:           reportManager,
-		managerConfigPath:       args.ManagerConfigPath,
-		sendGate:                newSendGate(),
+		logger:                     clientLogger,
+		ident:                      newIdentity(clientLogger, args.Config, args.BuildInfo),
+		configManager:              configManager,
+		downloadableFileManager:    newDownloadableFileManager(clientLogger, args.TmpPath),
+		collector:                  args.Collector,
+		currentConfig:              args.Config,
+		packagesStateProvider:      newPackagesStateProvider(clientLogger, packagestate.DefaultFileName),
+		updaterManager:             updaterManger,
+		reportManager:              reportManager,
+		managerConfigPath:          args.ManagerConfigPath,
+		sendGate:                   newSendGate(),
+		availableComponentsMutator: args.AvailableComponentsMutator,
 	}
 
 	// Parse URL to determin scheme
@@ -321,6 +328,9 @@ func (c *Client) Connect(ctx context.Context) error {
 	// internal/opamp/bindplane/available_components.go for the helper
 	// functions ported from upstream.
 	available := initAvailableComponents(c.collector.ModuleInfos())
+	if c.availableComponentsMutator != nil {
+		c.availableComponentsMutator(available)
+	}
 	if err := c.opampClient.SetAvailableComponents(available); err != nil {
 		c.logger.Error("Failed to set available components", zap.Error(err))
 	}

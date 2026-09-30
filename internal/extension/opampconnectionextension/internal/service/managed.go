@@ -28,6 +28,7 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/bindplane"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
+	"github.com/open-telemetry/opamp-go/protobufs"
 	"go.uber.org/zap"
 )
 
@@ -56,8 +57,9 @@ func setLegacyHomeEnv() error {
 	return nil
 }
 
-// NewManagedCollectorService creates a new ManagedCollectorService
-func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, managerConfigPath, collectorConfigPath, loggerConfigPath string) (*ManagedCollectorService, error) {
+// NewManagedCollectorService creates a managed collector service. availableComponentsMutator
+// may be nil; see runtime.Options.AvailableComponentsMutator.
+func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, managerConfigPath, collectorConfigPath, loggerConfigPath string, availableComponentsMutator func(*protobufs.AvailableComponents)) (*ManagedCollectorService, error) {
 	if err := setLegacyHomeEnv(); err != nil {
 		return nil, fmt.Errorf("set legacy home env var: %w", err)
 	}
@@ -75,16 +77,17 @@ func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, man
 
 	// Create client Args
 	clientArgs := &bindplane.NewClientArgs{
-		DefaultLogger:        logger,
-		Config:               *opampConfig,
-		Collector:            col,
-		BuildInfo:            collector.BuildInfo(version.Version()),
-		TmpPath:              filepath.Join(installDir, "tmp"),
-		ManagerConfigPath:    managerConfigPath,
-		CollectorConfigPath:  collectorConfigPath,
-		LoggerConfigPath:     loggerConfigPath,
-		MeasurementsReporter: measurements.BindplaneAgentThroughputMeasurementsRegistry,
-		TopologyReporter:     topologyprocessor.BindplaneAgentTopologyRegistry,
+		DefaultLogger:              logger,
+		Config:                     *opampConfig,
+		Collector:                  col,
+		BuildInfo:                  collector.BuildInfo(version.Version()),
+		TmpPath:                    filepath.Join(installDir, "tmp"),
+		ManagerConfigPath:          managerConfigPath,
+		CollectorConfigPath:        collectorConfigPath,
+		LoggerConfigPath:           loggerConfigPath,
+		MeasurementsReporter:       measurements.BindplaneAgentThroughputMeasurementsRegistry,
+		TopologyReporter:           topologyprocessor.BindplaneAgentTopologyRegistry,
+		AvailableComponentsMutator: availableComponentsMutator,
 	}
 
 	// Create new client
