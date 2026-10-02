@@ -59,9 +59,9 @@ jobs:
       matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: internal/extension/opampconnectionextension/go.mod
           cache-dependency-path: "**/go.sum"
@@ -147,7 +147,7 @@ jobs:
       # Handed to the release job so goreleaser packages these exact signed
       # bytes instead of the unsigned copies it builds on the Linux runner.
       - name: Upload Signed Windows Binaries
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: signed-windows-${{ matrix.arch }}
           path: |
@@ -177,7 +177,7 @@ jobs:
           Write-Host "$f signed by $($sig.SignerCertificate.Subject)"
       - name: Upload Signed Windows Install Script
         if: inputs.sign_install_script && matrix.arch == 'amd64'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: signed-install-script
           path: scripts/install/install_windows.ps1
@@ -216,7 +216,7 @@ jobs:
         env:
           KEYPAIR_ALIAS: ${{ secrets.DBDOT_DIGICERT_KEYPAIR_ALIAS }}
       - name: Upload MSI
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ matrix.msi_name }}
           path: C:/build/${{ matrix.msi_name }}

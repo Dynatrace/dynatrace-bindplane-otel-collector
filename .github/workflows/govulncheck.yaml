@@ -13,9 +13,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out source code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: internal/extension/opampconnectionextension/go.mod
           cache-dependency-path: |
@@ -58,7 +58,7 @@ jobs:
 
       - name: Post no recommendations message
         id: slack-no-recommendations
-        uses: slackapi/slack-github-action@v2
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
         if: steps.recommendations.outputs.recommendations == ''
         with:
           method: chat.postMessage
@@ -76,7 +76,7 @@ jobs:
 
       - name: Post findings to Slack
         id: slack
-        uses: slackapi/slack-github-action@v2
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
         if: steps.recommendations.outputs.recommendations != ''
         with:
           method: chat.postMessage

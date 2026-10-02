@@ -28,24 +28,24 @@ jobs:
           echo "TEMP=$RUNNER_TEMP" >> "$GITHUB_ENV"
           echo "GOTMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
       - name: Checkout Repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # For goreleaser
           fetch-depth: 0
       - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
         with:
           project_id: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_PROJECT_ID }}
           credentials_json: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_CREDENTIALS }}
       - name: Install Gcloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: internal/extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
       - name: Set up Go cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/go/pkg/mod
@@ -62,11 +62,11 @@ jobs:
         timeout-minutes: 10
         run: bash .github/scripts/retry.sh make install-ocb
       - name: Retrieve Windows AMD64 MSI Installer
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-amd64.msi
       - name: Retrieve Windows ARM64 MSI Installer
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-arm64.msi
       - name: Install cosign
@@ -78,7 +78,7 @@ jobs:
         env:
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
       - name: Cache Goreleaser Build
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/goreleaser
           key: ${{ runner.os }}-goreleaser-${{ hashFiles('.goreleaser.yml', '**/go.sum') }}
@@ -99,14 +99,14 @@ jobs:
       # the tracked script from a workflow step fails the release with
       # "git is in a dirty state". The download directory is gitignored.
       - name: Retrieve Signed Windows Install Script
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signed-install-script
           path: signed-install-script
       # The Windows binaries goreleaser packages must be the signed ones from
       # the build-msi job, not the unsigned copies its before-hook builds here.
       - name: Retrieve Signed Windows Binaries
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: signed-windows-*
           merge-multiple: true
@@ -118,7 +118,7 @@ jobs:
           ${{ secrets.GPG_PRIVATE_SIGNING_KEY }}
           EOF
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6.4.0
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
@@ -158,7 +158,7 @@ jobs:
           gsutil cp ./scripts/install/install_windows.ps1 gs://dbdot-release/latest/install_windows.ps1
           gsutil cp ./release_deps/gpg-keys.tar.gz gs://dbdot-release/latest/gpg-keys.tar.gz
       - name: Upload artifact bundle to release
-        uses: AButler/upload-release-assets@v2.0
+        uses: AButler/upload-release-assets@ec6d3263266dc57eb6645b5f75e827987f7c217d # v2.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           files: "dynatrace-bindplane-otel-collector-${{ github.ref_name }}-artifacts.tar.gz*"
@@ -182,7 +182,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Download Windows Release Artifacts
         run: |
           mkdir artifacts
