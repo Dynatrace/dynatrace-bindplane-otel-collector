@@ -2,6 +2,9 @@ name: Test GCS Release Bucket
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test_gcs_release_bucket:
     runs-on: ubuntu-latest
