@@ -76,3 +76,22 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/.github/actions/private-go-modules"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
