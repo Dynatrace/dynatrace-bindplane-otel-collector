@@ -6,14 +6,16 @@ on:
   workflow_dispatch: # For manual testing
 
 permissions:
-  actions: write
-  contents: read # Don't need write unless we want to delete the branch
-  issues: write
-  pull-requests: write
+  contents: read
 
 jobs:
   stale:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write # actions/stale v9 stores its state in the Actions cache
+      contents: read # Don't need write unless we want to delete the branch
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9.1.0
         with:
