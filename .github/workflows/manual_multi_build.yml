@@ -5,6 +5,9 @@ name: Build
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build_linux:
     if: github.actor != 'dependabot[bot]'
