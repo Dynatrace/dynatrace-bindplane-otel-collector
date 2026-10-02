@@ -5,7 +5,7 @@ on:
       - "v[0-9]*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-msi:
@@ -17,6 +17,8 @@ jobs:
 
   release:
     needs: [build-msi]
+    permissions:
+      contents: write
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores

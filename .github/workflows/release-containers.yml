@@ -17,11 +17,13 @@ on:
   #   types: [completed]
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
   release-containers:
+    permissions:
+      contents: read
+      packages: write
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores

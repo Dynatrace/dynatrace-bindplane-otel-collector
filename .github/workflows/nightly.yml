@@ -28,7 +28,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: nightly
@@ -36,6 +35,9 @@ concurrency:
 
 jobs:
   nightly:
+    permissions:
+      contents: read
+      packages: write
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
