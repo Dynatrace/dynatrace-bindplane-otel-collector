@@ -87,7 +87,7 @@ require (
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/snapshot v1.0.1-0.20261002145710-80d19512c6c6 // indirect
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/snapshot v1.0.1-0.20261005192136-b9487fe820af // indirect
 	github.com/ebitengine/purego v0.10.2 // indirect
 	github.com/elastic/lunes v0.2.2 // indirect
 	github.com/expr-lang/expr v1.17.8 // indirect
