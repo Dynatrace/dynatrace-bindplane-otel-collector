@@ -18,7 +18,7 @@ jobs:
       - name: Graphite CI optimization
         id: graphite_check
         continue-on-error: true
-        uses: withgraphite/graphite-ci-action@26bc0dcdeaba101794931d67a464ecbb21a76a8b # v0.0.9 tag (no formal releases)
+        uses: withgraphite/graphite-ci-action@402a89bc8aa6db18ae1f9c61953d001d5f9d828f # v0.0.11 tag (no formal releases)
         with:
           graphite_token: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
       - name: GitHub stacked PR optimization
@@ -56,7 +56,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Detect changed files
-        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           # These filters are based on picomatch syntax https://github.com/micromatch/picomatch#
@@ -384,12 +384,15 @@ jobs:
             ${{ runner.os }}-go-
       - name: Plugin Doc Generation
         run: make create-plugin-docs
+      # Same check as tj-actions/verify-changed-files v17.1.0 (no node24 release): unstaged changes other than deletions, or untracked files, under docs/plugins.
       - name: Check Changed Plugin Docs
-        uses: tj-actions/verify-changed-files@2acec78834cc690f70b3445712363fc314224127 # v17.1.0
         id: verify-changed-files
-        with:
-          files: |
-            docs/plugins
+        run: |
+          if [ -n "$(git diff --diff-filter=ACMUXTR --name-only -- docs/plugins)$(git ls-files --others --exclude-standard -- docs/plugins)" ]; then
+            echo "files_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "files_changed=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Verify No Plugin Doc Changes
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         run: exit 1

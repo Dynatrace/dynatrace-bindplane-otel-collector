@@ -61,7 +61,7 @@ jobs:
 
       - name: Post no recommendations message
         id: slack-no-recommendations
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
         if: steps.recommendations.outputs.recommendations == ''
         with:
           method: chat.postMessage
@@ -79,7 +79,7 @@ jobs:
 
       - name: Post findings to Slack
         id: slack
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
         if: steps.recommendations.outputs.recommendations != ''
         with:
           method: chat.postMessage
