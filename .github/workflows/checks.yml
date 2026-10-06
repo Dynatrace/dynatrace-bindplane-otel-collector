@@ -18,7 +18,7 @@ jobs:
       - name: Graphite CI optimization
         id: graphite_check
         continue-on-error: true
-        uses: withgraphite/graphite-ci-action@26bc0dcdeaba101794931d67a464ecbb21a76a8b # v0.0.9 tag (no formal releases)
+        uses: withgraphite/graphite-ci-action@402a89bc8aa6db18ae1f9c61953d001d5f9d828f # v0.0.11 tag (no formal releases)
         with:
           graphite_token: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
       - name: GitHub stacked PR optimization
@@ -56,7 +56,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Detect changed files
-        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           # These filters are based on picomatch syntax https://github.com/micromatch/picomatch#

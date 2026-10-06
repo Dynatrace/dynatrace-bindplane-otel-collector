@@ -35,12 +35,12 @@ jobs:
           # For goreleaser
           fetch-depth: 0
       - name: Authenticate to GCP
-        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           project_id: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_PROJECT_ID }}
           credentials_json: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_CREDENTIALS }}
       - name: Install Gcloud SDK
-        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
@@ -120,7 +120,7 @@ jobs:
           ${{ secrets.GPG_PRIVATE_SIGNING_KEY }}
           EOF
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6.4.0
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
@@ -160,7 +160,7 @@ jobs:
           gsutil cp ./scripts/install/install_windows.ps1 gs://dbdot-release/latest/install_windows.ps1
           gsutil cp ./release_deps/gpg-keys.tar.gz gs://dbdot-release/latest/gpg-keys.tar.gz
       - name: Upload artifact bundle to release
-        uses: AButler/upload-release-assets@ec6d3263266dc57eb6645b5f75e827987f7c217d # v2.0
+        uses: AButler/upload-release-assets@34491005a5d7ec239a784e460807ce844fde7962 # v4.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           files: "dynatrace-bindplane-otel-collector-${{ github.ref_name }}-artifacts.tar.gz*"
@@ -184,7 +184,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Download Windows Release Artifacts
         run: |
           mkdir artifacts
