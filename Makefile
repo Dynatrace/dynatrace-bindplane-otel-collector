@@ -181,6 +181,10 @@ build-linux-ppc64:
 build-linux-ppc64le:
 	CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le $(MAKE) build-binaries -j2
 
+.PHONY: build-linux-s390x
+build-linux-s390x:
+	CGO_ENABLED=0 GOOS=linux GOARCH=s390x $(MAKE) build-binaries -j2
+
 .PHONY: build-linux-amd64
 build-linux-amd64:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(MAKE) build-binaries -j2
