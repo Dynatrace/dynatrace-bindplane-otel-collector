@@ -74,6 +74,8 @@ jobs:
             scripts:
               - '**/*.sh'
               - '**/*.ps1'
+              - 'scripts/install/test/testdata/**'
+              - 'signature/gpg/**'
             misspell:
               - '**/*.md'
               - '**/*.yaml'
@@ -423,3 +425,22 @@ jobs:
       - name: Check Dependabot
         run: make check-dependabot
 
+  check-install-scripts:
+    if: ${{ needs.optimize_ci.outputs.skip != 'true' && github.actor != 'dependabot[bot]' && needs.detect-changes.outputs.scripts == 'true' }}
+    runs-on:
+      group: bindplane-large
+      labels: ubuntu-latest-8-cores
+    needs:
+      - optimize_ci
+      - detect-changes
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install test dependencies
+        # rpm reads the signed test fixture; de_DE.UTF-8 and language-pack-de-base make gpg translate its warnings
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck rpm gnupg binutils locales language-pack-de-base
+          sudo locale-gen de_DE.UTF-8
+      - name: Check Install Scripts
+        run: make check-install-scripts
