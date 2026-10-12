@@ -380,6 +380,12 @@ set -- "$WORK/tool-verify-no-gpgconf"/dbdot-gpg.*; if [ -e "$1" ]; then report v
 order=$(awk '/^main\(\)/{m=1} m && /^}/{m=0} m && /^  (setup_installation|verification_check|install_package)$/{printf "%s ", $1}' "$SCRIPT")
 if [ "$order" = "setup_installation verification_check install_package " ]; then report main-order 0 ok "" ""; else report main-order 1 ok "" "main() order: $order"; fi
 
+# --require-gpg-check comes from the BDOT script. Verification is always required here, so the
+# flag is accepted with a warning instead of failing as an invalid argument.
+stubs='bindplane_banner(){ :; }; check_prereqs(){ :; }; validate_version(){ :; }; interactive_check(){ :; }; connection_check(){ :; }; offline_check(){ :; }; setup_installation(){ :; }; verification_check(){ :; }; install_package(){ :; }; display_results(){ :; }'
+out=$(sh -c ". '$WORK/lib.sh'; $stubs; main --require-gpg-check -v 1.0.0 && echo REACHED_END" 2>&1); rc=$?
+case "$out" in *"'--require-gpg-check' is no longer valid"*REACHED_END*) report require-flag-ignored $rc ok "" "$out" ;; *) report require-flag-ignored 1 ok "" "$out" ;; esac
+
 # Return code 3 never installs, even on yes; other failures can be overridden
 # override_case <name> <verify_package return code> <expect> <message>
 override_case() {
