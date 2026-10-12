@@ -1419,6 +1419,10 @@ main()
           base_url=$2 ; shift 2 ;;
         --no-gpg-check)
           skip_gpg_check="true" ; shift 1 ;;
+        --require-gpg-check)
+          # Accepted for commands written for the BDOT script; verification is always required here
+          warn "'--require-gpg-check' is no longer valid and is ignored. Package signature verification is always required."
+          shift 1 ;;
         -r|--uninstall)
           uninstall
           exit 0
