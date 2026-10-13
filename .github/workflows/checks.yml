@@ -425,6 +425,20 @@ jobs:
       - name: Check Dependabot
         run: make check-dependabot
 
+  # Manifest version consistency (scripts/validate-manifest-versions.sh): no Go,
+  # no private-module token, so it runs on every PR in seconds.
+  validate-manifest-versions:
+    if: ${{ needs.optimize_ci.outputs.skip != 'true' }}
+    needs: optimize_ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate manifest versions
+        run: make validate-manifest-versions
+      - name: Test the validator
+        run: make validate-manifest-versions-test
+
   check-install-scripts:
     if: ${{ needs.optimize_ci.outputs.skip != 'true' && github.actor != 'dependabot[bot]' && needs.detect-changes.outputs.scripts == 'true' }}
     runs-on:

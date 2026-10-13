@@ -12,7 +12,7 @@ Three manifests live here, all driving ocb builds:
 make install-ocb
 ```
 
-The ocb version is pinned via `OCB_VERSION` in the root Makefile and matches the OTel core version pinned in all three manifests.
+The ocb version is pinned via `OCB_VERSION` in the root Makefile. `make validate-manifest-versions` enforces that it equals the manifest's core version and that every module family (core, contrib, bindplane-contrib, DT edge, internal) pins one version per manifest; modules deliberately held back are listed, with their reason, in `EXEMPT` in `scripts/validate-manifest-versions.sh`.
 
 ## Building
 

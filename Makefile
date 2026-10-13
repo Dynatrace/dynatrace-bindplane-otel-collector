@@ -106,15 +106,28 @@ OCB ?= $(shell command -v $${OCB:-builder} 2>/dev/null || echo $${GOBIN:-$$HOME/
 install-ocb:
 	go install go.opentelemetry.io/collector/cmd/builder@$(OCB_VERSION)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
+# Every ocb manifest in the repo; validate-manifest-versions checks each on its own.
+MANIFESTS ?= $(wildcard manifests/*/manifest.yaml)
 BUILD_DIR ?= ./build
 AGENT_MAIN ?= internal/extension/opampconnectionextension/cmd/main/main.go
+
+# validate-manifest-versions is the cheap manifest gate: one version per module
+# family in every manifest, and OCB_VERSION equal to the manifest's core version.
+# Needs no Go toolchain or private module access, so CI runs it on every PR.
+.PHONY: validate-manifest-versions
+validate-manifest-versions:
+	MANIFESTS="$(MANIFESTS)" ./scripts/validate-manifest-versions.sh
+
+.PHONY: validate-manifest-versions-test
+validate-manifest-versions-test:
+	./scripts/validate-manifest-versions.test.sh
 
 # verify-manifest is the CI gate: regenerate sources from the manifest and
 # compile them. Fails on any unresolvable component, missing replace, or
 # version drift between sibling deps. Runs against every PR that touches
 # the manifest or any sub-module.
 .PHONY: verify-manifest
-verify-manifest:
+verify-manifest: validate-manifest-versions
 	@if [ ! -x "$(OCB)" ]; then \
 		echo "ocb not found at $(OCB). Install with: make install-ocb"; \
 		exit 1; \
@@ -309,7 +322,7 @@ gosec:
 
 # This target performs all checks that CI will do (excluding the build itself)
 .PHONY: ci-checks
-ci-checks: check-fmt check-license check-mod-paths check-dependabot misspell lint gosec test
+ci-checks: validate-manifest-versions check-fmt check-license check-mod-paths check-dependabot misspell lint gosec test
 
 # This target checks that every go.mod has the correct module path.
 # Root must be github.com/dynatrace/dynatrace-bindplane-otel-collector.
