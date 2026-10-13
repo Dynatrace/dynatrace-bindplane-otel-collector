@@ -4,11 +4,11 @@ go 1.26.9
 
 require (
 	github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report v1.0.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.0.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.0.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.0.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version v1.0.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.0.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.1.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.1.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.1.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version v1.1.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.1.0
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/oklog/ulid/v2 v2.1.2
@@ -209,7 +209,7 @@ require (
 	go.opentelemetry.io/collector/pipeline v1.68.0 // indirect
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.162.0 // indirect
 	go.opentelemetry.io/collector/processor v1.68.0 // indirect
-	go.opentelemetry.io/collector/processor/processorhelper v0.161.0 // indirect
+	go.opentelemetry.io/collector/processor/processorhelper v0.162.0 // indirect
 	go.opentelemetry.io/collector/processor/processortest v0.162.0 // indirect
 	go.opentelemetry.io/collector/processor/xprocessor v0.162.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverhelper v0.162.0 // indirect
