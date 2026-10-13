@@ -32,15 +32,15 @@ extensions:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.162.0
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.162.0
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/redisstorageextension v0.162.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/awss3eventextension v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/badgerextension v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/opampgateway v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.0.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/awss3eventextension v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/badgerextension v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/opampgateway v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.1.0
   # Bindplane OpAMP connection extension. Internal module under
   # internal/extension/opampconnectionextension/, kept internal because the
   # whole runtime cluster (collector lifecycle, OpAMP client, packagestate,
   # report manager, etc.) ships in the same module. Local replace below.
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension v1.0.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension v1.1.0
 
 exporters:
   - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.162.0
@@ -73,18 +73,18 @@ exporters:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/syslogexporter v0.162.0
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/zipkinexporter v0.162.0
   - gomod: github.com/honeycombio/enhance-indexing-s3-exporter/enhanceindexings3exporter v0.0.30
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/awssecuritylakeexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/azureblobexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/azureloganalyticsexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/chronicleexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/chronicleforwarderexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/googlecloudexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/googlecloudstorageexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/googlemanagedprometheusexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/opampexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/qradar v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/snowflakeexporter v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/webhookexporter v1.0.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/awssecuritylakeexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/azureblobexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/azureloganalyticsexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/chronicleexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/chronicleforwarderexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/googlecloudexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/googlecloudstorageexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/googlemanagedprometheusexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/opampexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/qradar v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/snowflakeexporter v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/webhookexporter v1.1.0
   # Need `GOPRIVATE=github.com/Dynatrace/*` set in order to access this component.
   # Component does not have official releases yet. The version reported is mapped to the OTel version it is built on.
   # Component replace statement below.
@@ -118,24 +118,24 @@ processors:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.162.0
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.162.0
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/processor/unrollprocessor v0.162.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/asimstandardizationprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/datapointcountprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/logcountprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/lookupprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/maskprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/metricextractprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/metricstatsprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/ocsfstandardizationprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/randomfailureprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/removeemptyvaluesprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/resourceattributetransposerprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/samplingprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/spancountprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/threatenrichmentprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/throughputmeasurementprocessor v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.0.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/asimstandardizationprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/datapointcountprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/logcountprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/lookupprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/maskprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/metricextractprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/metricstatsprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/ocsfstandardizationprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/randomfailureprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/removeemptyvaluesprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/resourceattributetransposerprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/samplingprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/spancountprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/threatenrichmentprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/throughputmeasurementprocessor v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.1.0
   # Bindplane snapshot processor — its own internal go.mod, local replace below.
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/processor/snapshotprocessor v1.0.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/processor/snapshotprocessor v1.1.0
 
 receivers:
   - gomod: go.opentelemetry.io/collector/receiver/nopreceiver v0.162.0
@@ -218,25 +218,25 @@ receivers:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.162.0
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.162.0
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.162.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/awsneuronreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/awss3eventreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/awss3rehydrationreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/azureblobpollingreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/azureblobrehydrationreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/bindplaneauditlogs v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/gcspubsubeventreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/googlecloudstoragerehydrationreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/httpreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/m365receiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/oktareceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/pcapreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/pluginreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/restapireceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/routereceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/sapnetweaverreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/splunksearchapireceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/telemetrygeneratorreceiver v1.0.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/windowseventtracereceiver v1.0.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/awsneuronreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/awss3eventreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/awss3rehydrationreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/azureblobpollingreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/azureblobrehydrationreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/bindplaneauditlogs v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/gcspubsubeventreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/googlecloudstoragerehydrationreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/httpreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/m365receiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/oktareceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/pcapreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/pluginreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/restapireceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/routereceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/sapnetweaverreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/splunksearchapireceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/telemetrygeneratorreceiver v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/receiver/windowseventtracereceiver v1.1.0
   # Need `GOPRIVATE=github.com/Dynatrace/*` set in order to access this component.
   # Component does not have official releases yet. The version reported is mapped to the OTel version it is built on.
   # Component replace statement below.
@@ -284,6 +284,6 @@ replaces:
   -  github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/jmxreceiver v0.0.0-20261012213710-1241a17dc65e
 
   # Replaces of the DT edge components to a version built on OTel v0.162.0/v1.68.0
-  - github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver => github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.160.3-0.20260929174116-abd69314393d
-  - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.160.3-0.20260929174116-abd69314393d
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver => github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.160.5-0.20261013180204-41c07bbcf7f2
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.160.5-0.20261013180204-41c07bbcf7f2
 
