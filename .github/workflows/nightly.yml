@@ -15,7 +15,7 @@ on:
         description: >
           Git ref (branch, tag, or SHA) of
           Dynatrace/dt-otelcol-edge-processing-components to build the
-          collector with. Empty = version pinned in the manifest.
+          collector with. Empty = latest commit on main.
         required: false
         type: string
       push_images:
@@ -28,6 +28,13 @@ on:
 
 permissions:
   contents: read
+
+env:
+  # Scheduled runs have no inputs, so they always build against edge main.
+  EDGE_REF: ${{ inputs.edge_components_ref || 'main' }}
+  # Only the default main build moves :latest; explicit-ref builds can't
+  # masquerade as the real nightly.
+  NIGHTLY_PUSH_LATEST: ${{ inputs.edge_components_ref == '' }}
 
 concurrency:
   group: nightly
@@ -68,11 +75,9 @@ jobs:
           private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
 
       - name: Pin DT edge components to requested ref
-        if: inputs.edge_components_ref != ''
         env:
           # The Makefile exports GOPRIVATE, but this step calls go directly.
           GOPRIVATE: github.com/Dynatrace/*
-          EDGE_REF: ${{ inputs.edge_components_ref }}
         run: |
           # Pin every module the manifest pulls from the edge components repo,
           # so new components are covered without touching this step.
@@ -88,6 +93,8 @@ jobs:
               exit 1
             fi
             echo "Resolved ${MOD}@${EDGE_REF} -> ${VERSION}"
+            # pseudo-version suffix is the short commit; a plain tag has no dash
+            echo "NIGHTLY_TAG=edge-${VERSION##*-}" >> "$GITHUB_ENV"
             # Drop any standing pin for this module before adding ours —
             # duplicate replaces for one module are a go.mod error.
             MOD="${MOD}" PIN="${MOD} => ${MOD} ${VERSION}" \
@@ -120,26 +127,13 @@ jobs:
             cp "dist/collector_linux_${ARCH}" "tmp/collector_linux_${ARCH}"
           done
 
-      - name: Compute nightly image tags
-        env:
-          EDGE_REF: ${{ inputs.edge_components_ref }}
+      - name: Pin goreleaser version tag
         run: |
           # Pin goreleaser's version detection to the nearest root release tag
           # (v*). Left to itself, git describe can land on a Go module subpath
           # tag like cmd/plugindocgen/v0.0.5, which isn't semver and breaks
           # the nightly version template.
           echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match 'v[0-9]*' --abbrev=0)" >> "$GITHUB_ENV"
-
-          # Edge-ref builds get their own tag and never move :latest, so they
-          # can't overwrite the real nightly. Docker tags only allow
-          # [A-Za-z0-9_.-]; sanitize refs like "feat/foo".
-          if [ -n "${EDGE_REF}" ]; then
-            echo "NIGHTLY_TAG=edge-${EDGE_REF//[^a-zA-Z0-9_.-]/-}" >> "$GITHUB_ENV"
-            echo "NIGHTLY_PUSH_LATEST=false" >> "$GITHUB_ENV"
-          else
-            echo "NIGHTLY_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
-            echo "NIGHTLY_PUSH_LATEST=true" >> "$GITHUB_ENV"
-          fi
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
