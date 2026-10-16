@@ -26,4 +26,10 @@ runs:
         repositories: dt-otelcol-edge-processing-components,dt-protocols-go
     - name: Route git fetches of Dynatrace repos through the token
       shell: bash
-      run: git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/Dynatrace/".insteadOf "https://github.com/Dynatrace/"
+      run: |
+        git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/Dynatrace/".insteadOf "https://github.com/Dynatrace/"
+        # go resolves refs with back-to-back fetches into its module cache
+        # clone. git's detached auto-maintenance (gc) from the first fetch
+        # rewrites the clone's shallow file under the second one, which
+        # then dies with "shallow file has changed since we read it".
+        git config --global maintenance.auto false

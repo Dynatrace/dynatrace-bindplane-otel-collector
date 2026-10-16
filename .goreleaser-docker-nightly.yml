@@ -11,11 +11,9 @@ project_name: dynatrace-bindplane-otel-collector
 # Nightlies ship amd64/arm64 only; no ppc64le.
 #
 # The workflow must set two env vars:
-#   NIGHTLY_TAG         image tag — commit sha, or edge-<ref> for builds
-#                       pinned to an edge-components git ref
-#   NIGHTLY_PUSH_LATEST "true" to also move dynatrace-bindplane-otel-collector-nightly:latest; edge-ref
-#                       builds set "false" so they can't masquerade as the
-#                       real nightly
+#   NIGHTLY_TAG         image tag — edge-<edge components commit>
+#   NIGHTLY_PUSH_LATEST "true" only on the default main build; moves
+#                       dynatrace-bindplane-otel-collector-nightly:latest
 
 before:
   hooks:
