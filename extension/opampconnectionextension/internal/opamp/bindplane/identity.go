@@ -108,7 +108,10 @@ func (i *identity) ToAgentDescription() *protobufs.AgentDescription {
 	nonIdentifyingAttributes := []*protobufs.KeyValue{
 		opamp.StringKeyValue("os.arch", i.oSArch),
 		opamp.StringKeyValue("os.details", i.oSDetails),
+		// os.type is the semconv key; os.family is the legacy key. Readers
+		// expect one or the other, so send both.
 		opamp.StringKeyValue("os.type", i.oSType),
+		opamp.StringKeyValue("os.family", i.oSType),
 		opamp.StringKeyValue("host.name", i.hostname),
 		opamp.StringKeyValue("host.mac_address", i.mac),
 	}
