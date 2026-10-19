@@ -79,7 +79,7 @@ The project is structured as an OpenTelemetry Collector distribution with custom
 - **manifests/dynatrace-bindplane-otel-collector/manifest.yaml** - Canonical source of truth for components and their versions. Drives the `make agent` build.
 - **internal/extension/opampconnectionextension/cmd/main/main.go** - Template `main.go` copied over ocb's generated `main.go`; calls into `internal/extension/opampconnectionextension/runtime` for managed/standalone dispatch.
 - **internal/extension/opampconnectionextension/** - The OpAMP connection extension and its full managed-mode runtime cluster (collector lifecycle, OpAMP client, package state, report manager, measurements). Its own Go module; entry point `runtime.Run(Options)`.
-- **internal/processor/snapshotprocessor/** - Bindplane snapshot processor. Its own internal Go module.
+- **internal/report/** - Report manager for the legacy `report.yaml` snapshot path. Its own Go module; not for direct use. See its README.
 
 ### Component Organization
 
@@ -89,7 +89,7 @@ Custom components (receivers, processors, exporters, extensions) live in the ext
 
 1. **Dual Mode Operation**: The collector can run in standalone mode (using local config) or managed mode (via OpAMP)
 2. **Manifest-Driven Assembly**: Components are assembled by ocb from `manifests/dynatrace-bindplane-otel-collector/manifest.yaml`, which generates the factory wiring (`components.go`) in `./build/`; there is no hand-maintained factories package
-3. **Module Structure**: Each in-tree module (updater, opampconnectionextension, snapshotprocessor, report) is a separate Go module with its own go.mod
+3. **Module Structure**: Each in-tree module (updater, opampconnectionextension, report) is a separate Go module with its own go.mod
 4. **Interface Abstraction**: Core collector functionality is abstracted behind interfaces for testability
 
 ### Configuration Management
