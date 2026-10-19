@@ -1,9 +1,9 @@
 # All source code and documents, used when checking for misspellings
 ALLDOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
                                 -type f | sort)
-# Exclude the ocb-generated ./build/ tree — it's a throwaway module, not
-# part of the repo.
-ALL_MODULES := $(shell find . -type f -name "go.mod" -not -path "./build/*" -exec dirname {} \; | sort )
+# Exclude the ocb-generated ./build/ and ./build-slim/ trees — they are
+# throwaway modules, not part of the repo.
+ALL_MODULES := $(shell find . -type f -name "go.mod" -not -path "./build/*" -not -path "./build-slim/*" -exec dirname {} \; | sort )
 ALL_MDATAGEN_MODULES := $(shell find . -type f -name "metadata.yaml" -exec dirname {} \; | sort )
 
 # All source code files
@@ -49,10 +49,35 @@ GORELEASER_TIMEOUT ?= 180m
 GIT_HASH ?= $(shell git rev-parse HEAD)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 
-# AGENT_NAME / AGENT_DESCRIPTION populate component.BuildInfo. AGENT_NAME is
-# also the OpAMP agent type (service.name) Bindplane uses to identify DBDOT.
+# DISTRO selects which distribution the agent targets (build, verify-manifest).
+# It defaults to the fully-featured DBDOT build, so a plain `make agent` is
+# unchanged. Select another one with e.g. `make agent DISTRO=slim`.
+#
+# Per-distro settings:
+#   MANIFEST           ocb manifest, the source of truth for the components.
+#   BUILD_DIR          where ocb generates the sources. Must be a sibling of the
+#                      other build dirs: the manifests' local replaces are
+#                      written relative to it (../extension/...).
+#   AGENT_NAME         populates component.BuildInfo and is the OpAMP agent type
+#                      (service.name) Bindplane uses to identify the build.
+#   AGENT_DESCRIPTION  populates component.BuildInfo.
+#   AGENT_ARTIFACT     base name of the binary written to $(OUTDIR).
+DISTRO ?= full
+ifeq ($(DISTRO),full)
+MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
+BUILD_DIR ?= ./build
 AGENT_NAME = com.dynatrace.bindplane.otel.collector
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
+AGENT_ARTIFACT = collector
+else ifeq ($(DISTRO),slim)
+MANIFEST ?= manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
+BUILD_DIR ?= ./build-slim
+AGENT_NAME = com.dynatrace.bindplane.otel.collector.slim
+AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
+AGENT_ARTIFACT = collector-slim
+else
+$(error Unknown DISTRO '$(DISTRO)'. Supported: full, slim)
+endif
 OPAMP_EXT_COLLECTOR_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/collector
 
 # AGENT_LDFLAGS stamps version + git hash + build date into the v1 collector
@@ -83,13 +108,14 @@ version:
 .DEFAULT_GOAL := build-binaries
 
 # ocb-driven build:
-#   1. Run the OTel collector builder against manifests/dynatrace-bindplane-otel-collector/manifest.yaml
-#      to generate ./build/ (components.go, go.mod, etc).
+#   1. Run the OTel collector builder against the manifest of the selected
+#      DISTRO (see above) to generate its BUILD_DIR (components.go, go.mod,
+#      etc).
 #   2. Overwrite the generated main.go with the v1 entry point shipped by
 #      the opampconnectionextension at cmd/main/main.go. That entry point
 #      wires ocb's factories into the managed/standalone runtime via
 #      runtime.Run.
-#   3. go mod tidy + go build inside ./build/.
+#   3. go mod tidy + go build inside BUILD_DIR.
 #
 # Resolve ocb to the first of:
 #   - the OCB env var
@@ -105,8 +131,6 @@ OCB ?= $(shell command -v $${OCB:-builder} 2>/dev/null || echo $${GOBIN:-$$HOME/
 .PHONY: install-ocb
 install-ocb:
 	go install go.opentelemetry.io/collector/cmd/builder@$(OCB_VERSION)
-MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
-BUILD_DIR ?= ./build
 AGENT_MAIN ?= extension/opampconnectionextension/cmd/main/main.go
 
 # verify-manifest is the CI gate: regenerate sources from the manifest and
@@ -128,7 +152,8 @@ verify-manifest:
 	# so the gate exercises exactly what `make agent` ships.
 	cd $(BUILD_DIR) && CGO_ENABLED=0 go build -tags "$(AGENT_BUILD_TAGS)" -o /dev/null .
 
-# Builds the collector for the current GOOS/GOARCH pair using ocb.
+# Builds the collector of the selected DISTRO for the current GOOS/GOARCH pair
+# using ocb.
 .PHONY: agent
 agent:
 	@if [ ! -x "$(OCB)" ]; then \
@@ -140,7 +165,7 @@ agent:
 	# Drop ocb's run/runInteractive helpers — our main.go owns startup.
 	rm -f $(BUILD_DIR)/main_others.go $(BUILD_DIR)/main_windows.go
 	cd $(BUILD_DIR) && go mod tidy
-	cd $(BUILD_DIR) && CGO_ENABLED=0 go build -tags "$(AGENT_BUILD_TAGS)" -ldflags "$(AGENT_LDFLAGS)" -o ../$(OUTDIR)/collector_$(GOOS)_$(GOARCH)$(EXT) .
+	cd $(BUILD_DIR) && CGO_ENABLED=0 go build -tags "$(AGENT_BUILD_TAGS)" -ldflags "$(AGENT_LDFLAGS)" -o ../$(OUTDIR)/$(AGENT_ARTIFACT)_$(GOOS)_$(GOARCH)$(EXT) .
 
 # Builds just the updater for current GOOS/GOARCH pair
 .PHONY: updater
@@ -487,12 +512,12 @@ agent-darwin-arm64:
 .PHONY: build-all-agent
 build-all-agent: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le agent-darwin-amd64 agent-darwin-arm64 agent-windows-amd64 agent-windows-arm64
 
-# agent-clean wipes the ocb-generated output trees. The ocb step is
-# platform-agnostic Go-source generation, so subsequent platform builds
-# reuse the generated tree until you clean it.
+# agent-clean wipes the ocb-generated output trees of every distro. The ocb
+# step is platform-agnostic Go-source generation, so subsequent platform
+# builds reuse the generated tree until you clean it.
 .PHONY: agent-clean
 agent-clean:
-	rm -rf $(BUILD_DIR) ./builder
+	rm -rf ./build ./build-slim $(BUILD_DIR) ./builder
 
 .PHONY: agent-windows-amd64 agent-windows-arm64
 agent-windows-amd64:

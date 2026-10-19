@@ -6,6 +6,8 @@ Three manifests live here, all driving ocb builds:
 |---|---|---|---|
 | `manifest.yaml` | `make agent` | `dist/collector_<os>_<arch>` | v1 — in-process managed runtime. `buildscripts/main.go` is overlaid onto ocb's generated `main.go`; the binary owns the OpAMP client and restarts the collector on remote config push. |
 
+The slim build has its own manifest in [`../dynatrace-bindplane-otel-collector-slim/`](../dynatrace-bindplane-otel-collector-slim/README.md). Select it with `DISTRO=slim` (see [Choosing a distro](#choosing-a-distro)).
+
 ## Installing ocb
 
 ```
@@ -26,7 +28,23 @@ make agent          # v1
 
 `make verify-manifest` regenerates sources from `manifest.yaml` and compiles to `/dev/null` — the CI gate.
 
-`make agent-clean` wipes `./build/` (v1 ocb output) and `./builder/` (v2 ocb output).
+`make agent-clean` wipes `./build/` and `./build-slim/` (v1 ocb output) and `./builder/` (v2 ocb output).
+
+### Choosing a distro
+
+The Makefile builds one distro at a time, selected with `DISTRO`. It defaults to `full`, so the commands above build this manifest unless told otherwise.
+
+| `DISTRO` | Manifest | ocb output | Output binary | OpAMP agent name (`service.name`) |
+|---|---|---|---|---|
+| `full` (default) | `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` | `./build/` | `dist/collector_<os>_<arch>` | `com.dynatrace.bindplane.otel.collector` |
+| `slim` | `manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml` | `./build-slim/` | `dist/collector-slim_<os>_<arch>` | `com.dynatrace.bindplane.otel.collector.slim` |
+
+```
+make agent DISTRO=slim
+make verify-manifest DISTRO=slim
+```
+
+An unknown `DISTRO` fails with an error. The per-distro settings live at the top of the root `Makefile`.
 
 ## Editing a manifest
 
