@@ -34,7 +34,6 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements"
-	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor"
 	"github.com/open-telemetry/opamp-go/client"
 	"github.com/open-telemetry/opamp-go/client/types"
@@ -152,7 +151,7 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 		downloadableFileManager:    newDownloadableFileManager(clientLogger, args.TmpPath),
 		collector:                  args.Collector,
 		currentConfig:              args.Config,
-		packagesStateProvider:      newPackagesStateProvider(clientLogger, packagestate.DefaultFileName),
+		packagesStateProvider:      newPackagesStateProvider(clientLogger, packagestate.DefaultFileName, args.BuildInfo.Version),
 		updaterManager:             updaterManger,
 		reportManager:              reportManager,
 		managerConfigPath:          args.ManagerConfigPath,
@@ -263,10 +262,10 @@ func (c *Client) Connect(ctx context.Context) error {
 	// Use HeaderFunc to dynamically set headers, allowing them to update when agent ID changes
 	headerFunc := func(header http.Header) http.Header {
 		header.Set("Authorization", fmt.Sprintf("Secret-Key %s", c.currentConfig.GetSecretKey()))
-		header.Set("User-Agent", fmt.Sprintf("dynatrace-bindplane-otel-collector/%s", version.Version()))
+		header.Set("User-Agent", fmt.Sprintf("dynatrace-bindplane-otel-collector/%s", c.ident.version))
 		header.Set("OpAMP-Version", opamp.Version())
 		header.Set("Agent-ID", c.ident.agentID.String())
-		header.Set("Agent-Version", version.Version())
+		header.Set("Agent-Version", c.ident.version)
 		header.Set("Agent-Hostname", c.ident.hostname)
 		header.Set("X-Bindplane-Agent-Id-Format", c.ident.agentID.Type())
 		return header
@@ -414,12 +413,12 @@ func (c *Client) onConnectHandler(_ context.Context) {
 	// If the current version matches the server offered version, this implies a good install and so we should set the PackageStatuses and
 	// send it to the OpAMP Server. If the version does not match, just change the PackageStatues JSON so that the Updater can start rollback.
 	if collectorPkgStatus.Status == protobufs.PackageStatusEnum_PackageStatusEnum_Installing {
-		if collectorPkgStatus.ServerOfferedVersion != version.Version() {
+		if collectorPkgStatus.ServerOfferedVersion != c.ident.version {
 			errMsg := fmt.Sprintf("Failed because of collector version mismatch: expected %s, actual %s",
-				collectorPkgStatus.ServerOfferedVersion, version.Version())
+				collectorPkgStatus.ServerOfferedVersion, c.ident.version)
 			c.logger.Error("Collector version mismatch after update",
 				zap.String("expected_version", collectorPkgStatus.ServerOfferedVersion),
-				zap.String("actual_version", version.Version()),
+				zap.String("actual_version", c.ident.version),
 			)
 			c.failPackageInstall(pkgStatuses, errMsg, false)
 
@@ -685,14 +684,14 @@ func (c *Client) buildInitialCollectorPackageStatus(pkgName string, availablePkg
 	lastPkgStatus *protobufs.PackageStatus) *protobufs.PackageStatus {
 	initPkgStatus := &protobufs.PackageStatus{
 		Name:                 pkgName,
-		AgentHasVersion:      version.Version(),
+		AgentHasVersion:      c.ident.version,
 		ServerOfferedVersion: availablePkg.GetVersion(),
 		ServerOfferedHash:    availablePkg.GetHash(),
 		Status:               protobufs.PackageStatusEnum_PackageStatusEnum_Installed,
 	}
 
 	// If the new version is the same as the current version we are already installed
-	if version.Version() == availablePkg.GetVersion() {
+	if c.ident.version == availablePkg.GetVersion() {
 		c.logger.Info("Package update ignored because no new version offered",
 			zap.String("package", pkgName))
 		initPkgStatus.AgentHasHash = availablePkg.GetHash()
@@ -702,13 +701,13 @@ func (c *Client) buildInitialCollectorPackageStatus(pkgName string, availablePkg
 
 	// Only grab agentHash from last status if that version matches the current one
 	if lastPkgStatus != nil {
-		if lastPkgStatus.GetAgentHasVersion() == version.Version() {
+		if lastPkgStatus.GetAgentHasVersion() == c.ident.version {
 			initPkgStatus.AgentHasHash = lastPkgStatus.GetAgentHasHash()
 		} else {
 			c.logger.Debug(
 				fmt.Sprintf(
 					"Current version: %s and last reported package status version: %s differ",
-					version.Version(),
+					c.ident.version,
 					lastPkgStatus.GetAgentHasVersion()),
 				zap.String("package", pkgName))
 		}
@@ -849,7 +848,7 @@ func (c *Client) finishPackageInstall(pkgStatuses *protobufs.PackageStatuses) {
 	}
 
 	collectorPkgStatus.Status = protobufs.PackageStatusEnum_PackageStatusEnum_Installed
-	collectorPkgStatus.AgentHasVersion = version.Version()
+	collectorPkgStatus.AgentHasVersion = c.ident.version
 	collectorPkgStatus.AgentHasHash = collectorPkgStatus.ServerOfferedHash
 
 	if err := c.packagesStateProvider.SetLastReportedStatuses(pkgStatuses); err != nil {
