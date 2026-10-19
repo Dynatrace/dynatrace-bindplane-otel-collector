@@ -72,7 +72,7 @@ AGENT_ARTIFACT = collector
 else ifeq ($(DISTRO),slim)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
 BUILD_DIR ?= ./build-slim
-AGENT_NAME = com.dynatrace.bindplane.otel.collector.slim
+AGENT_NAME = com.dynatrace.bindplane.otel.collector-slim
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
 AGENT_ARTIFACT = collector-slim
 else
