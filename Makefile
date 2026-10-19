@@ -550,23 +550,21 @@ release:
 		echo "version was not set"; \
 		exit 1; \
 	fi
-
-	@if ! [[ "$(version)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
+	@if ! echo "$(version)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$'; then \
 		echo "version $(version) is invalid semver"; \
 		exit 1; \
 	fi
-
-	@git tag $(version)
-	@git push --tags
-
-	@set -e; for dir in $(ALL_MODULES); do \
-	  if [ $${dir} == \. ]; then \
-	  	continue; \
-	  fi; \
-	  echo "$${dir}" | sed -e "s+^./++" -e 's+$$+/$(version)+' | awk '{print $$1}' | git tag $$(cat); \
-	done
-
-	@git push --tags
+	# Tag the root and every module, then push only those tags. A checkout of
+	# this fork carries thousands of tags inherited from upstream; `git push
+	# --tags` would push all of them.
+	@set -e; tags="$(version)"; git tag "$(version)"; \
+	for dir in $(ALL_MODULES); do \
+		if [ "$${dir}" = "." ]; then continue; fi; \
+		tag="$${dir#./}/$(version)"; \
+		git tag "$${tag}"; \
+		tags="$${tags} $${tag}"; \
+	done; \
+	git push origin $${tags}
 
 .PHONY: clean
 clean:
