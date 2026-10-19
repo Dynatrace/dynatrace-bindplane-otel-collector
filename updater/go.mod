@@ -22,4 +22,4 @@ require (
 
 replace github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension => ../internal/extension/opampconnectionextension
 
-replace github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report => ../internal/report
+replace github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report => ../pkg/report

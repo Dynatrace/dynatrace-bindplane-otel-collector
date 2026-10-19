@@ -32,7 +32,7 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/collector"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
-	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor"
