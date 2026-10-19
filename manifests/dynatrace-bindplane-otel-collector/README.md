@@ -28,7 +28,7 @@ make agent          # v1
 
 `make verify-manifest` regenerates sources from `manifest.yaml` and compiles to `/dev/null` — the CI gate.
 
-`make agent-clean` wipes `./build/` and `./build-slim/` (v1 ocb output) and `./builder/` (v2 ocb output).
+`make agent-clean` wipes the ocb output of the selected `DISTRO` (`./build/` for `full`, `./build-slim/` for `slim`) and `./builder/`. Run it once per distro to clean both.
 
 ### Choosing a distro
 

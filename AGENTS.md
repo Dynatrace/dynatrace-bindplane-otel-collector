@@ -36,7 +36,7 @@ trailer by default; please disable or strip it before committing.
 ### Build Commands
 - `make agent` - Build the collector via the OTel Collector Builder, using the manifest of the selected `DISTRO` (default `full`: `manifests/dynatrace-bindplane-otel-collector/manifest.yaml`; `DISTRO=slim`: `manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml`) as the source of truth for components. The slim build outputs `dist/collector-slim_<os>_<arch>`, generates sources in `./build-slim/` and has its own OpAMP agent name (`com.dynatrace.bindplane.otel.collector.slim`). Overwrites the ocb-generated `main.go` with `extension/opampconnectionextension/cmd/main/main.go` so the managed/standalone runtime is wired in. Requires `builder` (`make install-ocb`; version pinned via `OCB_VERSION` in the Makefile).
 - `make verify-manifest` - CI gate: regenerates sources from the manifest of the selected `DISTRO` and compiles them. Fails if the manifest references unresolvable modules or has version drift. Cheap to run on every PR.
-- `make agent-clean` - Wipe the ocb-generated `./build/` and `./build-slim/` trees.
+- `make agent-clean` - Wipe the ocb-generated tree of the selected `DISTRO` (`./build/` for `full`, `./build-slim/` for `slim`).
 - `make updater` - Build just the updater binary for current OS/architecture
 - `make build-binaries` - Build both collector and updater for current OS/architecture (default target)
 - `make build-all` - Build for all supported platforms (Linux, Darwin, Windows)

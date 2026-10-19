@@ -512,12 +512,12 @@ agent-darwin-arm64:
 .PHONY: build-all-agent
 build-all-agent: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le agent-darwin-amd64 agent-darwin-arm64 agent-windows-amd64 agent-windows-arm64
 
-# agent-clean wipes the ocb-generated output trees of every distro. The ocb
-# step is platform-agnostic Go-source generation, so subsequent platform
-# builds reuse the generated tree until you clean it.
+# agent-clean wipes the ocb-generated output tree of the selected DISTRO
+# (BUILD_DIR). The ocb step is platform-agnostic Go-source generation, so
+# subsequent platform builds reuse the generated tree until you clean it.
 .PHONY: agent-clean
 agent-clean:
-	rm -rf ./build ./build-slim $(BUILD_DIR) ./builder
+	rm -rf $(BUILD_DIR) ./builder
 
 .PHONY: agent-windows-amd64 agent-windows-arm64
 agent-windows-amd64:
