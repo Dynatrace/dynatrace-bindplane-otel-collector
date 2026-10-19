@@ -37,7 +37,7 @@ updates:
       prefix: "deps"
       include: "scope"
   - package-ecosystem: "gomod"
-    directory: "/internal/extension/opampconnectionextension"
+    directory: "/extension/opampconnectionextension"
     schedule:
       interval: "weekly"
     ignore:

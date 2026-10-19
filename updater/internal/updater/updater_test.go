@@ -23,7 +23,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
 	install_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/install/mocks"
 	rollback_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/rollback/mocks"

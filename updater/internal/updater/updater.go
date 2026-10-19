@@ -27,7 +27,7 @@ import (
 
 	"path/filepath"
 
-	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/install"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"

@@ -36,11 +36,10 @@ extensions:
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/badgerextension v1.1.0
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/opampgateway v1.1.0
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.1.0
-  # Bindplane OpAMP connection extension. Internal module under
-  # internal/extension/opampconnectionextension/, kept internal because the
-  # whole runtime cluster (collector lifecycle, OpAMP client, packagestate,
-  # report manager, etc.) ships in the same module. Local replace below.
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension v1.1.0
+  # Bindplane OpAMP connection extension and the managed-mode runtime
+  # (collector lifecycle, OpAMP client, packagestate, report manager, etc.),
+  # published from this repo for other distros to consume. Local replace below.
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension v1.1.0
 
 exporters:
   - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.162.0
@@ -263,7 +262,7 @@ providers:
 
 replaces:
   # Internal Go modules — point ocb at the local checkouts.
-  - github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension => ../internal/extension/opampconnectionextension
+  - github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension => ../extension/opampconnectionextension
   - github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report => ../pkg/report
 
   # Pinning replaces preserved from the legacy top-level go.mod.
