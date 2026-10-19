@@ -262,7 +262,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	// Use HeaderFunc to dynamically set headers, allowing them to update when agent ID changes
 	headerFunc := func(header http.Header) http.Header {
 		header.Set("Authorization", fmt.Sprintf("Secret-Key %s", c.currentConfig.GetSecretKey()))
-		header.Set("User-Agent", fmt.Sprintf("dynatrace-bindplane-otel-collector/%s", c.ident.version))
+		header.Set("User-Agent", fmt.Sprintf("%s/%s", packagestate.CollectorPackageName(), c.ident.version))
 		header.Set("OpAMP-Version", opamp.Version())
 		header.Set("Agent-ID", c.ident.agentID.String())
 		header.Set("Agent-Version", c.ident.version)
@@ -407,7 +407,7 @@ func (c *Client) onConnectHandler(_ context.Context) {
 		c.logger.Error("Problem with PackageStatuses", zap.Error(err))
 		return
 	}
-	collectorPkgStatus := pkgStatuses.Packages[packagestate.CollectorPackageName]
+	collectorPkgStatus := pkgStatuses.Packages[packagestate.CollectorPackageName()]
 
 	// If in the middle of an install and we just connected, this is most likely because the collector was just spun up fresh by the Updater.
 	// If the current version matches the server offered version, this implies a good install and so we should set the PackageStatuses and
@@ -645,8 +645,8 @@ func (c *Client) onPackagesAvailableHandler(availablePkgs *protobufs.PackagesAva
 	}
 
 	// Start update if applicable
-	if curPkgStatuses.Packages[packagestate.CollectorPackageName].Status == protobufs.PackageStatusEnum_PackageStatusEnum_Installing {
-		collectorDownloadableFile := availablePkgs.GetPackages()[packagestate.CollectorPackageName].GetFile()
+	if curPkgStatuses.Packages[packagestate.CollectorPackageName()].Status == protobufs.PackageStatusEnum_PackageStatusEnum_Installing {
+		collectorDownloadableFile := availablePkgs.GetPackages()[packagestate.CollectorPackageName()].GetFile()
 		c.startCollectorPackageInstall(curPkgStatuses, collectorDownloadableFile)
 	}
 
@@ -659,7 +659,7 @@ func (c *Client) buildInitialPackageStatus(pkgName string, availablePkg *protobu
 	var initPkgStatus *protobufs.PackageStatus
 
 	switch pkgName {
-	case packagestate.CollectorPackageName:
+	case packagestate.CollectorPackageName():
 		initPkgStatus = c.buildInitialCollectorPackageStatus(pkgName, availablePkg, lastPkgStatus)
 	// If it's not an expected package, return a failed status
 	default:
@@ -742,7 +742,7 @@ func (c *Client) buildInitialCollectorPackageStatus(pkgName string, availablePkg
 func (c *Client) startCollectorPackageInstall(curPkgStatuses *protobufs.PackageStatuses, collectorFile *protobufs.DownloadableFile) {
 	c.logger.Info("Package update started",
 		zap.String("AllPackagesHash", hex.EncodeToString(curPkgStatuses.ServerProvidedAllPackagesHash)),
-		zap.String("package", packagestate.CollectorPackageName))
+		zap.String("package", packagestate.CollectorPackageName()))
 	// Start installing from file if applicable
 	if collectorFile != nil {
 		c.safeSetUpdatingPackage(true)
@@ -784,7 +784,7 @@ func (c *Client) tryToFailPackageInstall(errMsg string, sendStatusNow bool) {
 		return
 	}
 
-	collectorPackageStatus := pkgStatuses.Packages[packagestate.CollectorPackageName]
+	collectorPackageStatus := pkgStatuses.Packages[packagestate.CollectorPackageName()]
 	// If we were not installing before the connection, nothing else to do
 	if collectorPackageStatus.Status != protobufs.PackageStatusEnum_PackageStatusEnum_Installing {
 		return
@@ -803,7 +803,7 @@ func (c *Client) failPackageInstall(pkgStatuses *protobufs.PackageStatuses, errM
 		return
 	}
 
-	collectorPkgStatus, ok := pkgStatuses.Packages[packagestate.CollectorPackageName]
+	collectorPkgStatus, ok := pkgStatuses.Packages[packagestate.CollectorPackageName()]
 	if !ok {
 		c.logger.Error("Failed to attempt PackageStatuses failure as no collector status provided")
 		return
@@ -815,7 +815,7 @@ func (c *Client) failPackageInstall(pkgStatuses *protobufs.PackageStatuses, errM
 	}
 
 	c.logger.Error(fmt.Sprintf("Package update failed: %s", collectorPkgStatus.ErrorMessage),
-		zap.String("package", packagestate.CollectorPackageName))
+		zap.String("package", packagestate.CollectorPackageName()))
 
 	if err := c.packagesStateProvider.SetLastReportedStatuses(pkgStatuses); err != nil {
 		c.logger.Error("Failed to set failed install package statuses", zap.Error(err))
@@ -834,14 +834,14 @@ func (c *Client) failPackageInstall(pkgStatuses *protobufs.PackageStatuses, errM
 func (c *Client) finishPackageInstall(pkgStatuses *protobufs.PackageStatuses) {
 	c.logger.Info("Package update was successful",
 		zap.String("AllPackagesHash", hex.EncodeToString(pkgStatuses.ServerProvidedAllPackagesHash)),
-		zap.String("package", packagestate.CollectorPackageName))
+		zap.String("package", packagestate.CollectorPackageName()))
 
 	if pkgStatuses == nil {
 		c.logger.Error("Failed to set PackageStatuses to installed as none were provided")
 		return
 	}
 
-	collectorPkgStatus, ok := pkgStatuses.Packages[packagestate.CollectorPackageName]
+	collectorPkgStatus, ok := pkgStatuses.Packages[packagestate.CollectorPackageName()]
 	if !ok {
 		c.logger.Error("Failed to set PackageStatuses to installed as no collector status provided")
 		return
@@ -869,7 +869,7 @@ func (c *Client) getVerifiedPackageStatuses() (*protobufs.PackageStatuses, error
 	}
 
 	// If we have no info on our collector package, nothing else to do
-	if lastPackageStatuses == nil || lastPackageStatuses.Packages == nil || lastPackageStatuses.Packages[packagestate.CollectorPackageName] == nil {
+	if lastPackageStatuses == nil || lastPackageStatuses.Packages == nil || lastPackageStatuses.Packages[packagestate.CollectorPackageName()] == nil {
 		return nil, errors.New("failed to retrieve last reported package status for collector package")
 	}
 
