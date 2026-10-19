@@ -30,7 +30,7 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp/mocks"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/packagestate"
-	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
 	"github.com/google/uuid"
 	"github.com/open-telemetry/opamp-go/client/types"

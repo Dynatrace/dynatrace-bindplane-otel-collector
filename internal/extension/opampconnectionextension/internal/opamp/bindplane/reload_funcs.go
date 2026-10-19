@@ -23,7 +23,7 @@ import (
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/logging"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension/internal/opamp"
-	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )

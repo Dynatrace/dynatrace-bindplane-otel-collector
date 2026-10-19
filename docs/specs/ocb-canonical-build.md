@@ -104,7 +104,7 @@ ocb's default `main.go`, no overlay. The binary is a vanilla otel-collector with
 
 `manifest.yaml` carries:
 
-- Two narrow local replaces pointing at the on-disk paths of the internal modules: `internal/extension/opampconnectionextension` and `internal/report`.
+- Two narrow local replaces pointing at the on-disk paths of the internal modules: `internal/extension/opampconnectionextension` and `pkg/report`.
 - Six pinning replaces inherited from the legacy `go.mod`: `mattn/go-ieproxy v0.0.1`, `cilium/ebpf v0.11.0`, `DataDog/datadog-agent/comp/core/delegatedauth v0.78.2`, plus three observIQ forks (`windowseventlogreceiver`, `pkg/stanza`, `azureblobreceiver`).
 
 `manifest-v2.yaml` and `manifest-v2-aix.yaml` are unmodified copies of v2.0.1-beta.3 and use a different replace set (notably `cockroachdb/errors v1.13.0` to fix a sentry-go API break).

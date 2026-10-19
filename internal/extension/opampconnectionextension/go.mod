@@ -3,7 +3,7 @@ module github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extensio
 go 1.26.9
 
 require (
-	github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report v1.1.1
+	github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report v1.1.1
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.1.0
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.1.0
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.1.0
@@ -284,4 +284,4 @@ replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza => 
 
 replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/macosunifiedloggingreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/macosunifiedloggingreceiver v0.0.0-20260708173836-48836fd1d949
 
-replace github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/report => ../../../internal/report
+replace github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report => ../../../pkg/report

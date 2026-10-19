@@ -39,7 +39,7 @@ make agent          # v1
 These internal modules live in this repo:
 
 - `internal/extension/opampconnectionextension` — bindplane's OpAMP connection extension and the full v1 managed-mode runtime cluster (collector lifecycle, OpAMP client, package state, report manager, measurements, service dispatch).
-- `internal/report` — report manager for the legacy `report.yaml` snapshot path; used by the extension and by consuming distros that still carry a report-manager snapshot processor. Not a component.
+- `pkg/report` — report manager for the legacy `report.yaml` snapshot path; used by the extension and by consuming distros that still carry a report-manager snapshot processor. Not a component.
 
 The v1 manifest references each by its own `gomod:` entry and a narrow local `replace:` pointing at the on-disk path. They stay under `internal/` until they're ready to be published.
 
