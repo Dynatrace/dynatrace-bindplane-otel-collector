@@ -31,6 +31,8 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/opamp/mocks"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report"
+	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements"
+	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor"
 	"github.com/google/uuid"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"
@@ -1735,4 +1737,44 @@ func Test_onAgentIdentificationHandler(t *testing.T) {
 		assert.Equal(t, originalAgentID.String(), client.ident.agentID.String())
 		assert.Equal(t, originalAgentID.String(), client.currentConfig.AgentID.String())
 	})
+}
+
+func TestClient_SetCustomCapabilities(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		client   []string
+		supplied []string
+		expected []string
+	}{
+		{
+			desc:     "no reporters wired: only registered capabilities",
+			client:   nil,
+			supplied: []string{"com.example.custom"},
+			expected: []string{"com.example.custom"},
+		},
+		{
+			desc:     "reporter capabilities appended, duplicates dropped",
+			client:   []string{measurements.ReportMeasurementsV1Capability, topologyprocessor.ReportTopologyCapability},
+			supplied: []string{"com.example.custom", topologyprocessor.ReportTopologyCapability},
+			expected: []string{"com.example.custom", topologyprocessor.ReportTopologyCapability, measurements.ReportMeasurementsV1Capability},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			mockOpAmpClient := mocks.NewMockOpAMPClient(t)
+			mockOpAmpClient.On("SetCustomCapabilities", &protobufs.CustomCapabilities{Capabilities: tc.expected}).Return(nil)
+			c := &Client{opampClient: mockOpAmpClient, customCapabilities: tc.client}
+			require.NoError(t, c.SetCustomCapabilities(&protobufs.CustomCapabilities{Capabilities: tc.supplied}))
+		})
+	}
+}
+
+func TestClient_Disconnect_NoSenders(t *testing.T) {
+	mockOpAmpClient := mocks.NewMockOpAMPClient(t)
+	mockOpAmpClient.On("Stop", mock.Anything).Return(nil)
+	mockCollector := colmocks.NewMockCollector(t)
+	mockCollector.On("Stop", mock.Anything).Return()
+	c := &Client{opampClient: mockOpAmpClient, collector: mockCollector, logger: zap.NewNop()}
+	c.collectorMntrCtx, c.collectorMntrCancel = context.WithCancel(context.Background())
+	require.NoError(t, c.Disconnect(context.Background()))
 }

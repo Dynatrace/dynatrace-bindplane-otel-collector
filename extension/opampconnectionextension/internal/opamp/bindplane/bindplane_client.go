@@ -62,16 +62,6 @@ var (
 	_ opampconnectionextension.Client = (*Client)(nil)
 )
 
-// hardcodedCustomCapabilities are the custom capabilities that this client
-// always advertises to the OpAMP server regardless of what components have
-// registered via an opamp_connection extension. The Bindplane client's
-// measurements and topology senders rely on the server knowing about these
-// capabilities even when no component has explicitly registered them.
-var hardcodedCustomCapabilities = []string{
-	measurements.ReportMeasurementsV1Capability,
-	topologyprocessor.ReportTopologyCapability,
-}
-
 // Client represents a client that is connected to Iris via OpAmp
 type Client struct {
 	opampClient             client.OpAMPClient
@@ -88,6 +78,12 @@ type Client struct {
 	measurementsSender      *measurementsSender
 	topologySender          *topologySender
 	sendGate                *sendGate
+
+	// customCapabilities are always advertised to the server, on top of
+	// whatever components register via an opamp_connection extension. They
+	// are the capabilities the measurements and topology senders need the
+	// server to know about, and are set only for the reporters wired in.
+	customCapabilities []string
 
 	// To signal if we are disconnecting already and not take any actions on connection failures
 	disconnecting bool
@@ -110,10 +106,12 @@ type NewClientArgs struct {
 	Collector     collector.Collector
 	BuildInfo     component.BuildInfo
 
-	TmpPath              string
-	ManagerConfigPath    string
-	CollectorConfigPath  string
-	LoggerConfigPath     string
+	TmpPath             string
+	ManagerConfigPath   string
+	CollectorConfigPath string
+	LoggerConfigPath    string
+	// MeasurementsReporter and TopologyReporter may be nil; the matching
+	// sender is then not created and its capability is not advertised.
 	MeasurementsReporter MeasurementsReporter
 	TopologyReporter     TopologyReporter
 
@@ -158,6 +156,12 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 		sendGate:                   newSendGate(),
 		availableComponentsMutator: args.AvailableComponentsMutator,
 	}
+	if args.MeasurementsReporter != nil {
+		bindplaneClient.customCapabilities = append(bindplaneClient.customCapabilities, measurements.ReportMeasurementsV1Capability)
+	}
+	if args.TopologyReporter != nil {
+		bindplaneClient.customCapabilities = append(bindplaneClient.customCapabilities, topologyprocessor.ReportTopologyCapability)
+	}
 
 	// Parse URL to determin scheme
 	opampURL, err := url.Parse(args.Config.Endpoint)
@@ -188,24 +192,27 @@ func NewClient(args *NewClientArgs) (opamp.Client, error) {
 		return nil, fmt.Errorf("error setting custom capabilities: %w", err)
 	}
 
-	// Create measurements sender
-	bindplaneClient.measurementsSender = newMeasurementsSender(
-		clientLogger,
-		args.MeasurementsReporter,
-		bindplaneClient.opampClient,
-		bindplaneClient.sendGate,
-		args.Config.MeasurementsInterval,
-		args.Config.ExtraMeasurementsAttributes,
-	)
-
-	// Create topology sender
-	bindplaneClient.topologySender = newTopologySender(
-		clientLogger,
-		args.TopologyReporter,
-		bindplaneClient.opampClient,
-		bindplaneClient.sendGate,
-		args.Config.TopologyInterval,
-	)
+	// Create senders only for the reporters wired in. Sender methods are
+	// nil-receiver safe, so callers need no guards.
+	if args.MeasurementsReporter != nil {
+		bindplaneClient.measurementsSender = newMeasurementsSender(
+			clientLogger,
+			args.MeasurementsReporter,
+			bindplaneClient.opampClient,
+			bindplaneClient.sendGate,
+			args.Config.MeasurementsInterval,
+			args.Config.ExtraMeasurementsAttributes,
+		)
+	}
+	if args.TopologyReporter != nil {
+		bindplaneClient.topologySender = newTopologySender(
+			clientLogger,
+			args.TopologyReporter,
+			bindplaneClient.opampClient,
+			bindplaneClient.sendGate,
+			args.Config.TopologyInterval,
+		)
+	}
 
 	return bindplaneClient, nil
 }
@@ -356,13 +363,8 @@ func (c *Client) Disconnect(ctx context.Context) error {
 	c.safeSetDisconnecting(true)
 	c.collector.Stop(ctx)
 
-	// Reset the measurements registry to prevent resending old metrics on reconnect
-	if c.measurementsSender != nil {
-		c.measurementsSender.Stop()
-	}
-	if c.topologySender != nil {
-		c.topologySender.Stop()
-	}
+	c.measurementsSender.Stop()
+	c.topologySender.Stop()
 
 	return c.opampClient.Stop(ctx)
 }
@@ -370,13 +372,13 @@ func (c *Client) Disconnect(ctx context.Context) error {
 // SetCustomCapabilities implements opampconnectionextension.Client.
 //
 // It merges the supplied capabilities with the set that this client always
-// advertises (see hardcodedCustomCapabilities) and forwards the merged list
+// advertises (see customCapabilities) and forwards the merged list
 // to the underlying OpAMP client. This lets the opamp_connection
 // extension's registry request its own capability set without clobbering
 // the measurements and topology capabilities the Bindplane client requires.
 func (c *Client) SetCustomCapabilities(customCapabilities *protobufs.CustomCapabilities) error {
 	merged := append([]string(nil), customCapabilities.GetCapabilities()...)
-	for _, capability := range hardcodedCustomCapabilities {
+	for _, capability := range c.customCapabilities {
 		if !slices.Contains(merged, capability) {
 			merged = append(merged, capability)
 		}
@@ -496,7 +498,7 @@ func (c *Client) onMessageFuncHandler(ctx context.Context, msg *types.MessageDat
 			r.ProcessMessage(msg.CustomMessage)
 		}
 	}
-	if msg.CustomCapabilities != nil {
+	if msg.CustomCapabilities != nil && c.measurementsSender != nil {
 		if slices.Contains(msg.CustomCapabilities.Capabilities, measurements.ReportMeasurementsV1Capability) {
 			c.logger.Info("Server supports custom throughput message measurements, starting measurements sender.")
 			c.measurementsSender.Start()
@@ -504,6 +506,8 @@ func (c *Client) onMessageFuncHandler(ctx context.Context, msg *types.MessageDat
 			c.logger.Info("Server does not support custom throughput message measurements, stopping measurements sender.")
 			c.measurementsSender.Stop()
 		}
+	}
+	if msg.CustomCapabilities != nil && c.topologySender != nil {
 		if slices.Contains(msg.CustomCapabilities.Capabilities, topologyprocessor.ReportTopologyCapability) {
 			c.logger.Info("Server supports custom topology messages, starting topology sender.")
 			c.topologySender.Start()

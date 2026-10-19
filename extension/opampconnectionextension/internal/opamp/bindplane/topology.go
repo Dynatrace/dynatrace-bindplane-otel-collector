@@ -77,6 +77,9 @@ func newTopologySender(l *zap.Logger, reporter TopologyReporter, opampClient cli
 
 // Start starts the sender. It may be called multiple times, even if the sender is already started.
 func (ts *topologySender) Start() {
+	if ts == nil {
+		return
+	}
 	ts.mux.Lock()
 	defer ts.mux.Unlock()
 
@@ -95,6 +98,9 @@ func (ts *topologySender) Start() {
 
 // SetInterval changes the interval of the topology sender.
 func (ts *topologySender) SetInterval(d *time.Duration) {
+	if ts == nil {
+		return
+	}
 	var interval time.Duration
 	if d == nil {
 		interval = defaultTopologyInterval
@@ -113,6 +119,9 @@ func (ts *topologySender) SetInterval(d *time.Duration) {
 }
 
 func (ts *topologySender) Stop() {
+	if ts == nil {
+		return
+	}
 	ts.mux.Lock()
 	defer ts.mux.Unlock()
 
