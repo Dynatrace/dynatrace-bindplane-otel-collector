@@ -294,7 +294,7 @@ func TestDeletePackage(t *testing.T) {
 }
 
 func TestLastReportedStatuses(t *testing.T) {
-	pkgName := packagestate.CollectorPackageName
+	pkgName := packagestate.CollectorPackageName()
 	testCases := []struct {
 		desc     string
 		testFunc func(*testing.T)

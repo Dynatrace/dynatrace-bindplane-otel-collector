@@ -117,8 +117,8 @@ func (p *packagesStateProvider) LastReportedStatuses() (*protobufs.PackageStatus
 	p.logger.Debug("Retrieve last reported package statuses")
 
 	packages := map[string]*protobufs.PackageStatus{
-		packagestate.CollectorPackageName: {
-			Name:            packagestate.CollectorPackageName,
+		packagestate.CollectorPackageName(): {
+			Name:            packagestate.CollectorPackageName(),
 			AgentHasVersion: p.version,
 			Status:          protobufs.PackageStatusEnum_PackageStatusEnum_Installed,
 		},
