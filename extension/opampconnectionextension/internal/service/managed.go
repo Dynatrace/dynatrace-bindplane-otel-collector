@@ -23,6 +23,8 @@ import (
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/otelcol"
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/collector"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/opamp"
@@ -56,11 +58,28 @@ func setLegacyHomeEnv() error {
 	return nil
 }
 
+// Component types whose Bindplane registries the OpAMP client reports from.
+// A distro whose manifest omits one of these processors has nothing to report,
+// so the matching reporter is left nil and its capability is not advertised.
+var (
+	throughputMeasurementType = component.MustNewType("throughputmeasurement")
+	topologyType              = component.MustNewType("topology")
+)
+
 // NewManagedCollectorService creates a managed collector service. availableComponentsMutator
 // may be nil; see runtime.Options.AvailableComponentsMutator.
-func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, version, managerConfigPath, collectorConfigPath, loggerConfigPath string, availableComponentsMutator func(*protobufs.AvailableComponents)) (*ManagedCollectorService, error) {
+func NewManagedCollectorService(col collector.Collector, factories otelcol.Factories, logger *zap.Logger, version, managerConfigPath, collectorConfigPath, loggerConfigPath string, availableComponentsMutator func(*protobufs.AvailableComponents)) (*ManagedCollectorService, error) {
 	if err := setLegacyHomeEnv(); err != nil {
 		return nil, fmt.Errorf("set legacy home env var: %w", err)
+	}
+
+	var measurementsReporter bindplane.MeasurementsReporter
+	if _, ok := factories.Processors[throughputMeasurementType]; ok {
+		measurementsReporter = measurements.BindplaneAgentThroughputMeasurementsRegistry
+	}
+	var topologyReporter bindplane.TopologyReporter
+	if _, ok := factories.Processors[topologyType]; ok {
+		topologyReporter = topologyprocessor.BindplaneAgentTopologyRegistry
 	}
 
 	opampConfig, err := opamp.ParseConfig(managerConfigPath)
@@ -84,8 +103,8 @@ func NewManagedCollectorService(col collector.Collector, logger *zap.Logger, ver
 		ManagerConfigPath:          managerConfigPath,
 		CollectorConfigPath:        collectorConfigPath,
 		LoggerConfigPath:           loggerConfigPath,
-		MeasurementsReporter:       measurements.BindplaneAgentThroughputMeasurementsRegistry,
-		TopologyReporter:           topologyprocessor.BindplaneAgentTopologyRegistry,
+		MeasurementsReporter:       measurementsReporter,
+		TopologyReporter:           topologyReporter,
 		AvailableComponentsMutator: availableComponentsMutator,
 	}
 

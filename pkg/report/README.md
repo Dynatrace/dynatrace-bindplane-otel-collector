@@ -30,10 +30,18 @@ This package will be removed at a future date.
 
 ## Removal
 
-1. Delete this module and its `directory:` entry in `.github/dependabot.yml`.
-2. In `opampconnectionextension`, follow the "Removal" section of its README
-   to drop the `report.yaml` wiring, then remove the `report` `require` and
-   `replace` from its `go.mod`.
-3. Remove the `report` replace from the manifest and from `updater/go.mod`.
-4. Tell consuming distros: their report-manager snapshot processor loses its
+The extension's `report.yaml` wiring and this module go together; remove
+both in one change.
+
+1. In `extension/opampconnectionextension/internal/opamp/bindplane`:
+   - `bindplane_client.go`: delete the `reportManager` field, the
+     `report.GetManager()` / `SetClient` block in `NewClient`, and the
+     `report.yaml` `NewManagedConfig` registration in `addManagedConfigs`.
+   - `reload_funcs.go`: delete `reportReload` and the
+     `report.GetSnapshotReporter().Reset()` call after collector restart.
+2. Remove the `pkg/report` `require` and `replace` from the extension's
+   `go.mod`, then `go mod tidy`.
+3. Delete this module and its `directory:` entry in `.github/dependabot.yml`.
+4. Remove the `pkg/report` replace from the manifest and from `updater/go.mod`.
+5. Tell consuming distros: their report-manager snapshot processor loses its
    transport and must be swapped for the contrib `snapshotprocessor`.
