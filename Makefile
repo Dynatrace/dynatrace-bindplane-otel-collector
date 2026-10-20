@@ -413,29 +413,32 @@ add-license:
 		fi
 
 # update-otel attempts to update otel dependencies in go.mods,
-# and update the otel versions in the docs.
+# and update the otel versions in the docs and the manifest.
 # Usage: make update-otel OTEL_VERSION=vx.x.x CONTRIB_VERSION=vx.x.x PDATA_VERSION=vx.x.x-rcx DBDOT_CONTRIB_VERSION=vx.x.x CONTRIB_STABLE_VERSION=vx.x.x
 .PHONY: update-otel
 update-otel:
 	./scripts/update-otel.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(PDATA_VERSION)" "$(CONTRIB_STABLE_VERSION)"
 	./scripts/update-docs.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(DBDOT_CONTRIB_VERSION)" "$(CONTRIB_STABLE_VERSION)"
+	MANIFEST="$(MANIFEST)" OTEL_VERSION="$(OTEL_VERSION)" CONTRIB_VERSION="$(CONTRIB_VERSION)" PDATA_VERSION="$(PDATA_VERSION)" CONTRIB_STABLE_VERSION="$(CONTRIB_STABLE_VERSION)" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 # Double make tidy - this unfortunately is needed due to the order in which modules are tidied.
 # The modules this seems to effect are plugindocgen and bindplaneextension
 	$(MAKE) tidy
 
-# update-modules updates all submodules to be the new version.
+# update-modules updates all submodules, and the manifest's in-tree module lines, to be the new version.
 # Usage: make update-modules NEW_VERSION=vx.x.x
 .PHONY: update-modules
 update-modules:
 	./scripts/update-module-version.sh "$(NEW_VERSION)"
+	MANIFEST="$(MANIFEST)" MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 
-# update-contrib updates all bindplane-otel-contrib dependencies to the new version.
+# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods and the manifest, to the new version.
 # Usage: make update-contrib DBDOT_CONTRIB_VERSION=vx.x.x
 .PHONY: update-contrib
 update-contrib:
-	./scripts/update-bindplane-contrib.sh "$(DBDOT_CONTRIB_VERSION)"
+	./scripts/update-dbdot-contrib.sh "$(DBDOT_CONTRIB_VERSION)"
+	MANIFEST="$(MANIFEST)" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 
 # Downloads and setups dependencies that are packaged with binary

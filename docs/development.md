@@ -41,7 +41,7 @@ The steps are as follows:
     ```sh
     ./scripts/update-otel.sh v0.114.0 v0.114.0 v1.20.0 v1.0.0
     ```
-    The stable contrib modules are tracked in an allowlist near the top of `update-otel.sh` (and `update-docs.sh`). When a new contrib component reaches v1.0.0, add its module path to both lists. Note: these scripts update the `go.mod` files and docs; bump the matching versions in `manifests/observIQ/manifest.yaml` by hand.
+    The stable contrib modules are tracked in an allowlist near the top of `update-otel.sh` (and `update-docs.sh`). When a new contrib component reaches v1.0.0, add its module path to both lists. Note: `make update-otel` also bumps the manifest through `scripts/update-manifest.sh`; when running the scripts by hand, run that one too.
 
 2. Run `make tidy`
 
