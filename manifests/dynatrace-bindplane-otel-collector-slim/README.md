@@ -13,7 +13,7 @@ All component versions are the ones used by the full manifest. The slim manifest
 
 ## Identity
 
-The slim build reports its own OpAMP agent name and `service.name`, `com.dynatrace.bindplane.otel.collector.slim`, set by the root `Makefile` for `DISTRO=slim`.
+The slim build reports its own OpAMP agent name and `service.name`, `com.dynatrace.bindplane.otel.collector-slim`, set by the root `Makefile` for `DISTRO=slim`.
 
 ## Building
 

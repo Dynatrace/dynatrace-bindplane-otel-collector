@@ -37,7 +37,7 @@ The Makefile builds one distro at a time, selected with `DISTRO`. It defaults to
 | `DISTRO` | Manifest | ocb output | Output binary | OpAMP agent name (`service.name`) |
 |---|---|---|---|---|
 | `full` (default) | `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` | `./build/` | `dist/collector_<os>_<arch>` | `com.dynatrace.bindplane.otel.collector` |
-| `slim` | `manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml` | `./build-slim/` | `dist/collector-slim_<os>_<arch>` | `com.dynatrace.bindplane.otel.collector.slim` |
+| `slim` | `manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml` | `./build-slim/` | `dist/collector-slim_<os>_<arch>` | `com.dynatrace.bindplane.otel.collector-slim` |
 
 ```
 make agent DISTRO=slim
