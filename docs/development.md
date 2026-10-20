@@ -76,4 +76,4 @@ When [bindplane-otel-contrib](https://github.com/dynatrace/dynatrace-bindplane-o
 2. Run `make ci-checks` to verify the update.
 
 ## Releasing
-To release the agent, see [releasing documentation](releasing.md).
+To cut a patch release, see the [patch release guide](releasing.md).

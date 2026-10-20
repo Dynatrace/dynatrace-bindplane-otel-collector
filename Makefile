@@ -433,12 +433,13 @@ update-modules:
 	MANIFEST="$(MANIFEST)" MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 
-# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods and the manifest, to the new version.
+# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods, the manifest and the doc links, to the new version.
 # Usage: make update-contrib DBDOT_CONTRIB_VERSION=vx.x.x
 .PHONY: update-contrib
 update-contrib:
 	./scripts/update-dbdot-contrib.sh "$(DBDOT_CONTRIB_VERSION)"
 	MANIFEST="$(MANIFEST)" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
+	sed -i '' -E 's#(dynatrace-bindplane-otel-contrib/(blob|tree)/)[^/]*#\1$(DBDOT_CONTRIB_VERSION)#g' docs/*.md
 	$(MAKE) tidy
 
 # Downloads and setups dependencies that are packaged with binary
