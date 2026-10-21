@@ -1,6 +1,6 @@
 module github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/snapshot v1.1.0
