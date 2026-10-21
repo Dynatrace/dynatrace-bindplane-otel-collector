@@ -1,6 +1,6 @@
 module github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report v1.1.1
