@@ -8,6 +8,8 @@ Clone this repository, and run `make install-tools`
 
 To create a build for your current machine, run `make agent`
 
+To build the slim distro instead of the full one, run `make agent DISTRO=slim`. See the [manifests README](../manifests/dynatrace-bindplane-otel-collector/README.md#choosing-a-distro)
+
 To build for a specific architecture, see the [Makefile](../Makefile)
 
 To build all targets, run `make build-all`
