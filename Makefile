@@ -62,6 +62,7 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 #                      (service.name) Bindplane uses to identify the build.
 #   AGENT_DESCRIPTION  populates component.BuildInfo.
 #   AGENT_ARTIFACT     base name of the binary written to $(OUTDIR).
+#   PRODUCT_NAME       product slug (see below).
 DISTRO ?= full
 ifeq ($(DISTRO),full)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
@@ -69,20 +70,22 @@ BUILD_DIR ?= ./build
 AGENT_NAME = com.dynatrace.bindplane.otel.collector
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
 AGENT_ARTIFACT = collector
+PRODUCT_NAME = dynatrace-bindplane-otel-collector
 else ifeq ($(DISTRO),slim)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
 BUILD_DIR ?= ./build-slim
 AGENT_NAME = com.dynatrace.bindplane.otel.collector-slim
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
 AGENT_ARTIFACT = collector-slim
+PRODUCT_NAME = dynatrace-bindplane-otel-collector-slim
 else
 $(error Unknown DISTRO '$(DISTRO)'. Supported: full, slim)
 endif
 
 # PRODUCT_NAME is the product slug: the OpAMP package key the collector and
 # updater agree on, the User-Agent prefix, and (underscored) the stderr log
-# file name that the installers and support scripts reference.
-PRODUCT_NAME = dynatrace-bindplane-otel-collector
+# file name that the installers and support scripts reference. Set per DISTRO
+# above.
 STDERR_LOG_NAME = $(subst -,_,$(PRODUCT_NAME)).err
 OPAMP_EXT_MODULE = github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension
 OPAMP_EXT_COLLECTOR_PKG = $(OPAMP_EXT_MODULE)/internal/collector
