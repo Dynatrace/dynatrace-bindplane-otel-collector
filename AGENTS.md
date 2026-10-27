@@ -34,9 +34,9 @@ trailer by default; please disable or strip it before committing.
 ## Development Commands
 
 ### Build Commands
-- `make agent` - Build the collector via the OTel Collector Builder, using `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` as the source of truth for components. Overwrites the ocb-generated `main.go` with `extension/opampconnectionextension/cmd/main/main.go` so the managed/standalone runtime is wired in. Requires `builder` (`make install-ocb`; version pinned via `OCB_VERSION` in the Makefile).
-- `make verify-manifest` - CI gate: regenerates sources from the manifest and compiles them. Fails if the manifest references unresolvable modules or has version drift. Cheap to run on every PR.
-- `make agent-clean` - Wipe the ocb-generated `./build/` tree.
+- `make agent` - Build the collector via the OTel Collector Builder, using the manifest of the selected `DISTRO` (default `full`: `manifests/dynatrace-bindplane-otel-collector/manifest.yaml`; `DISTRO=slim`: `manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml`) as the source of truth for components. The slim build outputs `dist/collector-slim_<os>_<arch>`, generates sources in `./build-slim/` and has its own OpAMP agent name (`com.dynatrace.bindplane.otel.collector-slim`). Overwrites the ocb-generated `main.go` with `extension/opampconnectionextension/cmd/main/main.go` so the managed/standalone runtime is wired in. Requires `builder` (`make install-ocb`; version pinned via `OCB_VERSION` in the Makefile).
+- `make verify-manifest` - CI gate: regenerates sources from the manifest of the selected `DISTRO` and compiles them. Fails if the manifest references unresolvable modules or has version drift. Cheap to run on every PR.
+- `make agent-clean` - Wipe the ocb-generated tree of the selected `DISTRO` (`./build/` for `full`, `./build-slim/` for `slim`).
 - `make updater` - Build just the updater binary for current OS/architecture
 - `make build-binaries` - Build both collector and updater for current OS/architecture (default target)
 - `make build-all` - Build for all supported platforms (Linux, Darwin, Windows)
@@ -77,6 +77,7 @@ trailer by default; please disable or strip it before committing.
 The project is structured as an OpenTelemetry Collector distribution with custom components:
 
 - **manifests/dynatrace-bindplane-otel-collector/manifest.yaml** - Canonical source of truth for components and their versions. Drives the `make agent` build.
+- **manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml** - Source of truth for the slim build's components. Selected with `DISTRO=slim`; versions are kept in sync with the full manifest by hand.
 - **extension/opampconnectionextension/cmd/main/main.go** - Template `main.go` copied over ocb's generated `main.go`; calls into `extension/opampconnectionextension/runtime` for managed/standalone dispatch.
 - **extension/opampconnectionextension/** - The OpAMP connection extension and its full managed-mode runtime cluster (collector lifecycle, OpAMP client, package state, report manager, measurements). Its own Go module; entry point `runtime.Run(Options)`.
 - **pkg/report/** - Report manager for the legacy `report.yaml` snapshot path. Its own Go module; not for direct use. See its README.
@@ -102,9 +103,9 @@ Custom components (receivers, processors, exporters, extensions) live in the ext
 ### Build System
 
 The project uses a Makefile-based build system with:
-- **`make agent` runs ocb** against `manifests/dynatrace-bindplane-otel-collector/manifest.yaml`, overlays `extension/opampconnectionextension/cmd/main/main.go`, and compiles. Build tags: `bindplane embed_library` (see `AGENT_BUILD_TAGS` in the Makefile; `bindplane` enables Bindplane registry wiring in `topologyprocessor` and `throughputmeasurementprocessor`).
+- **`make agent` runs ocb** against the manifest of the selected `DISTRO` (default `full`: `manifests/dynatrace-bindplane-otel-collector/manifest.yaml`), overlays `extension/opampconnectionextension/cmd/main/main.go`, and compiles. Build tags: `bindplane embed_library` (see `AGENT_BUILD_TAGS` in the Makefile; `bindplane` enables Bindplane registry wiring in `topologyprocessor` and `throughputmeasurementprocessor`).
 - `make verify-manifest` is the CI gate for manifest correctness — regenerate sources + compile to `/dev/null`.
-- There's no top-level `go.mod`. ocb generates a per-build `go.mod` inside `./build/`.
+- There's no top-level `go.mod`. ocb generates a per-build `go.mod` inside `./build/` (`./build-slim/` for `DISTRO=slim`).
 - Multi-platform cross-compilation support
 - Separate binaries for collector and updater
 - Goreleaser for automated releases
