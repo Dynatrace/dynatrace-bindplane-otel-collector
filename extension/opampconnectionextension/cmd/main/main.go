@@ -37,6 +37,7 @@ import (
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/runtime"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
+	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/spf13/pflag"
 )
 
@@ -71,13 +72,41 @@ func main() {
 	}
 
 	runtime.Run(runtime.Options{
-		Factories:            factories,
-		Version:              version.Version(),
-		CollectorConfigPaths: *collectorConfigPaths,
-		ManagerConfigPath:    *managerConfigPath,
-		LoggingConfigPath:    *loggingConfigPath,
-		FeatureGates:         *featureGates,
+		Factories:                  factories,
+		Version:                    version.Version(),
+		CollectorConfigPaths:       *collectorConfigPaths,
+		ManagerConfigPath:          *managerConfigPath,
+		LoggingConfigPath:          *loggingConfigPath,
+		FeatureGates:               *featureGates,
+		AvailableComponentsMutator: reportLegacyOpAMPConnectionNamespace,
 	})
+}
+
+// legacyOpAMPConnectionModule is where the opamp_connection extension lived
+// before it moved out of internal/ (#59). Bindplane v1.104.x identifies the
+// extension by that path, so keep reporting it next to the current one.
+const legacyOpAMPConnectionModule = "github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension"
+
+// reportLegacyOpAMPConnectionNamespace adds a second code.namespace entry to
+// the opamp_connection extension naming legacyOpAMPConnectionModule at the
+// version the current module reports. ponytail: delete once no supported
+// Bindplane release requires the internal/ path.
+func reportLegacyOpAMPConnectionNamespace(ac *protobufs.AvailableComponents) {
+	ext := ac.GetComponents()["extensions"].GetSubComponentMap()["opamp_connection"]
+	for _, kv := range ext.GetMetadata() {
+		if kv.GetKey() != "code.namespace" {
+			continue
+		}
+		_, version, ok := strings.Cut(kv.GetValue().GetStringValue(), " ")
+		if !ok {
+			return
+		}
+		ext.Metadata = append(ext.Metadata, &protobufs.KeyValue{
+			Key:   "code.namespace",
+			Value: &protobufs.AnyValue{Value: &protobufs.AnyValue_StringValue{StringValue: legacyOpAMPConnectionModule + " " + version}},
+		})
+		return
+	}
 }
 
 func defaultCollectorPaths() []string {

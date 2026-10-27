@@ -42,6 +42,7 @@ require (
 	go.uber.org/zap v1.28.0
 	golang.org/x/exp v0.0.0-20260727155853-b88d891fe743
 	golang.org/x/sys v0.48.0
+	google.golang.org/protobuf v1.36.12
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -261,7 +262,6 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260803160001-6ac0973c030d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260803160001-6ac0973c030d // indirect
 	google.golang.org/grpc v1.83.2 // indirect
-	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/apimachinery v0.35.4 // indirect
 	k8s.io/client-go v0.35.4 // indirect
