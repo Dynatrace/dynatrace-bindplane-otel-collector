@@ -84,7 +84,7 @@ func main() {
 }
 
 // legacyOpAMPConnectionModule is where the opamp_connection extension lived
-// before it moved out of internal/ (#59). Bindplane v1.104.x identifies the
+// before it moved out of internal/. Certain Bindplane versions identify the
 // extension by that path, so keep reporting it next to the current one.
 const legacyOpAMPConnectionModule = "github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension"
 
@@ -92,8 +92,8 @@ const legacyOpAMPConnectionModule = "github.com/dynatrace/dynatrace-bindplane-ot
 // the opamp_connection extension naming legacyOpAMPConnectionModule at the
 // version the current module reports, and folds that entry into the report
 // hash: the server caches reports by hash, so the mutated report must not
-// share the factory-set hash with the unmutated one. ponytail: delete once
-// no supported Bindplane release requires the internal/ path.
+// share the factory-set hash with the unmutated one.
+// Remove this once no supported version of Bindplane requires the internal module path.
 func reportLegacyOpAMPConnectionNamespace(ac *protobufs.AvailableComponents) {
 	ext := ac.GetComponents()["extensions"].GetSubComponentMap()["opamp_connection"]
 	for _, kv := range ext.GetMetadata() {
