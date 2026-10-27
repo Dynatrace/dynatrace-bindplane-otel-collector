@@ -66,8 +66,7 @@ type Options struct {
 	// AvailableComponents report after it is built from the factory set and
 	// before it is sent. Distributions use it to add or rewrite component
 	// metadata (for example, to report an additional code.namespace) without
-	// the runtime knowing the specifics. The report's hash is recomputed
-	// after the mutator runs. Nil leaves the report unchanged.
+	// the runtime knowing the specifics. Nil leaves the report unchanged.
 	AvailableComponentsMutator func(*protobufs.AvailableComponents)
 }
 

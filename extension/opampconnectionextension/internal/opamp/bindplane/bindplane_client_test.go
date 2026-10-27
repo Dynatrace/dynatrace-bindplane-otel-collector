@@ -1778,30 +1778,3 @@ func TestClient_Disconnect_NoSenders(t *testing.T) {
 	c.collectorMntrCtx, c.collectorMntrCancel = context.WithCancel(context.Background())
 	require.NoError(t, c.Disconnect(context.Background()))
 }
-
-func TestHashAvailableComponents(t *testing.T) {
-	report := func(ns string) *protobufs.AvailableComponents {
-		return &protobufs.AvailableComponents{
-			Hash: []byte("factory-set-hash"),
-			Components: map[string]*protobufs.ComponentDetails{
-				"extensions": {SubComponentMap: map[string]*protobufs.ComponentDetails{
-					"opamp_connection": {Metadata: []*protobufs.KeyValue{{
-						Key:   "code.namespace",
-						Value: &protobufs.AnyValue{Value: &protobufs.AnyValue_StringValue{StringValue: ns}},
-					}}},
-				}},
-			},
-		}
-	}
-
-	a, err := hashAvailableComponents(report("example.com/a v1.0.0"))
-	assert.NoError(t, err)
-	b, err := hashAvailableComponents(report("example.com/a v1.0.0"))
-	assert.NoError(t, err)
-	c, err := hashAvailableComponents(report("example.com/b v1.0.0"))
-	assert.NoError(t, err)
-
-	assert.Equal(t, a, b, "same content hashes the same")
-	assert.NotEqual(t, a, c, "a metadata change changes the hash")
-	assert.NotEqual(t, []byte("factory-set-hash"), a)
-}

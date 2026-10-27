@@ -29,6 +29,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"os"
@@ -89,8 +90,10 @@ const legacyOpAMPConnectionModule = "github.com/dynatrace/dynatrace-bindplane-ot
 
 // reportLegacyOpAMPConnectionNamespace adds a second code.namespace entry to
 // the opamp_connection extension naming legacyOpAMPConnectionModule at the
-// version the current module reports. ponytail: delete once no supported
-// Bindplane release requires the internal/ path.
+// version the current module reports, and folds that entry into the report
+// hash: the server caches reports by hash, so the mutated report must not
+// share the factory-set hash with the unmutated one. ponytail: delete once
+// no supported Bindplane release requires the internal/ path.
 func reportLegacyOpAMPConnectionNamespace(ac *protobufs.AvailableComponents) {
 	ext := ac.GetComponents()["extensions"].GetSubComponentMap()["opamp_connection"]
 	for _, kv := range ext.GetMetadata() {
@@ -101,10 +104,15 @@ func reportLegacyOpAMPConnectionNamespace(ac *protobufs.AvailableComponents) {
 		if !ok {
 			return
 		}
+		legacy := legacyOpAMPConnectionModule + " " + version
 		ext.Metadata = append(ext.Metadata, &protobufs.KeyValue{
 			Key:   "code.namespace",
-			Value: &protobufs.AnyValue{Value: &protobufs.AnyValue_StringValue{StringValue: legacyOpAMPConnectionModule + " " + version}},
+			Value: &protobufs.AnyValue{Value: &protobufs.AnyValue_StringValue{StringValue: legacy}},
 		})
+		h := sha256.New()
+		h.Write(ac.GetHash())
+		h.Write([]byte(legacy))
+		ac.Hash = h.Sum(nil)
 		return
 	}
 }

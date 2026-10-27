@@ -27,6 +27,7 @@ func codeNamespace(v string) *protobufs.KeyValue {
 
 func TestReportLegacyOpAMPConnectionNamespace(t *testing.T) {
 	ac := &protobufs.AvailableComponents{
+		Hash: []byte("factory-set-hash"),
 		Components: map[string]*protobufs.ComponentDetails{
 			"extensions": {SubComponentMap: map[string]*protobufs.ComponentDetails{
 				"opamp_connection": {Metadata: []*protobufs.KeyValue{codeNamespace("github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension v1.1.0")}},
@@ -42,8 +43,11 @@ func TestReportLegacyOpAMPConnectionNamespace(t *testing.T) {
 	require.Equal(t, "code.namespace", ext.Metadata[1].Key)
 	require.Equal(t, legacyOpAMPConnectionModule+" v1.1.0", ext.Metadata[1].Value.GetStringValue())
 	require.Len(t, ac.Components["extensions"].SubComponentMap["zpages"].Metadata, 1, "other components are untouched")
+	require.NotEqual(t, []byte("factory-set-hash"), ac.Hash, "the mutated report gets its own hash")
 }
 
 func TestReportLegacyOpAMPConnectionNamespace_NoExtension(t *testing.T) {
-	require.NotPanics(t, func() { reportLegacyOpAMPConnectionNamespace(&protobufs.AvailableComponents{}) })
+	ac := &protobufs.AvailableComponents{Hash: []byte("factory-set-hash")}
+	require.NotPanics(t, func() { reportLegacyOpAMPConnectionNamespace(ac) })
+	require.Equal(t, []byte("factory-set-hash"), ac.Hash, "an untouched report keeps its hash")
 }

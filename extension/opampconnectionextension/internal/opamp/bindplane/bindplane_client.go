@@ -17,7 +17,6 @@ package bindplane
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -41,7 +40,6 @@ import (
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -338,13 +336,6 @@ func (c *Client) Connect(ctx context.Context) error {
 	available := initAvailableComponents(c.collector.ModuleInfos())
 	if c.availableComponentsMutator != nil {
 		c.availableComponentsMutator(available)
-		// The server caches reports by hash, so a mutated report must not
-		// share the factory-set hash with the unmutated one.
-		if hash, err := hashAvailableComponents(available); err != nil {
-			c.logger.Error("Failed to hash mutated available components", zap.Error(err))
-		} else {
-			available.Hash = hash
-		}
 	}
 	if err := c.opampClient.SetAvailableComponents(available); err != nil {
 		c.logger.Error("Failed to set available components", zap.Error(err))
@@ -950,15 +941,4 @@ func (c *Client) safeGetDisconnecting() bool {
 
 func ptr[T any](v T) *T {
 	return &v
-}
-
-// hashAvailableComponents hashes the whole report, metadata included, unlike
-// generateAvailableComponentsHash which only covers the factory set.
-func hashAvailableComponents(ac *protobufs.AvailableComponents) ([]byte, error) {
-	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(ac)
-	if err != nil {
-		return nil, err
-	}
-	sum := sha256.Sum256(b)
-	return sum[:], nil
 }
