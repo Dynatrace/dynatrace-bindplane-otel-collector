@@ -39,7 +39,7 @@ extensions:
   # Bindplane OpAMP connection extension and the managed-mode runtime
   # (collector lifecycle, OpAMP client, packagestate, report manager, etc.),
   # published from this repo for other distros to consume. Local replace below.
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension v1.2.0
 
 exporters:
   - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.163.0
