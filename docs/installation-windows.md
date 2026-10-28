@@ -36,7 +36,7 @@ The script accepts the following parameters:
 | `-OpAMPEndpoint` | OpAMP server endpoint URL (e.g. `wss://app.bindplane.com/v1/opamp`). |
 | `-OpAMPSecretKey` | Secret key for OpAMP authentication. |
 | `-OpAMPLabels` | Comma-separated `key=value` labels for OpAMP (e.g. `configuration=windows,env=prod`). |
-| `-BaseUrl` | Base URL to download the MSI from instead of `https://bdot.bindplane.com`, e.g. a Bindplane server hosting agent artifacts. The MSI is downloaded from `{BaseUrl}/v{Version}/{MSI for the detected architecture}`. Requires `-Version`. |
+| `-BaseUrl` | Base URL to download the MSI from instead of `https://dbdot.bindplane.com`, e.g. a Bindplane server hosting agent artifacts. The MSI is downloaded from `{BaseUrl}/v{Version}/{MSI for the detected architecture}`. Requires `-Version`. |
 | `-MsiUrl` | Override the full MSI download URL. When set, `-Version`, `-BaseUrl` and architecture detection are ignored. |
 | `-MsiFile` | Path to a local MSI file to install. Skips all download and version resolution steps. |
 | `-SkipSignatureCheck` | Skip MSI Authenticode signature verification. |
