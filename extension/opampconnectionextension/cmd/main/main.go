@@ -29,6 +29,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"os"
@@ -37,6 +38,7 @@ import (
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/runtime"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
+	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/spf13/pflag"
 )
 
@@ -71,13 +73,48 @@ func main() {
 	}
 
 	runtime.Run(runtime.Options{
-		Factories:            factories,
-		Version:              version.Version(),
-		CollectorConfigPaths: *collectorConfigPaths,
-		ManagerConfigPath:    *managerConfigPath,
-		LoggingConfigPath:    *loggingConfigPath,
-		FeatureGates:         *featureGates,
+		Factories:                  factories,
+		Version:                    version.Version(),
+		CollectorConfigPaths:       *collectorConfigPaths,
+		ManagerConfigPath:          *managerConfigPath,
+		LoggingConfigPath:          *loggingConfigPath,
+		FeatureGates:               *featureGates,
+		AvailableComponentsMutator: reportLegacyOpAMPConnectionNamespace,
 	})
+}
+
+// legacyOpAMPConnectionModule is where the opamp_connection extension lived
+// before it moved out of internal/. Certain Bindplane versions identify the
+// extension by that path, so keep reporting it next to the current one.
+const legacyOpAMPConnectionModule = "github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/extension/opampconnectionextension"
+
+// reportLegacyOpAMPConnectionNamespace adds a second code.namespace entry to
+// the opamp_connection extension naming legacyOpAMPConnectionModule at the
+// version the current module reports, and folds that entry into the report
+// hash: the server caches reports by hash, so the mutated report must not
+// share the factory-set hash with the unmutated one.
+// Remove this once no supported version of Bindplane requires the internal module path.
+func reportLegacyOpAMPConnectionNamespace(ac *protobufs.AvailableComponents) {
+	ext := ac.GetComponents()["extensions"].GetSubComponentMap()["opamp_connection"]
+	for _, kv := range ext.GetMetadata() {
+		if kv.GetKey() != "code.namespace" {
+			continue
+		}
+		_, version, ok := strings.Cut(kv.GetValue().GetStringValue(), " ")
+		if !ok {
+			return
+		}
+		legacy := legacyOpAMPConnectionModule + " " + version
+		ext.Metadata = append(ext.Metadata, &protobufs.KeyValue{
+			Key:   "code.namespace",
+			Value: &protobufs.AnyValue{Value: &protobufs.AnyValue_StringValue{StringValue: legacy}},
+		})
+		h := sha256.New()
+		h.Write(ac.GetHash())
+		h.Write([]byte(legacy))
+		ac.Hash = h.Sum(nil)
+		return
+	}
 }
 
 func defaultCollectorPaths() []string {
