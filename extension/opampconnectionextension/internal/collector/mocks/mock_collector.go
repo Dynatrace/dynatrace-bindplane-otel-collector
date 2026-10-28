@@ -9,7 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	moduleinfo "go.opentelemetry.io/collector/service/internal/moduleinfo"
+	"go.opentelemetry.io/collector/service"
 
 	zap "go.uber.org/zap"
 )
@@ -40,18 +40,18 @@ func (_m *MockCollector) GetLoggingOpts() []zap.Option {
 }
 
 // ModuleInfos provides a mock function with no fields
-func (_m *MockCollector) ModuleInfos() moduleinfo.ModuleInfos {
+func (_m *MockCollector) ModuleInfos() service.ModuleInfos {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for ModuleInfos")
 	}
 
-	var r0 moduleinfo.ModuleInfos
-	if rf, ok := ret.Get(0).(func() moduleinfo.ModuleInfos); ok {
+	var r0 service.ModuleInfos
+	if rf, ok := ret.Get(0).(func() service.ModuleInfos); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(moduleinfo.ModuleInfos)
+		r0 = ret.Get(0).(service.ModuleInfos)
 	}
 
 	return r0
