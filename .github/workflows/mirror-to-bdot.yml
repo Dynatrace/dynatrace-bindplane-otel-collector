@@ -6,6 +6,7 @@ name: Mirror merged PR to BDOT
 on:
   pull_request_target:
     types: [closed]
+    branches: [main]
 
 # Only metadata is read here; the PR's code is never checked out or run, so
 # pull_request_target is safe and gives the job access to the App secrets.
