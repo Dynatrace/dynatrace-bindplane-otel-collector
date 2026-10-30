@@ -1,0 +1,57 @@
+name: Mirror merged PR to BDOT
+
+# When a PR merges, open a tracking issue on observIQ/bindplane-otel-collector
+# asking the author to mirror the change over to BDOT. Skipped for the
+# `dbdot-only` label and for PRs authored by dependabot.
+on:
+  pull_request_target:
+    types: [closed]
+
+# Only metadata is read here; the PR's code is never checked out or run, so
+# pull_request_target is safe and gives the job access to the App secrets.
+permissions:
+  contents: read
+
+jobs:
+  open-mirror-issue:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      !contains(github.event.pull_request.labels.*.name, 'dbdot-only')
+    steps:
+      # Mint a short-lived token for the GitHub App, scoped to the BDOT repo.
+      - name: Generate BDOT token
+        id: bdot-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.BDOT_ISSUE_APP_ID }}
+          private-key: ${{ secrets.BDOT_ISSUE_APP_PRIVATE_KEY }}
+          owner: observIQ
+          repositories: bindplane-otel-collector
+
+      - name: Open mirror issue on BDOT
+        env:
+          GH_TOKEN: ${{ steps.bdot-token.outputs.token }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          body="$(cat <<EOF
+          @${PR_AUTHOR}, your change was just merged into \`dynatrace-bindplane-otel-collector\` and should be mirrored over to BDOT.
+
+          **Source PR:** [${PR_TITLE} (#${PR_NUMBER})](${PR_URL})
+
+          ### What to do
+          - [ ] Mirror this change onto the default branch of \`bindplane-otel-collector\`.
+          - [ ] **If this is a serious security bug or patch**, also mirror it onto the \`release/v2.0.0\` branch. Skip this step otherwise.
+
+          _Opened automatically when the source PR merged. Add the \`dbdot-only\` label to a PR to suppress this._
+          EOF
+          )"
+
+          gh issue create \
+            --repo observIQ/bindplane-otel-collector \
+            --title "Mirror from DBDOT: ${PR_TITLE} (#${PR_NUMBER})" \
+            --body "${body}"
