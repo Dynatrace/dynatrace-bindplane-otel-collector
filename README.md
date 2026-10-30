@@ -246,17 +246,7 @@ Bindplane Cloud is the quickest way to get started with OpenTelemetry-native tel
 
 You can also get started with Bindplane On Prem for free by hosting it yourself.
 
-<a href="https://bindplane.com/download"><img src="https://res.cloudinary.com/du4nxa27k/image/upload/v1734000970/download-bindplane-on-prem_rhdrme.png" alt="Download" width="200px"></a>
-
-## Major Versions
-
-### V1
-
-V1 distributions of the DBDOT Collector use a custom OpAMP manager built into the DBDOT Collector to interface between the OpenTelemetry collector and the OpAMP server run by Bindplane.
-
-### V2
-
-V2 is the latest major release of the DBDOT Collector. This version is currently in [Beta](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/releases/tag/v2.0.0-beta.12). V2 distributions of the DBDOT Collector use the [OpenTelemetry OpAMP supervisor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor) to interface between the OpenTelemetry Collector and the OpAMP server run by Bindplane. For more information, [see this documentation](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/release/v2.0.0/docs/supervisor.md).
+<a href="https://bindplane.com/download"><img src="https://res.cloudinary.com/du4nxa27k/image/upload/v1734000970/download-bindplane-on-prem_rhdrme.png" alt="Download" width="200px"></a>.
 
 ## Community
 
@@ -272,6 +262,21 @@ Have an idea to improve the Dynatrace Bindplane Distribution of OpenTelemetry Co
 The Dynatrace Bindplane Distribution of OpenTelemetry Collector is an open source project. If you'd like to contribute, take a look at our [contribution guidelines](/CONTRIBUTING.md) and [developer guide](/docs/development.md).
 
 All sorts of contributions are **welcome and extremely helpful**. 🙌
+
+## Support
+
+This distribution is supported by the Dynatrace Support team, in accordance with the Dynatrace [support policy].
+
+For full support coverage, contact Dynatrace through the official support channels. Issues reported via GitHub are handled on a best-effort basis; support contracts and SLAs don't apply.
+
+Each minor version is supported for three months. Fixes are provided either as a patch release for the latest supported minor version or as part of a subsequent minor version release.
+
+This distribution depends on components provided upstream by the OpenTelemetry community. New versions of the distribution with updated upstream components are released on at least a monthly cadence. If the OpenTelemetry community decides to make a breaking change, it will be pulled into this distribution as we upgrade to newer versions of these upstream components. For the complete list of changes, please refer to the changelogs provided in the [opentelemetry-collector] releases and [opentelemetry-collector-contrib] releases pages. Further information on the stability guarantees provided upstream can be found in the definitions for the [OpenTelemetry Collector stability levels].
+
+[support policy]: https://support.dynatrace.com/
+[opentelemetry-collector releases]: https://github.com/open-telemetry/opentelemetry-collector/releases
+[opentelemetry-collector-contrib releases]: https://github.com/open-telemetry/opentelemetry-collector-contrib/releases
+[OpenTelemetry Collector stability levels]: https://github.com/open-telemetry/opentelemetry-collector#stability-levels
 
 ## How can we help?
 
