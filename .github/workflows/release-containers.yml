@@ -13,7 +13,7 @@ on:
   # since the triggering tag will be available directly on the context.
   #
   # workflow_run:
-  #   workflows: ["release"]
+  #   workflows: ["release-full"]
   #   types: [completed]
 
 permissions:
