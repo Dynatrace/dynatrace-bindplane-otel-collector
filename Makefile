@@ -706,22 +706,25 @@ for-all-modules:
 	    $${CMD} ); \
 	done
 
-# Release a new version of the agent. This will also tag all submodules
+# Release a new version of the agent. This will also tag all submodules, except for
+# RC versions (vX.Y.Z-rc.N) which only tag the root.
 .PHONY: release
 release:
 	@if [ -z "$(version)" ]; then \
 		echo "version was not set"; \
 		exit 1; \
 	fi
-	@if ! echo "$(version)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$'; then \
-		echo "version $(version) is invalid semver"; \
+	@if ! echo "$(version)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$$'; then \
+		echo "version $(version) is invalid semver (expected vX.Y.Z or vX.Y.Z-rc.N)"; \
 		exit 1; \
 	fi
 	# Tag the root and every module, then push only those tags. A checkout of
 	# this fork carries thousands of tags inherited from upstream; `git push
-	# --tags` would push all of them.
+	# --tags` would push all of them. RC versions release the slim build only,
+	# which needs no module tags, so only the root is tagged for them.
 	@set -e; tags="$(version)"; git tag "$(version)"; \
 	for dir in $(ALL_MODULES); do \
+		if echo "$(version)" | grep -q -- '-rc\.'; then break; fi; \
 		if [ "$${dir}" = "." ]; then continue; fi; \
 		case " $(UNRELEASED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		tag="$${dir#./}/$(version)"; \
