@@ -19,6 +19,7 @@ import (
 	"runtime"
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/opamp"
+	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"go.opentelemetry.io/collector/component"
@@ -114,6 +115,8 @@ func (i *identity) ToAgentDescription() *protobufs.AgentDescription {
 		opamp.StringKeyValue("os.family", i.oSType),
 		opamp.StringKeyValue("host.name", i.hostname),
 		opamp.StringKeyValue("host.mac_address", i.mac),
+		// Maps to the session_id metric label on the server, the same way host.mac_address maps to mac_address.
+		opamp.StringKeyValue("bindplane.session_id", measurements.SessionID),
 	}
 
 	if i.labels != nil {
