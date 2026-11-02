@@ -1,11 +1,42 @@
-name: release
+name: base-release
+
+# Reusable release pipeline shared by the per-build release workflows
+# (release-full.yml, ...). Callers must pass `secrets: inherit` and grant
+# `contents: write`, which the release job needs to publish the GitHub release.
 on:
-  push:
-    tags:
-      - "v[0-9]*"
-      # Only plain semver tags release the full build. Slim RC tags
-      # (slim/vX.Y.Z-rc.N) do not match "v[0-9]*" anyway.
-      - "!v*-*"
+  workflow_call:
+    inputs:
+      product:
+        description: "Product slug used in artifact names (e.g. dynatrace-bindplane-otel-collector)"
+        required: true
+        type: string
+      manifest:
+        description: "ocb manifest whose dist.version the tag is checked against"
+        required: true
+        type: string
+      version-check-mode:
+        description: "How the tag is compared to dist.version: exact or core (see scripts/ci/check-tag-version.sh)"
+        required: true
+        type: string
+      goreleaser-config:
+        description: "Path of the goreleaser config of the build"
+        required: true
+        type: string
+      build-msi:
+        description: "Build and sign the Windows MSIs, the signed Windows binaries and install script, and verify the signatures after the release"
+        required: false
+        type: boolean
+        default: false
+      gcs:
+        description: "Authenticate to GCP and install the gcloud SDK, for the goreleaser GCS blob upload and publish-latest-scripts"
+        required: false
+        type: boolean
+        default: false
+      publish-latest-scripts:
+        description: "Upload the install scripts and GPG keys to gs://dbdot-release/latest, requires gcs"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -17,11 +48,14 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check tag matches manifest version
-        run: ./scripts/ci/check-tag-version.sh "$TAG" manifests/dynatrace-bindplane-otel-collector/manifest.yaml exact
+        run: ./scripts/ci/check-tag-version.sh "$TAG" "$MANIFEST" "$MODE"
         env:
           TAG: ${{ github.ref_name }}
+          MANIFEST: ${{ inputs.manifest }}
+          MODE: ${{ inputs.version-check-mode }}
 
   build-msi:
+    if: ${{ inputs.build-msi }}
     needs: [check-version]
     uses: ./.github/workflows/build-signed-windows.yml
     with:
@@ -31,6 +65,9 @@ jobs:
 
   release:
     needs: [check-version, build-msi, build-aix]
+    # build-msi is skipped when the caller does not build MSIs; without a status
+    # function a skipped dependency would skip this job too.
+    if: ${{ !cancelled() && !failure() }}
     permissions:
       contents: write
     runs-on:
@@ -49,11 +86,13 @@ jobs:
           # For goreleaser
           fetch-depth: 0
       - name: Authenticate to GCP
+        if: ${{ inputs.gcs }}
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           project_id: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_PROJECT_ID }}
           credentials_json: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_CREDENTIALS }}
       - name: Install Gcloud SDK
+        if: ${{ inputs.gcs }}
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
@@ -78,10 +117,12 @@ jobs:
         timeout-minutes: 10
         run: bash .github/scripts/retry.sh make install-ocb
       - name: Retrieve Windows AMD64 MSI Installer
+        if: ${{ inputs.build-msi }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-amd64.msi
       - name: Retrieve Windows ARM64 MSI Installer
+        if: ${{ inputs.build-msi }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-arm64.msi
@@ -102,15 +143,17 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/goreleaser
-          key: ${{ runner.os }}-goreleaser-${{ hashFiles('manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml', '**/go.sum') }}
+          key: ${{ runner.os }}-goreleaser-${{ hashFiles(inputs.goreleaser-config, '**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-goreleaser-
       - name: Sign AMD64 MSI
+        if: ${{ inputs.build-msi }}
         run: cosign sign-blob --key=cosign.key --output-signature ./dynatrace-bindplane-otel-collector-amd64.msi.sig ./dynatrace-bindplane-otel-collector-amd64.msi
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
       - name: Sign ARM64 MSI
+        if: ${{ inputs.build-msi }}
         run: cosign sign-blob --key=cosign.key --output-signature ./dynatrace-bindplane-otel-collector-arm64.msi.sig ./dynatrace-bindplane-otel-collector-arm64.msi
         shell: bash
         env:
@@ -120,6 +163,7 @@ jobs:
       # the tracked script from a workflow step fails the release with
       # "git is in a dirty state". The download directory is gitignored.
       - name: Retrieve Signed Windows Install Script
+        if: ${{ inputs.build-msi }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signed-install-script
@@ -127,11 +171,20 @@ jobs:
       # The Windows binaries goreleaser packages must be the signed ones from
       # the build-msi job, not the unsigned copies its before-hook builds here.
       - name: Retrieve Signed Windows Binaries
+        if: ${{ inputs.build-msi }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: signed-windows-*
           merge-multiple: true
           path: signed-windows
+      # Exported here instead of in the goreleaser step's env: the overlay script
+      # treats a set-but-empty SIGNED_WINDOWS_DIR as an error, so for builds
+      # without MSIs the variables must stay unset.
+      - name: Export signed Windows paths
+        if: ${{ inputs.build-msi }}
+        run: |
+          echo "SIGNED_WINDOWS_DIR=signed-windows" >> "$GITHUB_ENV"
+          echo "SIGNED_INSTALL_SCRIPT=signed-install-script/install_windows.ps1" >> "$GITHUB_ENV"
       - name: Write signing key for nFPM
         shell: bash
         run: |
@@ -143,27 +196,26 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --clean --timeout 120m --config manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml
+          args: release --clean --timeout 120m --config ${{ inputs.goreleaser-config }}
         env:
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          SIGNED_WINDOWS_DIR: signed-windows
-          SIGNED_INSTALL_SCRIPT: signed-install-script/install_windows.ps1
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
           SIGNING_KEY_FILE: ci-signing-key.asc
       # Create artifact bundles (all-platform plus one per OS) and upload to release
       - name: Create artifact archives
-        run: ./scripts/ci/create-artifact-bundles.sh ${{ github.ref_name }}
+        run: ./scripts/ci/create-artifact-bundles.sh ${{ github.ref_name }} ${{ inputs.product }}
       - name: Sign artifact archives
         run: |
-          for bundle in ./dynatrace-bindplane-otel-collector-${{ github.ref_name }}-artifacts*.tar.gz; do
+          for bundle in ./${{ inputs.product }}-${{ github.ref_name }}-artifacts*.tar.gz; do
             cosign sign-blob --key=cosign.key --output-signature "$bundle.sig" "$bundle"
           done
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
       - name: Upload Latest Install Scripts
+        if: ${{ inputs.publish-latest-scripts }}
         run: |
           gsutil cp ./scripts/install/install_unix.sh gs://dbdot-release/latest/install_unix.sh
           gsutil cp ./scripts/install/install_macos.sh gs://dbdot-release/latest/install_macos.sh
@@ -173,7 +225,7 @@ jobs:
         uses: AButler/upload-release-assets@34491005a5d7ec239a784e460807ce844fde7962 # v4.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          files: "dynatrace-bindplane-otel-collector-${{ github.ref_name }}-artifacts*.tar.gz*"
+          files: "${{ inputs.product }}-${{ github.ref_name }}-artifacts*.tar.gz*"
           release-tag: ${{ github.ref_name }}
       # TODO(dbdot): the installer testing repo does not exist yet. GITHUB_TOKEN
       # cannot dispatch to another repository; this needs a PAT or GitHub App
@@ -270,6 +322,7 @@ jobs:
   # MSI. Releases publish as a prerelease first, so a failure here blocks
   # promotion instead of arriving after customers have the artifacts.
   verify-windows-release:
+    if: ${{ inputs.build-msi }}
     needs: [release]
     runs-on: windows-2022
     steps:
