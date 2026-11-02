@@ -6,12 +6,21 @@ on:
         description: "Collector Version"
         required: true
         default: "v0.0.1"
+      distro:
+        description: "Build to rehearse the release for"
+        required: true
+        type: choice
+        options:
+          - full
+          - slim
+        default: full
 
 permissions:
   contents: read
 
 jobs:
   build-msi:
+    if: ${{ inputs.distro == 'full' }}
     uses: ./.github/workflows/build-signed-windows.yml
     with:
       version: ${{ inputs.version }}
@@ -23,6 +32,12 @@ jobs:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
     needs: [build-msi, release-test-aix]
+    # build-msi is skipped for slim; without a status function a skipped
+    # dependency would skip this job too.
+    if: ${{ !cancelled() && !failure() }}
+    env:
+      PRODUCT: ${{ inputs.distro == 'slim' && 'dynatrace-bindplane-otel-collector-slim' || 'dynatrace-bindplane-otel-collector' }}
+      GORELEASER_CONFIG: ${{ inputs.distro == 'slim' && 'manifests/dynatrace-bindplane-otel-collector-slim/.goreleaser.yml' || 'manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml' }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,37 +68,44 @@ jobs:
         run: bash .github/scripts/retry.sh make install-ocb
 
       - name: Retrieve Windows AMD64 MSI Installer
+        if: ${{ inputs.distro == 'full' }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-amd64.msi
 
       - name: Retrieve Windows ARM64 MSI Installer
+        if: ${{ inputs.distro == 'full' }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-arm64.msi
 
       - name: Retrieve AIX Packages
+        if: ${{ inputs.distro == 'full' }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: aix-dist
           path: aix-dist
 
       - name: Install cosign
+        if: ${{ inputs.distro == 'full' }}
         timeout-minutes: 10
         run: bash .github/scripts/retry.sh go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
       - name: Build cosign key file
+        if: ${{ inputs.distro == 'full' }}
         run: 'echo "$COSIGN_PRIVATE_KEY" >> cosign.key'
         shell: bash
         env:
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
 
       - name: Sign AMD64 MSI
+        if: ${{ inputs.distro == 'full' }}
         run: cosign sign-blob --key=cosign.key --output-signature ./dynatrace-bindplane-otel-collector-amd64.msi.sig ./dynatrace-bindplane-otel-collector-amd64.msi
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
 
       - name: Sign ARM64 MSI
+        if: ${{ inputs.distro == 'full' }}
         run: cosign sign-blob --key=cosign.key --output-signature ./dynatrace-bindplane-otel-collector-arm64.msi.sig ./dynatrace-bindplane-otel-collector-arm64.msi
         shell: bash
         env:
@@ -96,7 +118,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/goreleaser
-          key: ${{ runner.os }}-goreleaser-${{ hashFiles('manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml', '**/go.sum') }}
+          key: ${{ runner.os }}-goreleaser-${{ hashFiles(env.GORELEASER_CONFIG, '**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-goreleaser-
 
@@ -105,6 +127,7 @@ jobs:
       # the tracked script from a workflow step fails the release with
       # "git is in a dirty state". The download directory is gitignored.
       - name: Retrieve Signed Windows Install Script
+        if: ${{ inputs.distro == 'full' }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signed-install-script
@@ -112,11 +135,32 @@ jobs:
       # The Windows binaries goreleaser packages must be the signed ones from
       # the build-msi job, not the unsigned copies its before-hook builds here.
       - name: Retrieve Signed Windows Binaries
+        if: ${{ inputs.distro == 'full' }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: signed-windows-*
           merge-multiple: true
           path: signed-windows
+      # Exported here instead of in the goreleaser step's env: the overlay script
+      # treats a set-but-empty SIGNED_WINDOWS_DIR as an error, so for builds
+      # without MSIs the variables must stay unset.
+      - name: Export signed Windows paths
+        if: ${{ inputs.distro == 'full' }}
+        run: |
+          echo "SIGNED_WINDOWS_DIR=signed-windows" >> "$GITHUB_ENV"
+          echo "SIGNED_INSTALL_SCRIPT=signed-install-script/install_windows.ps1" >> "$GITHUB_ENV"
+      - name: Install cyclonedx-gomod
+        if: ${{ inputs.distro == 'slim' }}
+        timeout-minutes: 10
+        run: bash .github/scripts/retry.sh go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.12.0
+      - name: Set up QEMU
+        if: ${{ inputs.distro == 'slim' }}
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+        with:
+          platforms: arm64,ppc64le
+      - name: Set up Docker Buildx
+        if: ${{ inputs.distro == 'slim' }}
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Write signing key for nFPM
         shell: bash
         run: |
@@ -128,13 +172,12 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --skip=publish --skip=validate --clean --config manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml
+          # Slim signs keyless, which needs the OIDC identity of a real release run.
+          args: release --skip=publish --skip=validate${{ inputs.distro == 'slim' && ' --skip=sign' || '' }} --clean --config ${{ env.GORELEASER_CONFIG }}
         env:
           GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          SIGNED_WINDOWS_DIR: signed-windows
-          SIGNED_INSTALL_SCRIPT: signed-install-script/install_windows.ps1
           SIGNING_KEY_FILE: ci-signing-key.asc
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
 
@@ -143,11 +186,14 @@ jobs:
           ls -laR dist/
 
       - name: Create artifact archives
-        run: ./scripts/ci/create-artifact-bundles.sh ${{ github.event.inputs.version }}
+        run: ./scripts/ci/create-artifact-bundles.sh ${{ github.event.inputs.version }} ${{ env.PRODUCT }}
+        env:
+          BUNDLE_INSTALLERS: ${{ inputs.distro == 'full' }}
 
       - name: Sign artifact archives
+        if: ${{ inputs.distro == 'full' }}
         run: |
-          for bundle in ./dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts*.tar.gz; do
+          for bundle in ./${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts*.tar.gz; do
             cosign sign-blob --key=cosign.key --output-signature "$bundle.sig" "$bundle"
           done
         shell: bash
@@ -156,7 +202,7 @@ jobs:
 
       - name: Check Artifact Bundles
         run: |
-          ls -la dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts*.tar.gz*
+          ls -la ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts*.tar.gz*
           for dir in bundle-*; do
             echo "== $dir"
             ls -la "$dir"
@@ -166,32 +212,33 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts.tar.gz
-          path: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts.tar.gz
+          name: ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts.tar.gz
+          path: ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts.tar.gz
           retention-days: 1
 
       - name: Upload Linux build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-linux.tar.gz
-          path: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-linux.tar.gz
+          name: ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts-linux.tar.gz
+          path: ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts-linux.tar.gz
           retention-days: 1
 
       - name: Upload macOS build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-darwin.tar.gz
-          path: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-darwin.tar.gz
+          name: ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts-darwin.tar.gz
+          path: ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts-darwin.tar.gz
           retention-days: 1
 
       - name: Upload Windows build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-windows.tar.gz
-          path: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-windows.tar.gz
+          name: ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts-windows.tar.gz
+          path: ${{ env.PRODUCT }}-${{ github.event.inputs.version }}-artifacts-windows.tar.gz
           retention-days: 1
 
       - name: Upload AIX build artifacts
+        if: ${{ inputs.distro == 'full' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-aix.tar.gz
@@ -202,6 +249,8 @@ jobs:
   # The release-test job lists the packages in the main SHA256SUMS and the
   # artifact bundles.
   release-test-aix:
+    # The slim build has no AIX package.
+    if: ${{ inputs.distro == 'full' }}
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
@@ -283,6 +332,7 @@ jobs:
   # The rehearsal runs goreleaser with --skip=publish, so there is no GitHub
   # release to read. Verify the artifact bundle the release-test job uploads.
   verify-windows-release:
+    if: ${{ inputs.distro == 'full' }}
     needs: [release-test]
     runs-on: windows-2022
     steps:
