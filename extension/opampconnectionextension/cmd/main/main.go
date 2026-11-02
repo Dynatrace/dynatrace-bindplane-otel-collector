@@ -36,6 +36,7 @@ import (
 	"strings"
 	_ "time/tzdata"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/runtime"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
 	"github.com/open-telemetry/opamp-go/protobufs"
@@ -61,7 +62,9 @@ func main() {
 	pflag.Parse()
 
 	if *showVersion {
-		fmt.Println("dynatrace-bindplane-otel-collector version", version.Version())
+		// The product name is stamped at link time (see PRODUCT_NAME in the Makefile),
+		// so each distribution reports its own name.
+		fmt.Println(packagestate.CollectorPackageName(), "version", version.Version())
 		fmt.Println("commit:", version.GitHash())
 		fmt.Println("built at:", version.Date())
 		return
