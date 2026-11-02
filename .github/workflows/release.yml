@@ -3,12 +3,25 @@ on:
   push:
     tags:
       - "v[0-9]*"
+      # RC tags (vX.Y.Z-rc.N) release the slim build, not this one.
+      - "!v*-*"
 
 permissions:
   contents: read
 
 jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check tag matches manifest version
+        run: ./scripts/ci/check-tag-version.sh "$TAG" manifests/dynatrace-bindplane-otel-collector/manifest.yaml exact
+        env:
+          TAG: ${{ github.ref_name }}
+
   build-msi:
+    needs: [check-version]
     uses: ./.github/workflows/build-signed-windows.yml
     with:
       version: ${{ github.ref_name }}
@@ -16,7 +29,7 @@ jobs:
     secrets: inherit
 
   release:
-    needs: [build-msi, build-aix]
+    needs: [check-version, build-msi, build-aix]
     permissions:
       contents: write
     runs-on:
@@ -175,6 +188,7 @@ jobs:
   # AIX builds from its own goreleaser config. The release job publishes the
   # packages and lists their hashes in the main SHA256SUMS.
   build-aix:
+    needs: [check-version]
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores

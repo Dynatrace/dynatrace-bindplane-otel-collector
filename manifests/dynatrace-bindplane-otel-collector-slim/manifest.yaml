@@ -2,7 +2,7 @@ dist:
   name: dynatrace-bindplane-otel-collector-slim
   description: Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
   module: github.com/dynatrace/dynatrace-bindplane-otel-collector/build-slim
-  version: 0.0.0
+  version: 1.2.0
   output_path: ./build-slim
 
 conf_resolver:
