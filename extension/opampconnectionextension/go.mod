@@ -5,7 +5,7 @@ go 1.26.10
 require (
 	github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report v1.2.0
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.2.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.2.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.2.1-0.20261102154039-70d24094170a
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.2.0
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version v1.2.0
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.2.0

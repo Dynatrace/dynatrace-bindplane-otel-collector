@@ -134,8 +134,8 @@ github.com/docker/go-units v0.5.0 h1:69rxXcBk27SvSaaxTtLh/8llcHD8vYHT7WSdRZ/jvr4
 github.com/docker/go-units v0.5.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
 github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.2.0 h1:OILshSGyF/kUdAeYz79723xksakH+NDGRp3fZDCwnec=
 github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.2.0/go.mod h1:sWI+1dDbW68vCJyK5VJSy0Z+QFu7UbDYu+oKPTGljYA=
-github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.2.0 h1:pJRVcQq4MPn3i9ecvbu0O7EYNQLrmhysKqPLnqXt4jg=
-github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.2.0/go.mod h1:g5CTGLKgPY07g+tORRzeJyz9v22f3ZJXp9lPLpCLDJw=
+github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.2.1-0.20261102154039-70d24094170a h1:CJTY4O0EjFZ2/WVl4wO5RjfR5gimVr6t+AEkyXOjVTM=
+github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.2.1-0.20261102154039-70d24094170a/go.mod h1:FnDqSXPN6yOImmICsfESqSUY1D7s+if1IrlPtdjiOqQ=
 github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.2.0 h1:xDHIcCdaSDoKsVMK/QzNFA6XhpaS7SWDlTsuxBaZQxs=
 github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.2.0/go.mod h1:zeIsrttG02zZ0OkWwhmT5Rf0wkF7E8S+LN8l4L2IJqM=
 github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/snapshot v1.2.0 h1:JdqyUGs31ouwPlltPQ69jpK/Bp9mlplL74VsF8cGl38=

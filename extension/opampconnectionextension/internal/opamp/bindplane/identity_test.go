@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/opamp"
+	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -107,6 +108,7 @@ func TestToAgentDescription(t *testing.T) {
 					opamp.StringKeyValue("os.family", "linux"),
 					opamp.StringKeyValue("host.name", "my-linux-box"),
 					opamp.StringKeyValue("host.mac_address", "68-C7-B4-EB-A8-D2"),
+					opamp.StringKeyValue("bindplane.session_id", measurements.SessionID),
 					opamp.StringKeyValue("service.key", "test-key"),
 				},
 			},
@@ -139,6 +141,7 @@ func TestToAgentDescription(t *testing.T) {
 					opamp.StringKeyValue("os.family", "linux"),
 					opamp.StringKeyValue("host.name", "my-linux-box"),
 					opamp.StringKeyValue("host.mac_address", "68-C7-B4-EB-A8-D2"),
+					opamp.StringKeyValue("bindplane.session_id", measurements.SessionID),
 					opamp.StringKeyValue("service.labels", labelsContents),
 					opamp.StringKeyValue("service.key", "test-key"),
 				},
