@@ -116,7 +116,7 @@ jobs:
           if-no-files-found: error
 
       # Container images: goreleaser in nightly mode against the dedicated
-      # .goreleaser-docker-nightly.yml. Nightly mode needs no tag and creates
+      # manifests/dynatrace-bindplane-otel-collector/.goreleaser-docker-nightly.yml. Nightly mode needs no tag and creates
       # no GitHub release; only the dynatrace-bindplane-otel-collector-nightly* images are published.
       - name: Stage binaries for goreleaser
         # Into tmp/ (where the config's prebuilt paths point) — goreleaser's
@@ -158,7 +158,7 @@ jobs:
           version: "v2.12.5"
           # --skip=publish: build the images but push nothing when
           # push_images is unchecked on a manual dispatch.
-          args: release --clean --nightly --timeout 120m --config .goreleaser-docker-nightly.yml ${{ (github.event_name == 'workflow_dispatch' && !inputs.push_images) && '--skip=publish' || '' }}
+          args: release --clean --nightly --timeout 120m --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-docker-nightly.yml ${{ (github.event_name == 'workflow_dispatch' && !inputs.push_images) && '--skip=publish' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}

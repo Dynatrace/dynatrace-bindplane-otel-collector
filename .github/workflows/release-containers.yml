@@ -73,7 +73,7 @@ jobs:
       # Google Artifact Registry publishing are added back under
       # Dynatrace-owned orgs/registries, restore the DockerHub and GAR
       # login steps here (docker/login-action) along with the image
-      # templates in .goreleaser-docker.yml.
+      # templates in manifests/dynatrace-bindplane-otel-collector/.goreleaser-docker.yml.
       - name: Login to Github Container Registry
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
@@ -84,7 +84,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/goreleaser
-          key: ${{ runner.os }}-goreleaser-${{ hashFiles('.goreleaser-docker.yml', '**/go.sum') }}
+          key: ${{ runner.os }}-goreleaser-${{ hashFiles('manifests/dynatrace-bindplane-otel-collector/.goreleaser-docker.yml', '**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-goreleaser-
       - name: Run GoReleaser
@@ -92,7 +92,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --clean --timeout 120m --config .goreleaser-docker.yml
+          args: release --clean --timeout 120m --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-docker.yml
         env:
           GORELEASER_CURRENT_TAG: ${{ github.event.inputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
