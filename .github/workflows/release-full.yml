@@ -1,0 +1,27 @@
+name: release-full
+
+# Releases the full build from a plain semver tag. RC tags (vX.Y.Z-rc.N) are
+# reserved for the slim build.
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+      - "!v*-*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/base-release.yml
+    with:
+      product: dynatrace-bindplane-otel-collector
+      manifest: manifests/dynatrace-bindplane-otel-collector/manifest.yaml
+      version-check-mode: exact
+      goreleaser-config: manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml
+      build-msi: true
+      gcs: true
+      publish-latest-scripts: true
+    secrets: inherit

@@ -325,7 +325,7 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && go install github.com/mgechev/revive
 	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/collector/cmd/mdatagen
 	cd $(TOOLS_MOD_DIR) && go install github.com/securego/gosec/v2/cmd/gosec
-# update cosign in release.yml when updating this version
+# update cosign in base-release.yml when updating this version
 # update cosign in docs/verify-signature.md when updating this version
 	go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
 	cd $(TOOLS_MOD_DIR) && go install github.com/uw-labs/lichen

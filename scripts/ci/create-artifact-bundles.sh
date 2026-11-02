@@ -16,11 +16,11 @@
 # Bundles the release artifacts into tarballs that get attached to the release.
 #
 # Produces, in the current directory:
-#   dynatrace-bindplane-otel-collector-<version>-artifacts.tar.gz          every artifact
-#   dynatrace-bindplane-otel-collector-<version>-artifacts-linux.tar.gz    Linux only
-#   dynatrace-bindplane-otel-collector-<version>-artifacts-darwin.tar.gz   macOS only
-#   dynatrace-bindplane-otel-collector-<version>-artifacts-windows.tar.gz  Windows only
-#   dynatrace-bindplane-otel-collector-<version>-artifacts-aix.tar.gz      AIX only
+#   <product>-<version>-artifacts.tar.gz          every artifact
+#   <product>-<version>-artifacts-linux.tar.gz    Linux only
+#   <product>-<version>-artifacts-darwin.tar.gz   macOS only
+#   <product>-<version>-artifacts-windows.tar.gz  Windows only
+#   <product>-<version>-artifacts-aix.tar.gz      AIX only
 #
 # The all-platform bundle is kept until consumers have moved to the
 # per-platform bundles. Bindplane merges per-platform bundles uploaded for the
@@ -28,20 +28,24 @@
 # its platforms, the full SHA256SUMS file, and gpg-keys.tar.gz. Verify a
 # per-platform bundle's contents with `sha256sum -c --ignore-missing`.
 #
-# Usage: create-artifact-bundles.sh <version>
+# Usage: create-artifact-bundles.sh <version> [product]
+#
+# product is the prefix of the bundle names and defaults to
+# dynatrace-bindplane-otel-collector.
 #
 # Run from the repository root after goreleaser has populated ./dist, the
 # MSIs have been downloaded to the root, and the AIX packages to ./aix-dist.
 
 set -euo pipefail
 
-if [ "$#" -ne 1 ]; then
-  echo "usage: $0 <version>" >&2
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+  echo "usage: $0 <version> [product]" >&2
   exit 1
 fi
 
 version="$1"
-prefix="dynatrace-bindplane-otel-collector-${version}"
+product="${2:-dynatrace-bindplane-otel-collector}"
+prefix="${product}-${version}"
 
 # Fail on a glob that matches nothing rather than copying the literal pattern.
 shopt -s failglob
