@@ -13,12 +13,19 @@ permissions:
 
 jobs:
   release:
+    # Ceiling for the jobs of the reusable workflow, which request what they need.
+    # The full build signs with a key file, so its release job only uses contents.
     permissions:
       contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+      packages: write
     uses: ./.github/workflows/base-release.yml
     with:
       product: dynatrace-bindplane-otel-collector
       version-check-mode: exact
       build-msi: true
+      build-aix: true
       gcs: true
     secrets: inherit

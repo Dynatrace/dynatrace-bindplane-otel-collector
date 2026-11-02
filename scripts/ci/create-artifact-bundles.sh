@@ -16,17 +16,15 @@
 # Bundles the release artifacts into tarballs that get attached to the release.
 #
 # Produces, in the current directory:
-#   <product>-<version>-artifacts.tar.gz          every artifact
 #   <product>-<version>-artifacts-linux.tar.gz    Linux only
 #   <product>-<version>-artifacts-darwin.tar.gz   macOS only
 #   <product>-<version>-artifacts-windows.tar.gz  Windows only
 #   <product>-<version>-artifacts-aix.tar.gz      AIX only
 #
-# The all-platform bundle is kept until consumers have moved to the
-# per-platform bundles. Bindplane merges per-platform bundles uploaded for the
-# same version, so each bundle is self-contained: it carries every artifact for
-# its platforms, the full SHA256SUMS file, and gpg-keys.tar.gz. Verify a
-# per-platform bundle's contents with `sha256sum -c --ignore-missing`.
+# Bindplane merges per-platform bundles uploaded for the same version, so each
+# bundle is self-contained: it carries every artifact for its platforms, the
+# full SHA256SUMS file, and gpg-keys.tar.gz. Verify a per-platform bundle's
+# contents with `sha256sum -c --ignore-missing`.
 #
 # Usage: create-artifact-bundles.sh <version> [product]
 #
@@ -35,6 +33,11 @@
 #
 # Run from the repository root after goreleaser has populated ./dist, the
 # MSIs have been downloaded to the root, and the AIX packages to ./aix-dist.
+# Without an ./aix-dist there are no AIX packages and no AIX bundle.
+#
+# BUNDLE_INSTALLERS (default true) controls whether the install scripts and the
+# MSIs are bundled. Builds that ship neither, like the slim build, set it to
+# false. apk packages are bundled when goreleaser produced any.
 
 set -euo pipefail
 
@@ -67,26 +70,56 @@ common=(
   ./dist/*SHA256SUMS
 )
 
+# Optional files. These are not allowed to fail the run when missing, so they
+# are collected with failglob off and nullglob on.
+shopt -u failglob
+shopt -s nullglob
+apks=(./dist/*.apk)
+aix=(./aix-dist/*)
+shopt -u nullglob
+shopt -s failglob
+
+installers_all=()
+installers_unix=()
+installers_macos=()
+installers_windows=()
+msis=()
+if [ "${BUNDLE_INSTALLERS:-true}" = "true" ]; then
+  installers_all=(./scripts/install/*.sh ./scripts/install/*.ps1)
+  installers_unix=(./scripts/install/install_unix.sh)
+  installers_macos=(./scripts/install/install_macos.sh)
+  installers_windows=(./scripts/install/install_windows.ps1)
+  msis=(
+    ./dynatrace-bindplane-otel-collector-amd64.msi
+    ./dynatrace-bindplane-otel-collector-arm64.msi
+  )
+fi
+
+# "${arr[@]+"${arr[@]}"}" expands an empty array to nothing under set -u on
+# every bash version.
 bundle artifacts-linux \
   "${common[@]}" \
-  ./scripts/install/install_unix.sh \
+  ${installers_unix[@]+"${installers_unix[@]}"} \
   ./dist/*-linux-*.tar.gz \
   ./dist/*.rpm \
-  ./dist/*.deb
+  ./dist/*.deb \
+  ${apks[@]+"${apks[@]}"}
 
 bundle artifacts-darwin \
   "${common[@]}" \
-  ./scripts/install/install_macos.sh \
+  ${installers_macos[@]+"${installers_macos[@]}"} \
   ./dist/*-darwin-*.tar.gz
 
 bundle artifacts-windows \
   "${common[@]}" \
-  ./scripts/install/install_windows.ps1 \
-  ./dynatrace-bindplane-otel-collector-amd64.msi \
-  ./dynatrace-bindplane-otel-collector-arm64.msi \
+  ${installers_windows[@]+"${installers_windows[@]}"} \
+  ${msis[@]+"${msis[@]}"} \
   ./dist/*-windows-*.zip
 
-bundle artifacts-aix \
-  "${common[@]}" \
-  ./scripts/install/install_unix.sh \
-  ./aix-dist/*
+# Builds without AIX packages, like the slim build, have no AIX bundle.
+if [ "${#aix[@]}" -gt 0 ]; then
+  bundle artifacts-aix \
+    "${common[@]}" \
+    ./scripts/install/install_unix.sh \
+    "${aix[@]}"
+fi
