@@ -1,5 +1,5 @@
 # Build is responsible for testing builds on all supported platforms.
-# It is broken up into three separate jobs with targeted builds so that each OS will
+# It is broken up into one job per OS with targeted builds so that each OS will
 # build in parallel and speed up overall CI time.
 name: Build
 on:
@@ -97,3 +97,30 @@ jobs:
         run: bash .github/scripts/retry.sh go install github.com/uw-labs/lichen@v0.1.7
       - name: Scan Third Party Dependency Licenses
         run: lichen --config=./license.yaml dist/collector_windows_amd64.exe dist/updater_windows_amd64.exe dist/collector_windows_arm64.exe dist/updater_windows_arm64.exe
+  # No license scan for AIX: lichen can't read XCOFF binaries, and
+  # check-aix-manifest keeps AIX components a subset of the scanned main build.
+  build_aix:
+    if: github.actor != 'dependabot[bot]'
+    runs-on:
+      group: bindplane-large
+      labels: ubuntu-latest-4-cores
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache-dependency-path: |
+            go.sum
+            **/go.sum
+      - name: Grant access to private Dynatrace Go modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+      - name: Install ocb
+        timeout-minutes: 10
+        run: bash .github/scripts/retry.sh make install-ocb
+      - name: Build
+        run: make build-aix

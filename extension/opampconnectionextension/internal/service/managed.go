@@ -29,6 +29,7 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/collector"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/opamp"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/opamp/bindplane"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"go.uber.org/zap"
 )
@@ -100,6 +101,7 @@ func NewManagedCollectorService(col collector.Collector, factories otelcol.Facto
 		Collector:                  col,
 		BuildInfo:                  collector.BuildInfo(version),
 		TmpPath:                    filepath.Join(installDir, "tmp"),
+		PackageStatusPath:          filepath.Join(installDir, packagestate.DefaultFileName),
 		ManagerConfigPath:          managerConfigPath,
 		CollectorConfigPath:        collectorConfigPath,
 		LoggerConfigPath:           loggerConfigPath,

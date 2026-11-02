@@ -84,6 +84,9 @@ type Options struct {
 func Run(opts Options) {
 	setLegacyEnvVars()
 
+	// Redirect before anything else can panic, so the panic lands in the error log.
+	redirectErr := service.RedirectDiscardedStderr()
+
 	logOpts, err := loadLoggingOptions(opts.LoggingConfigPath)
 	if err != nil {
 		log.Fatalf("Failed to get log options: %v", err)
@@ -92,6 +95,10 @@ func Run(opts Options) {
 	logger, err := zap.NewProduction(logOpts...)
 	if err != nil {
 		log.Fatalf("Failed to set up logger: %v", err)
+	}
+
+	if redirectErr != nil {
+		logger.Warn("Failed to redirect stderr to the error log", zap.Error(redirectErr))
 	}
 
 	if err := collector.SetFeatureFlags(opts.FeatureGates, logger); err != nil {
@@ -158,4 +165,11 @@ func loadLoggingOptions(loggingConfigPath string) ([]zap.Option, error) {
 		return nil, fmt.Errorf("failed to create logger config: %w", err)
 	}
 	return l.Options()
+}
+
+// CheckAIXFeatureGates reports where the AIX feature gate skip list and the
+// components registered in this build disagree. make check-aix-feature-gates runs
+// it inside the ocb build of the AIX manifest.
+func CheckAIXFeatureGates() error {
+	return collector.CheckFeatureGates(collector.AIXSkippedFeatureGates)
 }

@@ -22,7 +22,7 @@ jobs:
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
-    needs: [build-msi]
+    needs: [build-msi, release-test-aix]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -61,6 +61,12 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-arm64.msi
+
+      - name: Retrieve AIX Packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: aix-dist
+          path: aix-dist
 
       - name: Install cosign
         timeout-minutes: 10
@@ -183,6 +189,95 @@ jobs:
         with:
           name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-windows.tar.gz
           path: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-windows.tar.gz
+          retention-days: 1
+
+      - name: Upload AIX build artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-aix.tar.gz
+          path: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts-aix.tar.gz
+          retention-days: 1
+
+  # AIX builds from its own goreleaser config and signs with the release keys.
+  # The release-test job lists the packages in the main SHA256SUMS and the
+  # artifact bundles.
+  release-test-aix:
+    runs-on:
+      group: bindplane-large
+      labels: ubuntu-latest-32-cores
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache: false # Caching handled by the actions/cache step below
+
+      - name: Set up Go cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Grant access to private Dynatrace Go modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+
+      - name: Install ocb
+        timeout-minutes: 10
+        run: bash .github/scripts/retry.sh make install-ocb
+
+      - name: Install cosign
+        timeout-minutes: 10
+        run: bash .github/scripts/retry.sh go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
+      - name: Build cosign key file
+        run: 'echo "$COSIGN_PRIVATE_KEY" >> cosign.key'
+        shell: bash
+        env:
+          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
+
+      # The AIX install path verifies a detached GPG signature, so goreleaser
+      # signs with gpg as well as cosign.
+      - name: Import GPG signing key
+        shell: bash
+        run: |
+          echo "$GPG_PRIVATE_SIGNING_KEY" | gpg --batch --import
+          echo "GPG_FINGERPRINT=$(gpg --list-secret-keys --with-colons | grep fpr | head -1 | cut -d: -f10)" >> "$GITHUB_ENV"
+        env:
+          GPG_PRIVATE_SIGNING_KEY: ${{ secrets.GPG_PRIVATE_SIGNING_KEY }}
+
+      - name: Set VERSION
+        run: echo "VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_ENV"
+
+      - name: Run GoReleaser (AIX)
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          distribution: goreleaser-pro
+          version: "v2.12.5"
+          args: release --config .goreleaser-aix.yml --skip=publish --skip=validate --clean
+        env:
+          GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
+          GPG_FINGERPRINT: ${{ env.GPG_FINGERPRINT }}
+
+      - name: Upload AIX Packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: aix-dist
+          path: dist/*.tar.gz*
+          if-no-files-found: error
           retention-days: 1
 
   # The rehearsal runs goreleaser with --skip=publish, so there is no GitHub

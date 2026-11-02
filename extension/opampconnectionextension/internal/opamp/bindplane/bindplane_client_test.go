@@ -122,10 +122,13 @@ func TestNewClient(t *testing.T) {
 				assert.NoError(t, err)
 			}()
 
+			packageStatusPath := filepath.Join(tmpDir, packagestate.DefaultFileName)
+
 			args := &NewClientArgs{
 				DefaultLogger:       testLogger,
 				Config:              tc.config,
 				Collector:           mockCollector,
+				PackageStatusPath:   packageStatusPath,
 				ManagerConfigPath:   managerPath,
 				CollectorConfigPath: collectorPath,
 				LoggerConfigPath:    loggerPath,
@@ -145,7 +148,8 @@ func TestNewClient(t *testing.T) {
 				// Do a shallow check on all fields to assert they exist and are equal to passed in params were possible
 				assert.NotNil(t, bindplaneClient.opampClient)
 				assert.NotNil(t, bindplaneClient.configManager)
-				assert.NotNil(t, bindplaneClient.packagesStateProvider)
+				assert.Equal(t, newPackagesStateProvider(testLogger.Named("opamp"), packageStatusPath, args.BuildInfo.Version), bindplaneClient.packagesStateProvider)
+				assert.Equal(t, packageStatusPath, bindplaneClient.packageStatusPath)
 				assert.Equal(t, testLogger.Named("opamp"), bindplaneClient.logger)
 				assert.Equal(t, mockCollector, bindplaneClient.collector)
 				assert.NotNil(t, bindplaneClient.ident)
@@ -595,13 +599,19 @@ func TestClient_onConnectHandler(t *testing.T) {
 				mockStateProvider := new(mocks.MockPackagesStateProvider)
 				mockStateProvider.On("LastReportedStatuses").Return(packageStatuses, nil)
 
+				packageStatusPath := filepath.Join(t.TempDir(), packagestate.DefaultFileName)
+				require.NoError(t, os.WriteFile(packageStatusPath, []byte("{}"), 0600))
+
 				c := &Client{
 					ident:                 &identity{version: testVersion},
 					logger:                zap.NewNop(),
 					packagesStateProvider: mockStateProvider,
+					packageStatusPath:     packageStatusPath,
 				}
 
 				c.onConnectHandler(context.Background())
+
+				assert.NoFileExists(t, packageStatusPath)
 			},
 		},
 		{
