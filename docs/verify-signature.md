@@ -21,3 +21,34 @@ Heres an example of verifying the signature of an agent binary:
 ```bash
 cosign verify-blob --key ./signature/bp_agent_key.pub --signature dynatrace-bindplane-otel-collector-v1.47.1-darwin-amd64.tar.gz.sig dynatrace-bindplane-otel-collector-v1.47.1-darwin-amd64.tar.gz
 ```
+
+## Slim build (keyless signatures)
+
+The artifacts of the slim build (`dynatrace-bindplane-otel-collector-slim`) are signed keyless with cosign, there is no public key. Every signed artifact has a sigstore bundle next to it (`<artifact>.sigstore.json`) that holds the signature and the certificate that proves it was created by the release workflow of this repository. This needs cosign v2 or later.
+
+Verify an artifact, or the checksums file that lists all of them:
+
+```bash
+cosign verify-blob \
+  --bundle <ARTIFACT>.sigstore.json \
+  --certificate-identity-regexp '^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  <ARTIFACT>
+```
+
+The certificate identity is the reusable `base-release` workflow, which both release workflows call. If verification fails on the identity, the error shows the identity found in the certificate.
+
+Verify a container image by its digest:
+
+```bash
+cosign verify \
+  --certificate-identity-regexp '^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:<VERSION>
+```
+
+The checksums and the image digests are also attested, which can be checked with the GitHub CLI:
+
+```bash
+gh attestation verify <ARTIFACT> --repo dynatrace/dynatrace-bindplane-otel-collector
+```
