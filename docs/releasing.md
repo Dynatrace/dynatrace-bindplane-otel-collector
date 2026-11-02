@@ -1,34 +1,101 @@
-# Releasing
-Releases are managed through GitHub releases. The steps to create a release are as follows:
+# Patch releases
 
-1. Run `make version={VERSION} release` where `{VERSION}` is the version to release. This will tag the root and every Go module (`<dir>/{VERSION}`) and push only those tags.
+A patch release ships fixes on the OTel version DBDOT is already on. It does not change the OTel version.
 
-2. The `release` CD workflow will trigger automatically on the tag push. Goreleaser will handle the following without user intervention:
-  - Build the binaries for all platforms
-  - Create GitHub release with automatic changelog content (based on commit message)
-  - Attach binaries, archives, and packages to the GitHub release
-  - Upload artifacts to GCS and Google Artifact Registry
-  - Mark the release as a full release once it is finished.
+Every component in the manifest must be built on the same OTel version. If one component is built on a newer OTel, the build pulls every other component up to it. That is an OTel update, not a patch, and this guide does not cover it.
 
-3. Once the `release` workflow has completed successfully, manually trigger the `release-containers` workflow in GitHub Actions, providing the version tag (e.g. `v1.2.3`). This will:
-  - Download the pre-built Linux binaries from GCS
-  - Build and push Docker images for all supported architectures (amd64, arm64, ppc64le)
-  - Push multi-arch manifests to GHCR (`ghcr.io/dynatrace/dynatrace-bindplane-otel-collector`)
+Steps 1 to 3 are each their own PR, merged to `main` before the next one.
 
-> **Note:** The `release-containers` workflow is currently triggered manually to allow for confidence-building. In the future it is expected to trigger automatically upon successful completion of the `release` workflow.
+## Check it's a patch
 
-4. While the images are built, verify the release.
+A patch can include fixes merged to `main`, security fixes, and new component versions that are built on DBDOT's current OTel. The Honeycomb exporter is the exception: bump it only in a minor release.
 
-5. Once the `release-containers` action completes, and verification is complete, alter the GitHub release to no longer be a pre-release.
+DBDOT's OTel version is `OCB_VERSION` in the Makefile.
 
-6. Done!  The agent is released.
+Most lines are the OTel unstable version (`v0.x`). A few core modules are on the stable version (`v1.x`). The rest are dbdot-contrib, the `jmxreceiver` pin, Honeycomb's exporter, and DT edge components.
 
-# Testing Release locally
+To see which OTel a dbdot-contrib release uses, read one of its `go.mod` files at that tag.
 
-In order to run the `make release-test` you need to setup the following in your environment:
+If the versions don't match DBDOT's, stop. Use an older dbdot-contrib release that matches, or else a minor release is required.
+
+## 1. Bump component versions
+
+Skip this if nothing in the manifest needs to change.
+
+For dbdot-contrib:
+
+```sh
+make update-contrib DBDOT_CONTRIB_VERSION=v1.2.0
+```
+
+This updates the `go.mod` files, the manifest and the doc links. For anything else, edit the manifest line, its doc entry and any `replaces:` pin by hand.
+
+Then check nothing moved OTel:
+
+```sh
+make verify-manifest
+cd build && go list -m -f '{{.Path}} {{.Version}}' all | grep -E '^(go.opentelemetry.io/collector/|github.com/open-telemetry/opentelemetry-collector-contrib/)' | awk '{print $2}' | sort | uniq -c
+```
+
+This lists the OTel version Go picked for every module in the build. You should see the manifest's `v0.x` and `v1.x` with big counts. A few older ones are fine: the `jmxreceiver` pin, `k8sattributesprocessor` on its own `v1` line, and a couple of old transitive modules. Anything newer than the manifest's version means a component was built on a newer OTel. Back it out.
+
+PR title: `fix: ...` if the bump is a fix users should see in the changelog, otherwise `deps: ...`.
+
+## 2. Resolve security alerts
+
+Every open alert on the [security page](https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/security) must be resolved before the release. Merge only the dependabot PRs that fix an alert. Leave the rest for the next minor release to keep the patch small. If no dependabot PR covers an alert, fix it in its own PR.
+
+## 3. Release prep
+
+The in-tree modules depend on each other by version. Set them to the version you're about to release:
+
+```sh
+NEXT=v1.110.1
+make update-modules NEW_VERSION=$NEXT
+```
+
+This also updates the in-tree module line in the manifest.
+
+PR title: `chore: vX.Y.Z release prep`. Merge it.
+
+## 4. Tag and release
+
+1. On an up-to-date `main`:
+
+   ```sh
+   make release version=vX.Y.Z
+   ```
+
+   This tags and pushes `vX.Y.Z`, plus `<module dir>/vX.Y.Z` for every in-tree module.
+
+2. The `release` workflow runs on the tag. It builds the signed Windows MSI, then goreleaser builds every platform, creates a GitHub pre-release with a changelog from commit titles, attaches the packages, and uploads them to Google Cloud Storage.
+
+3. When `release` is green, run the `release-containers` workflow on the `vX.Y.Z` tag, not on a branch, and enter the same tag as the version input. It builds the images and pushes them to `ghcr.io/dynatrace/dynatrace-bindplane-otel-collector`.
+
+4. Read and verify the release notes generated by Goreleaser are accurate. Make changes as needed. If the release bumps a component, link to that component's release notes.
+
+## 5. Verify and mark latest
+
+Install the new version on a machine, connect it to Bindplane, and push a configuration to it. Confirm the collector starts, shows as connected, and the configuration runs.
+
+Then edit the GitHub release, clear the pre-release flag, and set it as the latest release.
+
+## Checklist
+
+- [ ] Every component bump is on DBDOT's current OTel
+- [ ] Component bump PR merged (if any)
+- [ ] Security alerts resolved
+- [ ] `chore: vX.Y.Z release prep` merged
+- [ ] `make release version=vX.Y.Z` run from up-to-date `main`
+- [ ] `release` workflow green
+- [ ] `release-containers` run on the tag and green
+- [ ] Release notes checked, component release notes linked
+- [ ] Installed, connected to Bindplane, tested with a configuration
+- [ ] Pre-release flag cleared and release marked latest
+
+## Testing a release locally
 
 1. Run `make install-tools`
-2. Setup a github token per [goreleaser instructions](https://goreleaser.com/scm/github/#api-token)
-3. Run `make release-test`
+2. Run `make release-test`
 
-To test the Docker release workflow, trigger the `release-containers-test` workflow manually in GitHub Actions with an existing release version. This runs the full docker build pipeline with `--skip=publish`, so no images will be pushed to any registry.
+To test the Docker release, run the `release-containers-test` workflow with an existing release version. It runs the full build with `--skip=publish`, so nothing is pushed.
