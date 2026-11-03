@@ -20,7 +20,7 @@ extensions:
   # extension/opampconnectionextension/, kept in-tree because the
   # whole runtime cluster (collector lifecycle, OpAMP client, packagestate,
   # report manager, etc.) ships in the same module. Local replace below.
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension v1.1.0
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension v1.3.1
 
 exporters:
   - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.164.0
