@@ -158,6 +158,9 @@ install-ocb:
 	go install go.opentelemetry.io/collector/cmd/builder@$(OCB_VERSION)
 AGENT_MAIN ?= extension/opampconnectionextension/cmd/main/main.go
 MANIFEST_AIX ?= manifests/dynatrace-bindplane-otel-collector/manifest-aix.yaml
+# The update-* targets bump the components of both builds, whatever DISTRO is
+# selected. The slim manifest follows the full one.
+UPDATE_MANIFESTS := manifests/dynatrace-bindplane-otel-collector/manifest.yaml manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
 
 # verify-manifest is the CI gate: regenerate sources from the manifest and
 # compile them. Fails on any unresolvable component, missing replace, or
@@ -505,32 +508,41 @@ add-license:
 		fi
 
 # update-otel attempts to update otel dependencies in go.mods,
-# and update the otel versions in the docs and the manifest.
+# and update the otel versions in the docs and the full and slim manifests.
 # Usage: make update-otel OTEL_VERSION=vx.x.x CONTRIB_VERSION=vx.x.x PDATA_VERSION=vx.x.x-rcx DBDOT_CONTRIB_VERSION=vx.x.x CONTRIB_STABLE_VERSION=vx.x.x
 .PHONY: update-otel
 update-otel:
 	./scripts/update-otel.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(PDATA_VERSION)" "$(CONTRIB_STABLE_VERSION)"
 	./scripts/update-docs.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(DBDOT_CONTRIB_VERSION)" "$(CONTRIB_STABLE_VERSION)"
-	OTEL_VERSION="$(OTEL_VERSION)" CONTRIB_VERSION="$(CONTRIB_VERSION)" PDATA_VERSION="$(PDATA_VERSION)" CONTRIB_STABLE_VERSION="$(CONTRIB_STABLE_VERSION)" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
+	@set -e; for m in $(UPDATE_MANIFESTS); do \
+		echo "Updating $$m"; \
+		MANIFEST="$$m" OTEL_VERSION="$(OTEL_VERSION)" CONTRIB_VERSION="$(CONTRIB_VERSION)" PDATA_VERSION="$(PDATA_VERSION)" CONTRIB_STABLE_VERSION="$(CONTRIB_STABLE_VERSION)" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh; \
+	done
 	$(MAKE) tidy
 # Double make tidy - this unfortunately is needed due to the order in which modules are tidied.
 # The modules this seems to effect are plugindocgen and bindplaneextension
 	$(MAKE) tidy
 
-# update-modules updates all submodules, and the manifest's in-tree module lines, to be the new version.
+# update-modules updates all submodules, and the in-tree module lines of the full and slim manifests, to be the new version.
 # Usage: make update-modules NEW_VERSION=vx.x.x
 .PHONY: update-modules
 update-modules:
 	./scripts/update-module-version.sh "$(NEW_VERSION)"
-	MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh
+	@set -e; for m in $(UPDATE_MANIFESTS); do \
+		echo "Updating $$m"; \
+		MANIFEST="$$m" MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh; \
+	done
 	$(MAKE) tidy
 
-# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods, the manifest and the doc links, to the new version.
+# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods, the full and slim manifests and the doc links, to the new version.
 # Usage: make update-contrib DBDOT_CONTRIB_VERSION=vx.x.x
 .PHONY: update-contrib
 update-contrib:
 	./scripts/update-dbdot-contrib.sh "$(DBDOT_CONTRIB_VERSION)"
-	DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
+	@set -e; for m in $(UPDATE_MANIFESTS); do \
+		echo "Updating $$m"; \
+		MANIFEST="$$m" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh; \
+	done
 	sed -i '' -E 's#(dynatrace-bindplane-otel-contrib/(blob|tree)/)[^/]*#\1$(DBDOT_CONTRIB_VERSION)#g' docs/*.md
 	$(MAKE) tidy
 
