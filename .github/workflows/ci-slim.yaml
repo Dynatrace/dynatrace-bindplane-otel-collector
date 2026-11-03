@@ -34,3 +34,5 @@ jobs:
     uses: ./.github/workflows/base-ci.yaml
     with:
       distro: slim
+    secrets:
+      GRAPHITE_CI_OPTIMIZER_TOKEN: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}

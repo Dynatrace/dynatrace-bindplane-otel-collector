@@ -45,7 +45,8 @@ jobs:
     name: CI - DBDOT
     # Dependabot PRs get no access to the private Go modules secret, so the
     # full build is skipped for them, as in checks.yml/tests.yml.
-    # TODO: PRs from forks also lack the secret and fail here; handle them.
+    # PRs from forks also lack the secret and fail here. Not handled since
+    # the repo gets (almost) no fork PRs.
     if: github.actor != 'dependabot[bot]'
     uses: ./.github/workflows/base-ci.yaml
     with:
@@ -54,3 +55,4 @@ jobs:
       run_tests: true
     secrets:
       PRIVATE_GO_MODULES_APP_PRIVATE_KEY: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+      GRAPHITE_CI_OPTIMIZER_TOKEN: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
