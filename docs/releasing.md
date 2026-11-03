@@ -118,7 +118,7 @@ To test the Docker release of the full build, run the `release-containers-test` 
 
 # Slim releases
 
-1. Set `dist.version` in the slim manifest to the version the RC is for, without `-rc.N`. Keep the component versions in sync with the full manifest by hand.
+1. Set `dist.version` in the slim manifest to the version the RC is for, without `-rc.N`. The component versions follow the full manifest: `make update-otel`, `make update-contrib` and `make update-modules` bump both manifests. Only components you change by hand in the full manifest need the same change in the slim one.
 
 2. Run `make release version=vX.Y.Z-rc.N`. Only the root tag is created and pushed, RC versions do not tag the Go modules.
 
