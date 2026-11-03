@@ -49,7 +49,9 @@ permissions:
 
 jobs:
   build:
-    name: Build (${{ inputs.distro }}, ${{ matrix.GOOS }}/${{ matrix.GOARCH }})
+    # The calling workflow's name prefixes this (e.g. "CI - DBDOT slim / ..."),
+    # so the distro is not repeated here.
+    name: Build (${{ matrix.GOOS }}/${{ matrix.GOARCH }})
     strategy:
       fail-fast: false
       matrix:
@@ -86,7 +88,9 @@ jobs:
           GOARCH: ${{ matrix.GOARCH }}
 
   unit-tests:
-    name: Unit tests (${{ inputs.distro }})
+    # Static name: GitHub does not evaluate expressions in the name of a
+    # job that is skipped by its `if`, so it would show up raw.
+    name: Unit tests
     if: inputs.run_tests
     runs-on: ${{ inputs.runner_os }}
     steps:
