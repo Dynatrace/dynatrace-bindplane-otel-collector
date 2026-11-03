@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !aix
+//go:build !aix && !dbdot_slim
 
 package collector
 
-// skippedFeatureGates is empty outside AIX, so every gate is set as before.
+// skippedFeatureGates is empty for builds other than AIX and slim (i.e. the
+// full build), so every hardcoded gate is set.
 var skippedFeatureGates []string
