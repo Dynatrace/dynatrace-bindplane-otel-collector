@@ -21,4 +21,8 @@ package collector
 var AIXSkippedFeatureGates = []string{
 	"exporter.prometheusremotewritexporter.enableSendingRW2", // prometheusremotewriteexporter
 	"exporter.prometheusexporter.DisableAddMetricSuffixes",   // prometheusexporter
+	// Added in 1.3.0. Remove in 1.4.0.
+	"-pkg.translator.azurelogs.DontEmitV0LogConventions", // azureeventhubreceiver
+	"-pkg.translator.zipkin.DontEmitV0ScopeConventions",  // kafkaexporter, kafkareceiver, pulsarreceiver, zipkinencodingextension, zipkinexporter, zipkinreceiver
+	"-pkg.translator.zipkin.DontEmitV0HttpConventions",   // kafkaexporter, kafkareceiver, pulsarreceiver, zipkinencodingextension, zipkinexporter, zipkinreceiver
 }
