@@ -1,0 +1,36 @@
+name: CI - DBDOT slim
+
+on:
+  merge_group:
+  push:
+    branches:
+      - main
+    paths:
+      - "manifests/dynatrace-bindplane-otel-collector-slim/**"
+      - "extension/**"
+      - "pkg/**"
+      - "Makefile"
+      - ".github/workflows/base-ci.yaml"
+      - ".github/workflows/ci-slim.yaml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "manifests/dynatrace-bindplane-otel-collector-slim/**"
+      - "extension/**"
+      - "pkg/**"
+      - "Makefile"
+      - ".github/workflows/base-ci.yaml"
+      - ".github/workflows/ci-slim.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: CI - DBDOT slim
+    # The slim manifest has no private Go modules. The unit tests are not
+    # distro-specific, so they only run in ci-full.yaml.
+    uses: ./.github/workflows/base-ci.yaml
+    with:
+      distro: slim

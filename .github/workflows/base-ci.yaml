@@ -1,0 +1,108 @@
+name: Reusable CI workflow
+
+# Builds one DBDOT distro (selected by `distro`, the Makefile's DISTRO) for
+# the given GOOS/GOARCH pairs and optionally runs the unit tests. Called once
+# per distro by the thin ci-<distro>.yaml workflows, following the pattern of
+# the upstream opentelemetry-collector-releases base-ci-goreleaser.yaml.
+#
+# The build uses `make agent` rather than goreleaser: the goreleaser configs
+# in this repo use `builder: prebuilt` and only package binaries `make`
+# already built, so `make agent` is the build step goreleaser would run.
+
+on:
+  workflow_call:
+    inputs:
+      distro:
+        description: "Makefile DISTRO to build (full, slim)"
+        required: true
+        type: string
+      goos:
+        description: "JSON array of GOOS values"
+        required: false
+        type: string
+        default: '[ "linux" ]'
+      goarch:
+        description: "JSON array of GOARCH values"
+        required: false
+        type: string
+        default: '[ "amd64" ]'
+      runner_os:
+        required: false
+        type: string
+        default: ubuntu-24.04
+      private_go_modules:
+        description: "Set to true when the distro's manifest pulls private Dynatrace Go modules"
+        required: false
+        type: boolean
+        default: false
+      run_tests:
+        description: "Set to true to run the repo's unit tests (make test)"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_GO_MODULES_APP_PRIVATE_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ inputs.distro }}, ${{ matrix.GOOS }}/${{ matrix.GOARCH }})
+    strategy:
+      fail-fast: false
+      matrix:
+        GOOS: ${{ fromJSON(inputs.goos) }}
+        GOARCH: ${{ fromJSON(inputs.goarch) }}
+    runs-on: ${{ inputs.runner_os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache-dependency-path: "**/go.sum"
+
+      - name: Grant access to private Dynatrace Go modules
+        if: inputs.private_go_modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+
+      - name: Install ocb
+        run: make install-ocb
+
+      - name: Build
+        run: make agent DISTRO="${DISTRO}" GOOS="${GOOS}" GOARCH="${GOARCH}"
+        env:
+          DISTRO: ${{ inputs.distro }}
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+
+  unit-tests:
+    name: Unit tests (${{ inputs.distro }})
+    if: inputs.run_tests
+    runs-on: ${{ inputs.runner_os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache-dependency-path: "**/go.sum"
+
+      - name: Install tools
+        run: bash .github/scripts/retry.sh make install-tools-ci
+
+      - name: Run unit tests
+        run: make test
