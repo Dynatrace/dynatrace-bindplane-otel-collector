@@ -64,8 +64,8 @@ func TestSetFeatureFlagsSkipsListedGates(t *testing.T) {
 		require.Error(t, SetFeatureFlags([]string{"test.unregistered"}, zap.NewNop()))
 	})
 
-	t.Run("listed gate is skipped", func(t *testing.T) {
-		skippedFeatureGates = []string{"test.unregistered"}
+	t.Run("listed gate is skipped, matched verbatim including prefix", func(t *testing.T) {
+		skippedFeatureGates = []string{"test.unregistered", "-test.unregistered"}
 		require.NoError(t, SetFeatureFlags([]string{"test.unregistered", "-test.unregistered"}, zap.NewNop()))
 	})
 
@@ -89,9 +89,9 @@ func TestCheckFeatureGates(t *testing.T) {
 	_, err := featuregate.GlobalRegistry().Register("test.check.registered", featuregate.StageAlpha)
 	require.NoError(t, err)
 
-	t.Run("every hardcoded gate registered or skipped passes", func(t *testing.T) {
+	t.Run("every hardcoded gate registered or skipped verbatim passes", func(t *testing.T) {
 		hardcodedFeatureGates = []string{"test.check.registered", "-test.check.missing"}
-		require.NoError(t, CheckFeatureGates([]string{"test.check.missing"}))
+		require.NoError(t, CheckFeatureGates([]string{"-test.check.missing"}))
 	})
 
 	t.Run("a hardcoded gate neither registered nor skipped fails", func(t *testing.T) {
@@ -99,8 +99,13 @@ func TestCheckFeatureGates(t *testing.T) {
 		require.ErrorContains(t, CheckFeatureGates(nil), "test.check.missing")
 	})
 
+	t.Run("a skip entry that isn't a verbatim hardcoded line fails", func(t *testing.T) {
+		hardcodedFeatureGates = []string{"-test.check.missing"}
+		require.ErrorContains(t, CheckFeatureGates([]string{"test.check.missing"}), "verbatim")
+	})
+
 	t.Run("a skipped gate that is registered fails", func(t *testing.T) {
 		hardcodedFeatureGates = []string{"test.check.registered"}
-		require.ErrorContains(t, CheckFeatureGates([]string{"test.check.registered"}), "test.check.registered")
+		require.ErrorContains(t, CheckFeatureGates([]string{"test.check.registered"}), "registered")
 	})
 }

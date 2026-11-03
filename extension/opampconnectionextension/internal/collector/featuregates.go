@@ -64,22 +64,23 @@ func SetFeatureFlags(featureGates []string, logger *zap.Logger) error {
 // checks for - and + prefixes to indicate negation and enablement of the feature gate
 func setFeatureFlags(featureGates []string, logger *zap.Logger) error {
 	for _, fg := range featureGates {
-		val := true
-		switch fg[0] {
-		case '-':
-			fg = fg[1:]
-			val = false
-		case '+':
-			fg = fg[1:]
-		}
-
-		if slices.Contains(skippedFeatureGates, fg) && !isRegistered(fg) {
+		// Skip entries are verbatim copies of gate strings, so compare raw.
+		if slices.Contains(skippedFeatureGates, fg) && !isRegistered(gateID(fg)) {
 			logger.Info("Skipping feature gate this build doesn't include", zap.String("featureGate", fg))
 			continue
 		}
 
-		if err := featuregate.GlobalRegistry().Set(fg, val); err != nil {
-			return fmt.Errorf("set feature gate %s: %w", fg, err)
+		id, val := fg, true
+		switch fg[0] {
+		case '-':
+			id = fg[1:]
+			val = false
+		case '+':
+			id = fg[1:]
+		}
+
+		if err := featuregate.GlobalRegistry().Set(id, val); err != nil {
+			return fmt.Errorf("set feature gate %s: %w", id, err)
 		}
 	}
 	return nil
@@ -94,20 +95,30 @@ func isRegistered(id string) bool {
 	return found
 }
 
-// CheckFeatureGates reports a hardcoded gate that is neither registered nor in
+// gateID strips the +/- enable/disable prefix, leaving the gate's identity.
+func gateID(fg string) string {
+	return strings.TrimLeft(fg, "+-")
+}
+
+// CheckFeatureGates reports a hardcoded gate that is neither registered nor
 // skipped, and a skipped gate that is registered. Run it against a platform
-// build to keep that platform's skip list in step with its components.
+// build to keep that platform's skip list in step with its components. Skip
+// entries are verbatim copies of hardcodedFeatureGates lines, so each must
+// appear in hardcodedFeatureGates exactly, prefix and all; the raw comparison
+// below enforces that.
 func CheckFeatureGates(skipped []string) error {
 	var errs []error
 	for _, fg := range hardcodedFeatureGates {
-		fg = strings.TrimLeft(fg, "+-")
-		if !isRegistered(fg) && !slices.Contains(skipped, fg) {
+		if !isRegistered(gateID(fg)) && !slices.Contains(skipped, fg) {
 			errs = append(errs, fmt.Errorf("hardcoded feature gate %s isn't registered and isn't skipped", fg))
 		}
 	}
 	for _, fg := range skipped {
-		if isRegistered(fg) {
-			errs = append(errs, fmt.Errorf("skipped feature gate %s is registered, so remove it from the skip list", fg))
+		if !slices.Contains(hardcodedFeatureGates, fg) {
+			errs = append(errs, fmt.Errorf("skipped feature gate %s isn't a verbatim hardcodedFeatureGates entry", fg))
+		}
+		if isRegistered(gateID(fg)) {
+			errs = append(errs, fmt.Errorf("skipped feature gate %s is registered, so remove it from the skip list", gateID(fg)))
 		}
 	}
 	return errors.Join(errs...)
