@@ -144,7 +144,7 @@ version:
 #   - $(GOBIN)/builder (else $$HOME/go/bin/builder)
 #
 # Install with: make install-ocb
-OCB_VERSION ?= v0.163.0
+OCB_VERSION ?= v0.164.0
 OCB ?= $(shell command -v $${OCB:-builder} 2>/dev/null || echo $${GOBIN:-$$HOME/go/bin}/builder)
 
 # Installs the ocb builder at the pinned version. The single source of truth
@@ -507,7 +507,7 @@ add-license:
 update-otel:
 	./scripts/update-otel.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(PDATA_VERSION)" "$(CONTRIB_STABLE_VERSION)"
 	./scripts/update-docs.sh "$(OTEL_VERSION)" "$(CONTRIB_VERSION)" "$(DBDOT_CONTRIB_VERSION)" "$(CONTRIB_STABLE_VERSION)"
-	MANIFEST="$(MANIFEST)" OTEL_VERSION="$(OTEL_VERSION)" CONTRIB_VERSION="$(CONTRIB_VERSION)" PDATA_VERSION="$(PDATA_VERSION)" CONTRIB_STABLE_VERSION="$(CONTRIB_STABLE_VERSION)" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
+	OTEL_VERSION="$(OTEL_VERSION)" CONTRIB_VERSION="$(CONTRIB_VERSION)" PDATA_VERSION="$(PDATA_VERSION)" CONTRIB_STABLE_VERSION="$(CONTRIB_STABLE_VERSION)" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 # Double make tidy - this unfortunately is needed due to the order in which modules are tidied.
 # The modules this seems to effect are plugindocgen and bindplaneextension
@@ -518,7 +518,7 @@ update-otel:
 .PHONY: update-modules
 update-modules:
 	./scripts/update-module-version.sh "$(NEW_VERSION)"
-	MANIFEST="$(MANIFEST)" MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh
+	MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 
 # update-contrib updates all bindplane-otel-contrib dependencies, in go.mods, the manifest and the doc links, to the new version.
@@ -526,7 +526,7 @@ update-modules:
 .PHONY: update-contrib
 update-contrib:
 	./scripts/update-dbdot-contrib.sh "$(DBDOT_CONTRIB_VERSION)"
-	MANIFEST="$(MANIFEST)" DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
+	DBDOT_CONTRIB_VERSION="$(DBDOT_CONTRIB_VERSION)" ./scripts/update-manifest.sh
 	sed -i '' -E 's#(dynatrace-bindplane-otel-contrib/(blob|tree)/)[^/]*#\1$(DBDOT_CONTRIB_VERSION)#g' docs/*.md
 	$(MAKE) tidy
 
