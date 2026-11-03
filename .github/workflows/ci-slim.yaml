@@ -11,6 +11,8 @@ on:
       - "extension/**"
       - "pkg/**"
       - "Makefile"
+      - "config/example.yaml"
+      - "config/logging.stdout.yaml"
       - ".github/workflows/base-ci.yaml"
       - ".github/workflows/ci-slim.yaml"
       # Docs-only changes do not need a build.
@@ -23,6 +25,8 @@ on:
       - "extension/**"
       - "pkg/**"
       - "Makefile"
+      - "config/example.yaml"
+      - "config/logging.stdout.yaml"
       - ".github/workflows/base-ci.yaml"
       - ".github/workflows/ci-slim.yaml"
       # Docs-only changes do not need a build.
