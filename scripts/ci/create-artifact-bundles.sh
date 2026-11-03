@@ -63,18 +63,6 @@ common=(
   ./dist/*SHA256SUMS
 )
 
-bundle artifacts \
-  "${common[@]}" \
-  ./scripts/install/*.sh \
-  ./scripts/install/*.ps1 \
-  ./dynatrace-bindplane-otel-collector-amd64.msi \
-  ./dynatrace-bindplane-otel-collector-arm64.msi \
-  ./dist/*tar.gz \
-  ./aix-dist/* \
-  ./dist/*.zip \
-  ./dist/*.rpm \
-  ./dist/*.deb
-
 bundle artifacts-linux \
   "${common[@]}" \
   ./scripts/install/install_unix.sh \
