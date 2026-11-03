@@ -28,7 +28,7 @@ For dbdot-contrib:
 make update-contrib DBDOT_CONTRIB_VERSION=v1.2.0
 ```
 
-This updates the `go.mod` files, the manifest and the doc links. For anything else, edit the manifest line, its doc entry and any `replaces:` pin by hand.
+This updates the `go.mod` files, the full and slim manifests and the doc links. For anything else, edit the manifest line (in both manifests), its doc entry and any `replaces:` pin by hand.
 
 Then check nothing moved OTel:
 
@@ -54,7 +54,7 @@ NEXT=v1.110.1
 make update-modules NEW_VERSION=$NEXT
 ```
 
-This also updates the in-tree module line in the manifest.
+This also updates the in-tree module line in the full and slim manifests.
 
 Also set `dist.version` in `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` to the release version without the leading `v` (`1.110.1` for `v1.110.1`). `update-modules` does not change it. The `release` workflow fails if the tag does not match `dist.version` exactly.
 

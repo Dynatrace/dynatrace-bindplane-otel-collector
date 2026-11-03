@@ -34,4 +34,4 @@ The collector enables a hardcoded set of feature gates at startup. Gates that be
 
 ## Editing the manifest
 
-Component versions are not bumped automatically. When the OTel version or a Bindplane contrib version changes in the full manifest, update the same entries here.
+`make update-otel`, `make update-contrib` and `make update-modules` bump the components of this manifest together with the full one. Components that exist only in the full build are not touched here, and `dist.version` is set by hand for each release (see [Releasing](../../docs/releasing.md)). When you add or change a component by hand in the full manifest, make the same change here.
