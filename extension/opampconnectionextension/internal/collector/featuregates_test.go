@@ -24,6 +24,8 @@ import (
 	_ "github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	_ "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	_ "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
+	_ "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azurelogs"
+	_ "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin/zipkinv2"
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/featuregate"

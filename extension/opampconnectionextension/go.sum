@@ -419,6 +419,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/exp/metrics v
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/exp/metrics v0.164.1/go.mod h1:BWGqs98cnvOIxAMstzjYS/i9IqHruKwX3dVaf5dctLw=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.164.1 h1:WTe9j6mojh00vOK9bfEanjSVXhv//YEBncqsJQEP03g=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.164.1/go.mod h1:U3Klg0PMYUixOuAuZmhSd5uSSheYCx7wpr2TQK0S344=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.164.1 h1:koJl0nLLf/4vZQePVbg/XMecHXQTWw1ZyXBcgeE5hv4=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.164.1/go.mod h1:FoK7g1853Na1EWcA8+MvCuscGWxgN0gbvx0tVDvKl0A=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.164.1 h1:Nf1r5btI0tFLAofjSMbI51qwUDHDzxB3VQvKAoDkfTI=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.164.1/go.mod h1:11XcOuV36UyWWNUogbeLulQ86MkmzAEo3u0v7Fo9AAY=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.164.1 h1:Xmj/ptkrKnMGPaaWcLplVw0czXI1txV0VQW4LvIP+z0=
@@ -427,10 +429,14 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetr
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.164.1/go.mod h1:DgqArHga9MGVQAKbpnV2Rgg66+FfpyX1yBh+3LK97hw=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.164.1 h1:yR01L83iH6OmWjHLIlkiLjV+wmWD2uykJdvq+aKa+x0=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.164.1/go.mod h1:zoJ7QhG2bQSgxLIpH0KlbmVGIQKl1WeH5ybUU+JCCVs=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azurelogs v0.164.1 h1:goX2ndL+5mkOOSXFpIU99kHjz+ezvzmcJ5xKgUBWtJA=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azurelogs v0.164.1/go.mod h1:/uBaouevq9MpC2kwu+sGv24miAKpVI4M9c7YP94HuWs=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.164.1 h1:6bR9/47TbPZ6mIOotQNLKget52eeBkmqwfFt10PJGbk=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.164.1/go.mod h1:M5cQzaOmsLtqb2iJGUZYH8pQZLIQt+zzoyLCPmwbQps=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.164.1 h1:gheT2y6zDsEEYCEhB1wTqKa3hXEMIUHnXHgO117eYU4=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.164.1/go.mod h1:78bHk/S+zvwNLGixDBZ/VkEh/b+fwjKSWCRivTmivoA=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.164.1 h1:GOOzMkwowJvqJktCztvbA5uy4A9tVq+dDop3uqlpbmY=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.164.1/go.mod h1:r5/4KZ3vqCYJdrZ+1T2lSblMxzYsER8j0UtO5+fyfLc=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/deltatocumulativeprocessor v0.164.1 h1:WfIPl3fr3OinMxWnImonv4WLUGi3wDnDevYErEp+j3c=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/deltatocumulativeprocessor v0.164.1/go.mod h1:4hKTvfM3BkcZXpGOrT5p6bcog+dFhdC0zBxEKzyKw90=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.164.1 h1:nO+PeYt4S07Wt1zsaV1nYMUSnommLwhwnGFO2Ft81HA=
@@ -441,6 +447,8 @@ github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=
 github.com/opencontainers/image-spec v1.1.1/go.mod h1:qpqAh3Dmcf36wStyyWU+kCeDgrGnAve2nCC8+7h8Q0M=
+github.com/openzipkin/zipkin-go v0.4.3 h1:9EGwpqkgnwdEIJ+Od7QVSEIH+ocmm5nPat0G7sjsSdg=
+github.com/openzipkin/zipkin-go v0.4.3/go.mod h1:M9wCJZFWCo2RiY+o1eBCEMe0Dp2S5LDHcMZmk3RmK7c=
 github.com/oracle/oci-go-sdk/v65 v65.124.1 h1:Wuos4/Ru9PRI83ObOfAmaEu+m+LcmjG7f17c0p6YzwM=
 github.com/oracle/oci-go-sdk/v65 v65.124.1/go.mod h1:Pzy+BpgkDesvGZXEHgslwhIYobHCPHg6wRta1mWnlqQ=
 github.com/outscale/osc-sdk-go/v2 v2.35.0 h1:bKR94p9KCc8ybu36k4RS5RDkC9p/7W//78CXPtOyXPo=
@@ -494,6 +502,8 @@ github.com/prometheus/sigv4 v0.5.0 h1:WWZDeiCPFTBJIniIa+pv3edYtPHtZxDAa5w5Tmp+Uu
 github.com/prometheus/sigv4 v0.5.0/go.mod h1:oLsQ72mP5bVxsIrFgv/gT2jY1devyRLZhAvrsWG4SEk=
 github.com/puzpuzpuz/xsync/v4 v4.5.0 h1:vOSWu6b57/emh+L/Cw0BeQfvxa/cogFywXHeGUxQxAg=
 github.com/puzpuzpuz/xsync/v4 v4.5.0/go.mod h1:VJDmTCJMBt8igNxnkQd86r+8KUeN1quSfNKu5bLYFQo=
+github.com/relvacode/iso8601 v1.8.0 h1:lDGJ4+nIXPzY1KOTk6DNfKZQWRGMmbvQKPNuZ7GxZPk=
+github.com/relvacode/iso8601 v1.8.0/go.mod h1:FlNp+jz+TXpyRqgmM7tnzHHzBnz776kmAH2h3sZCn0I=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=

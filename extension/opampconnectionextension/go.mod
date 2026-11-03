@@ -20,6 +20,8 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampcustommessages v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.164.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azurelogs v0.164.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.164.1
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
@@ -137,11 +139,13 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.164.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.164.1 // indirect
+	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -154,6 +158,7 @@ require (
 	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/prometheus/prometheus v0.315.0 // indirect
 	github.com/prometheus/sigv4 v0.5.0 // indirect
+	github.com/relvacode/iso8601 v1.8.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.9 // indirect
