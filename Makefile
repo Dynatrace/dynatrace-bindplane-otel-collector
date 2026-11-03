@@ -63,6 +63,7 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 #   AGENT_DESCRIPTION  populates component.BuildInfo.
 #   AGENT_ARTIFACT     base name of the binary written to $(OUTDIR).
 #   PRODUCT_NAME       product slug (see below).
+#   DISTRO_BUILD_TAGS  extra build tags for the distro, added to AGENT_BUILD_TAGS.
 DISTRO ?= full
 ifeq ($(DISTRO),full)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
@@ -71,6 +72,7 @@ AGENT_NAME = com.dynatrace.bindplane.otel.collector
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
 AGENT_ARTIFACT = collector
 PRODUCT_NAME = dynatrace-bindplane-otel-collector
+DISTRO_BUILD_TAGS =
 else ifeq ($(DISTRO),slim)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
 BUILD_DIR ?= ./build-slim
@@ -78,6 +80,9 @@ AGENT_NAME = com.dynatrace.bindplane.otel.collector-slim
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
 AGENT_ARTIFACT = collector-slim
 PRODUCT_NAME = dynatrace-bindplane-otel-collector-slim
+# Selects the slim feature gate skip list (see
+# extension/opampconnectionextension/internal/collector/featuregates_slim.go).
+DISTRO_BUILD_TAGS = dbdot_slim
 else
 $(error Unknown DISTRO '$(DISTRO)'. Supported: full, slim)
 endif
@@ -106,7 +111,7 @@ AGENT_LDFLAGS = -s -w \
 
 # AGENT_BUILD_TAGS are the build tags that should be used when building DBDOT
 # 'embed_library' used by the telemetry generator receiver to use blitz (PR#3525)
-AGENT_BUILD_TAGS = embed_library
+AGENT_BUILD_TAGS = embed_library $(DISTRO_BUILD_TAGS)
 
 # UPDATER_LDFLAGS stamps the same values into the updater binary. The package
 # name must match the collector's or the updater never sees the install finish.
@@ -236,6 +241,23 @@ check-aix-feature-gates:
 	rm -f $(BUILD_DIR)/main_others.go $(BUILD_DIR)/main_windows.go
 	cd $(BUILD_DIR) && go mod tidy
 	cd $(BUILD_DIR) && CGO_ENABLED=0 go test -tags "aixgates $(AGENT_BUILD_TAGS)" -run TestAIXFeatureGates .
+
+# Checks the slim feature gate skip list against the gates the slim components register:
+# every hardcoded gate is registered or skipped, and no skipped gate is registered.
+# Re-runs itself with DISTRO=slim so it uses the slim manifest, build dir and tags.
+.PHONY: check-slim-feature-gates
+check-slim-feature-gates:
+ifneq ($(DISTRO),slim)
+	$(MAKE) check-slim-feature-gates DISTRO=slim
+else
+	rm -rf $(BUILD_DIR)
+	$(OCB) --config $(MANIFEST) --skip-compilation
+	cp $(AGENT_MAIN) $(BUILD_DIR)/main.go
+	cp $(dir $(AGENT_MAIN))slim_feature_gates_test.go $(BUILD_DIR)/
+	rm -f $(BUILD_DIR)/main_others.go $(BUILD_DIR)/main_windows.go
+	cd $(BUILD_DIR) && go mod tidy
+	cd $(BUILD_DIR) && CGO_ENABLED=0 go test -tags "slimgates $(AGENT_BUILD_TAGS)" -run TestSlimFeatureGates .
+endif
 
 .PHONY: build-linux
 build-linux: build-linux-amd64 build-linux-arm64 build-linux-arm build-linux-ppc64 build-linux-ppc64le

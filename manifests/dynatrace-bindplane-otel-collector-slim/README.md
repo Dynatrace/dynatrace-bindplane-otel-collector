@@ -28,6 +28,10 @@ The binary is `./dist/collector-slim_<os>_<arch>`. ocb writes its sources to `./
 
 The slim build does not depend on the private `dt-otelcol-edge-processing-components` module, so it builds without `GOPRIVATE` or Dynatrace org git credentials.
 
+## Feature gates
+
+The collector enables a hardcoded set of feature gates at startup. Gates that belong to components the slim build leaves out are listed in `extension/opampconnectionextension/internal/collector/featuregates_slimlist.go` and skipped; `make DISTRO=slim` selects that list with the `dbdot_slim` build tag. `make check-slim-feature-gates` checks the list against the slim components. Run it after adding or removing components here.
+
 ## Editing the manifest
 
 Component versions are not bumped automatically. When the OTel version or a Bindplane contrib version changes in the full manifest, update the same entries here.

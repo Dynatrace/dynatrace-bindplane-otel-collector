@@ -173,3 +173,10 @@ func loadLoggingOptions(loggingConfigPath string) ([]zap.Option, error) {
 func CheckAIXFeatureGates() error {
 	return collector.CheckFeatureGates(collector.AIXSkippedFeatureGates)
 }
+
+// CheckSlimFeatureGates reports where the slim feature gate skip list and the
+// components registered in this build disagree. make check-slim-feature-gates
+// runs it inside the ocb build of the slim manifest.
+func CheckSlimFeatureGates() error {
+	return collector.CheckFeatureGates(collector.SlimSkippedFeatureGates)
+}
