@@ -2,6 +2,7 @@ name: CI - DBDOT
 
 on:
   merge_group:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -19,6 +20,8 @@ on:
       - "cmd/**"
       - "internal/tools/**"
       - ".github/scripts/retry.sh"
+      # Docs-only changes do not need a build.
+      - "!**/*.md"
   pull_request:
     branches:
       - main
@@ -36,6 +39,14 @@ on:
       - "cmd/**"
       - "internal/tools/**"
       - ".github/scripts/retry.sh"
+      # Docs-only changes do not need a build.
+      - "!**/*.md"
+
+# Cancel a PR's previous run when it gets a new push. Runs on main are never
+# cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
