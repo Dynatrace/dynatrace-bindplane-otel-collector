@@ -219,7 +219,7 @@ build-binaries: agent updater container-init
 .PHONY: build-all
 build-all: build-linux build-darwin build-windows
 
-# AIX builds from its own manifest and ships through .goreleaser-aix.yml, so the
+# AIX builds from its own manifest and ships through manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml, so the
 # main goreleaser before-hook builds every other platform with this target.
 .PHONY: build-all-non-aix
 build-all-non-aix: build-all
@@ -627,7 +627,7 @@ release-test:
 # Build AIX, skip release and signing, and ignore a dirty git tree
 .PHONY: release-test-aix
 release-test-aix:
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --config .goreleaser-aix.yml --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
 
 .PHONY: release-containers-test
 release-containers-test:

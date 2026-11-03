@@ -1,5 +1,5 @@
 # AIX goreleaser configuration.
-# Separate from .goreleaser.yml because AIX builds from manifests/dynatrace-bindplane-otel-collector/manifest-aix.yaml,
+# Separate from the main .goreleaser.yml in this folder because AIX builds from manifests/dynatrace-bindplane-otel-collector/manifest-aix.yaml,
 # a reduced component set. The main release publishes the AIX package and lists its
 # hash in the main SHA256SUMS, so this config only builds, archives and signs.
 
