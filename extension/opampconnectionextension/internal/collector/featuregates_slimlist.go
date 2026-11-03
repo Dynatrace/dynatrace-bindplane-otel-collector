@@ -15,10 +15,14 @@
 package collector
 
 // SlimSkippedFeatureGates are gates registered by components the slim build leaves out.
-// A listed gate is skipped only while the registry doesn't know it, so adding the
+// Each entry is a verbatim copy of a hardcodedFeatureGates line (prefix and all);
+// its gate is skipped only while the registry doesn't know it, so adding the
 // component back to the slim build puts the gate back in effect. It's exported so
 // the slim build check can read it from any build.
 var SlimSkippedFeatureGates = []string{
 	"exporter.prometheusremotewritexporter.enableSendingRW2", // prometheusremotewriteexporter
-	"exporter.prometheusexporter.DisableAddMetricSuffixes",   // prometheusexporter
+	"-exporter.prometheusexporter.DisableAddMetricSuffixes",  // prometheusexporter
+	// Added in 1.3.0. Remove in 1.4.0.
+	"-pkg.translator.zipkin.DontEmitV0ScopeConventions", // kafkaexporter, kafkareceiver
+	"-pkg.translator.zipkin.DontEmitV0HttpConventions",  // kafkaexporter, kafkareceiver
 }
