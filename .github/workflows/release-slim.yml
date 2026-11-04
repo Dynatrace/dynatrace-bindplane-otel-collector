@@ -27,7 +27,6 @@ jobs:
       goreleaser-config: manifests/dynatrace-bindplane-otel-collector-slim/.goreleaser.yml
       build-msi: false
       publish-latest-scripts: false
-      cosign-mode: keyless
       containers: true
       sbom: true
     secrets: inherit

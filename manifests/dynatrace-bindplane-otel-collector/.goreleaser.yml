@@ -204,12 +204,19 @@ checksum:
     - glob: "./aix-dist/*.tar.gz"
 
 # https://goreleaser.com/customization/sign/
+# Keyless signing: cosign gets an ephemeral certificate from Fulcio using the
+# workflow's OIDC token and writes everything needed to verify into one sigstore
+# bundle per artifact.
 signs:
   - cmd: cosign
-    stdin: "{{ .Env.COSIGN_PWD }}"
-    args:
-      ["sign-blob", "--key=cosign.key", "--output=${signature}", "${artifact}"]
+    signature: "${artifact}.sigstore.json"
     artifacts: all
+    output: true
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
 
 # https://goreleaser.com/customization/release/
 release:
@@ -219,7 +226,7 @@ release:
   prerelease: "true"
   extra_files:
     - glob: "./dynatrace-bindplane-otel-collector*.msi"
-    - glob: "./dynatrace-bindplane-otel-collector*.msi.sig"
+    - glob: "./dynatrace-bindplane-otel-collector*.msi.sigstore.json"
     - glob: "./aix-dist/*"
     - glob: "./scripts/install/install_unix.sh"
     - glob: "./scripts/install/install_macos.sh"
@@ -233,7 +240,7 @@ blobs:
     directory: "v{{ .Version }}"
     extra_files:
       - glob: "./dynatrace-bindplane-otel-collector*.msi"
-      - glob: "./dynatrace-bindplane-otel-collector*.msi.sig"
+      - glob: "./dynatrace-bindplane-otel-collector*.msi.sigstore.json"
       - glob: "./aix-dist/*"
       - glob: "./scripts/install/install_unix.sh"
       - glob: "./scripts/install/install_macos.sh"
