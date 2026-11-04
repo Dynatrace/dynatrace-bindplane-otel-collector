@@ -39,7 +39,6 @@ jobs:
       dry-run: true
       build-msi: ${{ inputs.distro == 'full' }}
       build-aix: ${{ inputs.distro == 'full' }}
-      cosign-mode: ${{ inputs.distro == 'slim' && 'keyless' || 'key' }}
       containers: ${{ inputs.distro == 'slim' }}
       sbom: ${{ inputs.distro == 'slim' }}
     secrets: inherit
