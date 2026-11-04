@@ -1,9 +1,10 @@
 name: Reusable CI workflow
 
 # Builds one DBDOT distro (selected by `distro`, the Makefile's DISTRO) for
-# the given GOOS/GOARCH pairs and optionally runs the unit tests. Called once
-# per distro by the thin ci-<distro>.yaml workflows, following the pattern of
-# the upstream opentelemetry-collector-releases base-ci-goreleaser.yaml.
+# the given GOOS/GOARCH pairs and smoke-tests the result. Called once per
+# distro by the thin ci-<distro>.yaml workflows, following the pattern of the
+# upstream opentelemetry-collector-releases base-ci-goreleaser.yaml. Unit
+# tests are not distro-specific and stay in tests.yml.
 #
 # The build uses `make agent` rather than goreleaser: the goreleaser configs
 # in this repo use `builder: prebuilt` and only package binaries `make`
@@ -32,11 +33,6 @@ on:
         default: ubuntu-24.04
       private_go_modules:
         description: "Set to true when the distro's manifest pulls private Dynatrace Go modules"
-        required: false
-        type: boolean
-        default: false
-      run_tests:
-        description: "Set to true to run the repo's unit tests (make test)"
         required: false
         type: boolean
         default: false
@@ -123,9 +119,10 @@ jobs:
           GOARCH: ${{ matrix.GOARCH }}
 
       # Starts the built collector in standalone mode with a minimal pipeline
-      # and checks it is still running after a few seconds. Catches binaries
-      # that compile but fail at startup (e.g. a feature gate the distro does
-      # not register). Only the runner's own platform can be started.
+      # for a few seconds. Fails if it exits early or never logs that it is
+      # ready. Catches binaries that compile but fail at startup (e.g. a
+      # feature gate the distro does not register). Only the runner's own
+      # platform can be started.
       - name: Smoke test
         if: matrix.GOOS == 'linux' && matrix.GOARCH == 'amd64'
         run: |
@@ -139,46 +136,19 @@ jobs:
           log="${RUNNER_TEMP}/smoke.log"
           "$bin" --version
           # No manager.yaml at --manager, so the collector runs standalone.
-          "$bin" --config config/example.yaml \
+          # timeout exits with 124 when it had to stop the still-running
+          # collector, which is the expected outcome.
+          rc=0
+          timeout 10 "$bin" --config config/example.yaml \
             --logging config/logging.stdout.yaml \
-            --manager "${RUNNER_TEMP}/manager.yaml" > "$log" 2>&1 &
-          pid=$!
-          sleep 10
-          if ! kill -0 "$pid" 2>/dev/null; then
-            echo "collector exited during startup:"
-            cat "$log"
+            --manager "${RUNNER_TEMP}/manager.yaml" > "$log" 2>&1 || rc=$?
+          cat "$log"
+          if [[ $rc -ne 124 ]]; then
+            echo "collector exited during startup (exit code $rc)"
             exit 1
           fi
-          kill "$pid"
-          wait "$pid" || true
-          cat "$log"
+          if ! grep -q "Everything is ready" "$log"; then
+            echo "collector did not report that it is ready"
+            exit 1
+          fi
 
-  unit-tests:
-    # Static name: GitHub does not evaluate expressions in the name of a
-    # job that is skipped by its `if`, so it would show up raw.
-    name: Unit tests
-    needs: optimize_ci
-    if: ${{ inputs.run_tests && needs.optimize_ci.outputs.skip != 'true' }}
-    runs-on: ${{ inputs.runner_os }}
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: extension/opampconnectionextension/go.mod
-          # The build's modules are resolved from the ocb manifests, so key the
-          # cache on them as well as the repo's go.sum files.
-          cache-dependency-path: |
-            **/go.sum
-            manifests/**/manifest*.yaml
-
-      - name: Install tools
-        run: bash .github/scripts/retry.sh make install-tools-ci
-
-      - name: Run unit tests
-        run: make test

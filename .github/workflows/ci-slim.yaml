@@ -1,12 +1,15 @@
 name: CI - DBDOT slim
 
 on:
+  # GitHub ignores paths filters for merge_group, so the merge queue always
+  # runs this workflow. Intended: every merge is built.
   merge_group:
   workflow_dispatch:
   push:
     branches:
       - main
-    paths:
+    # Shared with pull_request below via a YAML anchor.
+    paths: &paths
       - "manifests/dynatrace-bindplane-otel-collector-slim/**"
       - "extension/**"
       - "pkg/**"
@@ -20,17 +23,7 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "manifests/dynatrace-bindplane-otel-collector-slim/**"
-      - "extension/**"
-      - "pkg/**"
-      - "Makefile"
-      - "config/example.yaml"
-      - "config/logging.stdout.yaml"
-      - ".github/workflows/base-ci.yaml"
-      - ".github/workflows/ci-slim.yaml"
-      # Docs-only changes do not need a build.
-      - "!**/*.md"
+    paths: *paths
 
 # Cancel a PR's previous run when it gets a new push. Runs on main are never
 # cancelled.
@@ -44,8 +37,7 @@ permissions:
 jobs:
   ci:
     name: CI - DBDOT slim
-    # The slim manifest has no private Go modules. The unit tests are not
-    # distro-specific, so they only run in ci-full.yaml.
+    # The slim manifest has no private Go modules.
     uses: ./.github/workflows/base-ci.yaml
     with:
       distro: slim

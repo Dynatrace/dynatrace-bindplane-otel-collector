@@ -1,12 +1,15 @@
 name: CI - DBDOT
 
 on:
+  # GitHub ignores paths filters for merge_group, so the merge queue always
+  # runs this workflow. Intended: every merge is built.
   merge_group:
   workflow_dispatch:
   push:
     branches:
       - main
-    paths:
+    # Shared with pull_request below via a YAML anchor.
+    paths: &paths
       - "manifests/dynatrace-bindplane-otel-collector/**"
       - "extension/**"
       - "pkg/**"
@@ -16,35 +19,12 @@ on:
       - ".github/workflows/base-ci.yaml"
       - ".github/workflows/ci-full.yaml"
       - ".github/actions/private-go-modules/**"
-      # Covered by the unit tests (make test runs every module) and the tools
-      # they need.
-      - "updater/**"
-      - "cmd/**"
-      - "internal/tools/**"
-      - ".github/scripts/retry.sh"
       # Docs-only changes do not need a build.
       - "!**/*.md"
   pull_request:
     branches:
       - main
-    paths:
-      - "manifests/dynatrace-bindplane-otel-collector/**"
-      - "extension/**"
-      - "pkg/**"
-      - "Makefile"
-      - "config/example.yaml"
-      - "config/logging.stdout.yaml"
-      - ".github/workflows/base-ci.yaml"
-      - ".github/workflows/ci-full.yaml"
-      - ".github/actions/private-go-modules/**"
-      # Covered by the unit tests (make test runs every module) and the tools
-      # they need.
-      - "updater/**"
-      - "cmd/**"
-      - "internal/tools/**"
-      - ".github/scripts/retry.sh"
-      # Docs-only changes do not need a build.
-      - "!**/*.md"
+    paths: *paths
 
 # Cancel a PR's previous run when it gets a new push. Runs on main are never
 # cancelled.
@@ -67,7 +47,6 @@ jobs:
     with:
       distro: full
       private_go_modules: true
-      run_tests: true
     secrets:
       PRIVATE_GO_MODULES_APP_PRIVATE_KEY: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
       GRAPHITE_CI_OPTIMIZER_TOKEN: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
