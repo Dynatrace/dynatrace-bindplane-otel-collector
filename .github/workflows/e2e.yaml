@@ -1,12 +1,7 @@
 name: E2E-Test
 
 on:
-  pull_request:
-    branches: [main, "release/*"]
-  merge_group:
-    types: [checks_requested]
-  push:
-    branches: [main, "release/*"]
+  workflow_dispatch: # TODO Remove in follow-up PR
 
 permissions:
   contents: read
