@@ -7,8 +7,7 @@ local
 .vscode
 .vagrant
 dist
-cosign.*
-*.msi.sig
+*.msi.sigstore.json
 gpg.*
 *.msi
 *.exe
