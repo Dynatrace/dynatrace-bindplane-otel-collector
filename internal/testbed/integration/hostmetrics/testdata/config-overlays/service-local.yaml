@@ -1,0 +1,39 @@
+exporters:
+  otlp_http/1:
+    endpoint: http://%[1]s:4320
+  otlp_http/2:
+    endpoint: http://%[1]s:4321
+  otlp_http/3:
+    endpoint: http://%[1]s:4322
+  otlp_http/logs:
+    endpoint: http://%[1]s:4323
+
+receivers:
+  hostmetrics/10s:
+    collection_interval: 10s
+  hostmetrics/5m:
+    collection_interval: 10s
+    scrapers:
+      filesystem:
+        include_virtual_filesystems: true
+  hostmetrics/1h:
+    collection_interval: 10s
+    
+service:
+  pipelines:
+    metrics/10s:
+      receivers: [hostmetrics/10s]
+      processors: [filter, resource_detection, transform, filter/delete-metrics, cumulative_to_delta]
+      exporters: [otlp_http/1]
+    metrics/5m:
+      receivers: [hostmetrics/5m]
+      processors: [filter, resource_detection, transform, filter/delete-metrics, cumulative_to_delta]
+      exporters: [otlp_http/2]
+    metrics/1h:
+      receivers: [hostmetrics/1h]
+      processors: [filter, resource_detection, transform, filter/delete-metrics, cumulative_to_delta]
+      exporters: [otlp_http/3]
+    logs:
+      receivers: [otlp, journald]
+      processors: [resource_detection]
+      exporters: [otlp_http/logs]

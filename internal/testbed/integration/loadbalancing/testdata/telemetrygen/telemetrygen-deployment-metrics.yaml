@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temeletrygen-metrics-deployment
+  namespace: e2eloadbalancing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temeletrygen-metrics-deployment
+  template:
+    metadata:
+      annotations:
+        workload: deployment
+      labels:
+        app: temeletrygen-metrics-deployment
+    spec:
+      containers:
+      - command:
+        - /telemetrygen
+        - metrics
+        - --otlp-insecure
+        - --otlp-metric-name=custom-metric-name
+        - --otlp-endpoint={{ .OTLPEndpoint }}
+        - --duration=36000s
+        - --rate=1
+        - --batch=false
+        - --otlp-attributes=service.name="custom-service-name"
+        image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.164.1@sha256:bba458985f6ae55acc720096e9ba3e81c573135f833dec9f722c18fca54bd799
+        imagePullPolicy: Always
+        name: telemetrygen
+      restartPolicy: Always
