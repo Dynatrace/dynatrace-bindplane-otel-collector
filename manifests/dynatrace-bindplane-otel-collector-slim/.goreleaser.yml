@@ -301,10 +301,12 @@ dockers:
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
     build_flag_templates:
-      - "--label=created={{.Date}}"
-      - "--label=title={{.ProjectName}}"
-      - "--label=revision={{.FullCommit}}"
-      - "--label=version={{.Version}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
       - "--platform=linux/amd64"
     extra_files:
       - release_deps/plugins
@@ -328,10 +330,12 @@ dockers:
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
     build_flag_templates:
-      - "--label=created={{.Date}}"
-      - "--label=title={{.ProjectName}}"
-      - "--label=revision={{.FullCommit}}"
-      - "--label=version={{.Version}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
       - "--platform=linux/arm64"
     extra_files:
       - release_deps/plugins
@@ -355,10 +359,12 @@ dockers:
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
     build_flag_templates:
-      - "--label=created={{.Date}}"
-      - "--label=title={{.ProjectName}}"
-      - "--label=revision={{.FullCommit}}"
-      - "--label=version={{.Version}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
       - "--platform=linux/ppc64le"
     extra_files:
       - release_deps/plugins
