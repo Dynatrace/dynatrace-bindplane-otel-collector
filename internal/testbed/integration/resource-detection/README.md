@@ -1,7 +1,7 @@
 # Resource detection E2E test
 
 Tests the `dynatrace` detector of the resource detection processor with
-[`config_examples/resource-detection.yaml`](../../../../config_examples/resource-detection.yaml).
+[`config_examples/resource-detection.yaml`](../../config_examples/resource-detection.yaml).
 
 The detector reads `/var/lib/dynatrace/enrichment/dt_host_metadata.properties`, a path that
 can't be configured. To control that file without touching the host, the test runs the
@@ -14,8 +14,9 @@ test process, reached through `host.docker.internal`.
 Docker is required. From the repository root, build the Collector and the image the test uses:
 
 ```sh
-make build GOOS=linux
-docker build -t dynatrace-otel-collector:e2e-test -f Dockerfile bin
+make e2e-config-examples
+GOOS=linux make agent
+make e2e-images
 ```
 
 Then run the test:
@@ -25,9 +26,9 @@ cd internal/testbed/integration/resource-detection
 go test -v
 ```
 
-`make build` must produce a Linux binary, because it runs in the container. On macOS, build
-it for Linux (for example with `GOOS=linux`) before building the image.
+`make e2e-images` uses the Linux binary in `dist/` (`collector_linux_<arch>`), because it runs in the
+container. `GOARCH` defaults to the host architecture; set `E2E_IMAGE_ARCH` to build the image for another one.
 
 Rebuild the image after changing the Collector; the test uses whatever
-`dynatrace-otel-collector:e2e-test` is available locally. If it is missing, the test fails with
+`dynatrace-bindplane-otel-collector:e2e-test` is available locally. If it is missing, the test fails with
 the build command.

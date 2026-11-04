@@ -15,9 +15,9 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/k8stest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/k8stest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetricassert"
 	otelk8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
 )
@@ -25,7 +25,7 @@ import (
 func TestE2E_KubeletstatsReceiver(t *testing.T) {
 	testDir := filepath.Join("testdata")
 	expectedAssertFile := testDir + "/e2e/expected.assert.yaml"
-	configExamplesDir := "../../../../config_examples"
+	configExamplesDir := "../../config_examples"
 
 	kubeconfigPath := k8stest.TestKubeConfig
 	if kubeConfigFromEnv := os.Getenv(k8stest.KubeConfigEnvVar); kubeConfigFromEnv != "" {

@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/k8stest"
-	oteltest "github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/k8stest"
+	oteltest "github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
 	"github.com/google/uuid"
 	otelk8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
 	"github.com/stretchr/testify/require"
@@ -71,7 +71,7 @@ func TestE2E_BearerTokenAuth(t *testing.T) {
 
 	// Load the verifier config from config_examples, overlaying the test-specific audience and
 	// stripping the DT auth header (the sink does not require authentication).
-	verifierConfigPath := filepath.Join("../../../../config_examples", "oidcauth-receiver.yaml")
+	verifierConfigPath := filepath.Join("../../config_examples", "oidcauth-receiver.yaml")
 	verifierConfig, err := k8stest.GetCollectorConfig(verifierConfigPath, k8stest.ConfigTemplate{
 		Host: host,
 		Templates: []string{
@@ -99,7 +99,7 @@ func TestE2E_BearerTokenAuth(t *testing.T) {
 
 	// Load the sender config, overriding the exporter endpoint with the verifier's service address.
 	senderTestID := uuid.NewString()[:8]
-	senderConfigPath := filepath.Join("../../../../config_examples", "bearertokenauth-sender.yaml")
+	senderConfigPath := filepath.Join("../../config_examples", "bearertokenauth-sender.yaml")
 	endpointOverlay := fmt.Sprintf(k8stest.MustRead(t, filepath.Join(testDir, "config-overlays", "sender-endpoint.yaml")), verifierSvcEndpoint)
 	senderConfig, err := k8stest.GetCollectorConfig(senderConfigPath, k8stest.ConfigTemplate{
 		Host:      host,

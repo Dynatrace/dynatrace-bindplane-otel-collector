@@ -1,3 +1,8 @@
 *.log
 
 **/results/**
+
+# Written by the collector if a test starts it without LOGGING_YAML_PATH.
+logging.yaml
+# Fetched by `make e2e-config-examples`.
+config_examples/

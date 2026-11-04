@@ -16,12 +16,14 @@ import (
 
 var _ testbed.TestCaseValidator = &LogsValidator{}
 
+// WithHiddenLogsValidationErrorMessages makes the validator omit the logs from its failure messages.
 func WithHiddenLogsValidationErrorMessages() func(validator *LogsValidator) {
 	return func(v *LogsValidator) {
 		v.hideValidationErrorMessage = true
 	}
 }
 
+// LogsValidator checks that the expected logs were received by the mock backend.
 type LogsValidator struct {
 	expectedLogs []plog.Logs
 	t            *testing.T
@@ -43,11 +45,13 @@ func NewLogsValidator(t *testing.T, expectedLogs []plog.Logs, opts ...func(*Logs
 	return v
 }
 
+// Validate asserts that every expected log is among those received.
 func (v *LogsValidator) Validate(tc *testbed.TestCase) {
 	assertExpectedLogsAreInReceived(v.t, v.expectedLogs, tc.MockBackend.ReceivedLogs, v.hideValidationErrorMessage)
 }
 
-func (v *LogsValidator) RecordResults(tc *testbed.TestCase) {
+// RecordResults does nothing; the validator records no results.
+func (v *LogsValidator) RecordResults(_ *testbed.TestCase) {
 }
 
 func assertExpectedLogsAreInReceived(t *testing.T, expected, actual []plog.Logs, hideError bool) {

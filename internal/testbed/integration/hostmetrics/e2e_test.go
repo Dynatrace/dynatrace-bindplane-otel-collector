@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/k8stest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/k8stest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetricassert"
 	otelk8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +31,7 @@ func TestE2E_HostMetricsReceiver(t *testing.T) {
 	expectedFile1mAssert := testDir + "/e2e/expected-1m.assert.yaml"
 	expectedFile5mAssert := testDir + "/e2e/expected-5m.assert.yaml"
 	expectedFile1hAssert := testDir + "/e2e/expected-1h.assert.yaml"
-	configExamplesDir := "../../../../config_examples"
+	configExamplesDir := "../../config_examples"
 
 	kubeconfigPath := k8stest.TestKubeConfig
 	if kubeConfigFromEnv := os.Getenv(k8stest.KubeConfigEnvVar); kubeConfigFromEnv != "" {
@@ -63,19 +63,19 @@ func TestE2E_HostMetricsReceiver(t *testing.T) {
 			{
 				Consumer: metricsConsumer1m,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4320,
+					HTTP: 4320,
 				},
 			},
 			{
 				Consumer: metricsConsumer5m,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4321,
+					HTTP: 4321,
 				},
 			},
 			{
 				Consumer: metricsConsumer1h,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4322,
+					HTTP: 4322,
 				},
 			},
 		},
@@ -83,7 +83,7 @@ func TestE2E_HostMetricsReceiver(t *testing.T) {
 			{
 				Consumer: logsConsumer,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4323,
+					HTTP: 4323,
 				},
 			},
 		},

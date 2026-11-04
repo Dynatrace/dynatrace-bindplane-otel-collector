@@ -1,6 +1,7 @@
 // Copyright Dynatrace LLC
 // SPDX-License-Identifier: Apache-2.0
 
+// Package oteltest provides in-process OTLP sinks and exporter clients for e2e tests.
 package oteltest
 
 import (
@@ -49,6 +50,7 @@ func exportHTTP(t *testing.T, port int, path string, body []byte, err error) {
 	t.Helper()
 	require.NoError(t, err)
 	url := "http://" + net.JoinHostPort("localhost", strconv.Itoa(port)) + path
+	//#nosec G107 -- URL targets a localhost sink on a test-chosen port
 	resp, err := http.Post(url, "application/x-protobuf", bytes.NewReader(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -91,7 +91,7 @@ func runMode(t *testing.T, modeIdx int, mode payloadMode, topos []topology) {
 
 	testutil.StartCollector(t, testutil.CollectorParams{
 		Name:      "feature-flags",
-		Config:    prepareConfig(t, receiverPort, sinkPorts.Http),
+		Config:    prepareConfig(t, receiverPort, sinkPorts.HTTP),
 		ReadyPort: receiverPort,
 		Args:      []string{featureGatesArg},
 	})

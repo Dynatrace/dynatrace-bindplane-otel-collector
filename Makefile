@@ -4,6 +4,12 @@ ALLDOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
 # Exclude the ocb-generated ./build/ and ./build-slim/ trees — they are
 # throwaway modules, not part of the repo.
 ALL_MODULES := $(shell find . -type f -name "go.mod" -not -path "./build/*" -not -path "./build-slim/*" -exec dirname {} \; | sort )
+# End-to-end test modules. They need a built collector binary (and, for some
+# suites, Docker or a kind cluster), so the unit-test targets skip them. They are
+# run by .github/workflows/e2e.yaml.
+E2E_MODULES := ./internal/testbed/integration
+# Internal-only modules that are never published, so `make release` doesn't tag them.
+UNRELEASED_MODULES := ./internal/testbed/integration ./internal/testcommon
 ALL_MDATAGEN_MODULES := $(shell find . -type f -name "metadata.yaml" -exec dirname {} \; | sort )
 
 # All source code files
@@ -354,6 +360,7 @@ test:
 	fi
 	@set -e; for dir in $(ALL_MODULES); do \
 		if [ "$${dir}" = "." ]; then continue; fi; \
+		case " $(E2E_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		(cd "$${dir}" && \
 			echo "running tests in $${dir}" && \
 			gotestsum --rerun-fails --packages="./..." -- -race) || exit 1; \
@@ -361,12 +368,42 @@ test:
 
 .PHONY: test-no-race
 test-no-race:
-	$(MAKE) for-all CMD="gotestsum --rerun-fails --packages="./..." "
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="gotestsum --rerun-fails --packages="./..." "
 
 .PHONY: test-with-cover
 test-with-cover:
-	$(MAKE) for-all CMD="go test -coverprofile=cover.out ./..."
-	$(MAKE) for-all CMD="go tool cover -html=cover.out -o cover.html"
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go test -coverprofile=cover.out ./..."
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go tool cover -html=cover.out -o cover.html"
+
+# Fetches the config examples the e2e tests run against from the
+# dynatrace-otel-collector repo. DTOC_REF defaults to main; set it to a commit
+# SHA or tag to pin the examples, e.g. if they drift from the tests copied into
+# internal/testbed.
+DTOC_REPO ?= https://github.com/Dynatrace/dynatrace-otel-collector.git
+DTOC_REF ?= main
+E2E_CONFIG_EXAMPLES_DIR := internal/testbed/config_examples
+
+.PHONY: e2e-config-examples
+e2e-config-examples:
+	@set -e; tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
+	git -C "$$tmp" init -q; \
+	git -C "$$tmp" remote add origin "$(DTOC_REPO)"; \
+	git -C "$$tmp" sparse-checkout set config_examples; \
+	git -C "$$tmp" fetch -q --depth 1 --filter=blob:none origin "$(DTOC_REF)"; \
+	git -C "$$tmp" checkout -q FETCH_HEAD; \
+	rm -rf $(E2E_CONFIG_EXAMPLES_DIR); \
+	cp -R "$$tmp/config_examples" $(E2E_CONFIG_EXAMPLES_DIR); \
+	echo "Fetched config_examples from $(DTOC_REPO) at $(DTOC_REF) into $(E2E_CONFIG_EXAMPLES_DIR)"
+
+# Builds the e2e container images from the linux binaries in dist/ (run
+# `GOOS=linux GOARCH=<arch> make agent` first). The tests expect these tags.
+E2E_IMAGE_ARCH ?= $(shell go env GOARCH)
+.PHONY: e2e-images
+e2e-images:
+	docker build --platform linux/$(E2E_IMAGE_ARCH) --build-arg TARGETARCH=$(E2E_IMAGE_ARCH) \
+		-t dynatrace-bindplane-otel-collector:e2e-test -f internal/testbed/docker/Dockerfile ./dist
+	docker build --platform linux/$(E2E_IMAGE_ARCH) --build-arg TARGETARCH=$(E2E_IMAGE_ARCH) \
+		-t dynatrace-bindplane-otel-collector-journald:e2e-test -f internal/testbed/docker/Dockerfile-journald ./dist
 
 .PHONY: test-updater-integration
 test-updater-integration:
@@ -375,7 +412,7 @@ test-updater-integration:
 
 .PHONY: bench
 bench:
-	$(MAKE) for-all CMD="go test -benchmem -run=^$$ -bench ^* ./..."
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go test -benchmem -run=^$$ -bench ^* ./..."
 
 .PHONY: check-fmt
 check-fmt:
@@ -645,6 +682,7 @@ for-all:
 	fi
 	@set -e; for dir in $(ALL_MODULES); do \
 	  if [ "$${dir}" = "." ]; then continue; fi; \
+	  case " $${SKIP_MODULES} " in *" $${dir} "*) continue ;; esac; \
 	  (cd "$${dir}" && \
 	    echo "running $${CMD} in $${dir}" && \
 	    $${CMD} ); \
@@ -676,6 +714,7 @@ release:
 	@set -e; tags="$(version)"; git tag "$(version)"; \
 	for dir in $(ALL_MODULES); do \
 		if [ "$${dir}" = "." ]; then continue; fi; \
+		case " $(UNRELEASED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		tag="$${dir#./}/$(version)"; \
 		git tag "$${tag}"; \
 		tags="$${tags} $${tag}"; \

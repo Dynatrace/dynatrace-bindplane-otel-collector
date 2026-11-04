@@ -1,6 +1,8 @@
 // Copyright Dynatrace LLC
 // SPDX-License-Identifier: Apache-2.0
 
+// Package testutil provides helpers for running the Collector binary in tests and
+// for editing and comparing its configs and telemetry.
 package testutil
 
 import (
@@ -8,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -18,11 +21,55 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Paths relative to a package directory directly below internal/testbed/integration.
-const (
-	SubpackageCollectorExecPath = "../../../../bin/dynatrace-otel-collector"
-	SubpackageConfigExamplesDir = "../../../../config_examples"
-)
+// SubpackageConfigExamplesDir is the path of the config examples, relative to a package directory
+// directly below internal/testbed/integration. The directory is populated by `make e2e-config-examples`.
+const SubpackageConfigExamplesDir = "../../config_examples"
+
+// CollectorExecPath returns the path of the Collector binary under test. It is $DBDOT_COLLECTOR_BIN
+// if set, and otherwise the binary `make agent` writes to dist/ for the current platform.
+func CollectorExecPath() string {
+	if p := os.Getenv("DBDOT_COLLECTOR_BIN"); p != "" {
+		abs, err := filepath.Abs(p)
+		if err != nil {
+			return p
+		}
+		return abs
+	}
+	_, thisFile, _, _ := runtime.Caller(0)
+	// thisFile is <repo>/internal/testcommon/testutil/collector.go
+	repoRoot := filepath.Join(filepath.Dir(thisFile), "..", "..", "..")
+	name := "collector_" + runtime.GOOS + "_" + runtime.GOARCH
+	if runtime.GOOS == "windows" {
+		name += ".exe"
+	}
+	return filepath.Join(repoRoot, "dist", name)
+}
+
+// StandaloneEnv returns the environment that makes the DBDOT Collector run standalone and log to
+// stdout, without touching the working directory. Without it the Collector writes a logging.yaml
+// into the current directory and switches to managed mode if a manager.yaml or OPAMP_* variables exist.
+func StandaloneEnv(t testing.TB) map[string]string {
+	t.Helper()
+	dir := t.TempDir()
+	loggingPath := filepath.Join(dir, "logging.yaml")
+	require.NoError(t, os.WriteFile(loggingPath, []byte("output: stdout\nlevel: info\n"), 0o600))
+	return map[string]string{
+		"LOGGING_YAML_PATH": loggingPath,
+		// Never created, so the Collector doesn't pick up a manager config.
+		"MANAGER_YAML_PATH": filepath.Join(dir, "manager.yaml"),
+	}
+}
+
+// NewChildProcessCollector returns a child process runner for the Collector binary under test,
+// configured with StandaloneEnv. Use it instead of testbed.NewChildProcessCollector.
+func NewChildProcessCollector(t testing.TB) testbed.OtelcolRunner {
+	t.Helper()
+	opts := []testbed.ChildProcessOption{testbed.WithAgentExePath(CollectorExecPath())}
+	for k, v := range StandaloneEnv(t) {
+		opts = append(opts, testbed.WithEnvVar(k, v))
+	}
+	return testbed.NewChildProcessCollector(opts...)
+}
 
 // Config is a Collector config that is adapted for a test. Every edit is required to change
 // the config, so that changes to the original can't silently break the test.
@@ -33,6 +80,7 @@ type Config struct {
 
 // LoadConfig reads the config at path.
 func LoadConfig(t testing.TB, path string) *Config {
+	//#nosec G304 -- path is chosen by the test
 	raw, err := os.ReadFile(path)
 	require.NoError(t, err)
 	return &Config{t: t, cfg: string(raw)}
@@ -53,16 +101,17 @@ func (c *Config) Replace(name string, f func(string) string) *Config {
 	return c
 }
 
-// ReplaceString replaces the first occurrence of old with new.
-func (c *Config) ReplaceString(old, new string) *Config {
+// ReplaceString replaces the first occurrence of old with replacement.
+func (c *Config) ReplaceString(old, replacement string) *Config {
 	c.t.Helper()
-	return c.Replace(old, func(s string) string { return strings.Replace(s, old, new, 1) })
+	return c.Replace(old, func(s string) string { return strings.Replace(s, old, replacement, 1) })
 }
 
 func (c *Config) String() string {
 	return c.cfg
 }
 
+// ReplaceHealthCheckPort changes the health check endpoint port (13133) in cfg to port.
 func ReplaceHealthCheckPort(cfg string, port int) string {
 	return replaceEndpointPort(cfg, 13133, port)
 }
@@ -98,7 +147,7 @@ type CollectorParams struct {
 	Config string
 	// ReadyPort is a port the Collector listens on once it has started, e.g. its OTLP receiver.
 	ReadyPort int
-	// ExecPath defaults to SubpackageCollectorExecPath.
+	// ExecPath defaults to CollectorExecPath().
 	ExecPath string
 	// Args are additional command line arguments, e.g. feature gates.
 	Args []string
@@ -127,9 +176,12 @@ func StartCollector(t *testing.T, p CollectorParams) *Collector {
 	t.Helper()
 	execPath := p.ExecPath
 	if execPath == "" {
-		execPath = SubpackageCollectorExecPath
+		execPath = CollectorExecPath()
 	}
 	opts := []testbed.ChildProcessOption{testbed.WithAgentExePath(execPath)}
+	for k, v := range StandaloneEnv(t) {
+		opts = append(opts, testbed.WithEnvVar(k, v))
+	}
 	for k, v := range p.Env {
 		opts = append(opts, testbed.WithEnvVar(k, v))
 	}
@@ -159,7 +211,21 @@ func StartCollector(t *testing.T, p CollectorParams) *Collector {
 	})
 
 	WaitForListener(t, net.JoinHostPort("localhost", strconv.Itoa(p.ReadyPort)))
+	waitForStartupComplete(t, c.logPath)
 	return c
+}
+
+// waitForStartupComplete waits until the DBDOT Collector has finished starting. The managed-mode
+// runtime polls for the end of startup every 250ms and exits with status 1 if it is told to stop
+// in the meantime, so a test that stops the Collector right after its port opens would see a failure.
+func waitForStartupComplete(t testing.TB, logPath string) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		//#nosec G304 -- path is chosen by the test
+		b, err := os.ReadFile(logPath)
+		return err == nil && strings.Contains(string(b), "Everything is ready")
+	}, 30*time.Second, 50*time.Millisecond, "the Collector did not finish starting, see %s", logPath)
+	time.Sleep(500 * time.Millisecond)
 }
 
 // WaitForListener waits until addr accepts TCP connections.

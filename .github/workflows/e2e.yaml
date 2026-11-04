@@ -1,34 +1,29 @@
 name: E2E-Test
-
 on:
-  workflow_dispatch: # TODO Remove in follow-up PR
+  pull_request:
 
 permissions:
   contents: read
 
-# Superseded PR pushes are cancelled. Other events get a unique group per commit
-# so that main and merge queue runs are never cancelled or dropped.
+# Superseded PR pushes are cancelled.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
     shell: bash
 env:
   KUBECONFIG: /tmp/kube-config-collector-e2e-testing
-  # renovate: datasource=golang-version depName=go
-  GO_VERSION: "1.27.3"
 
 jobs:
   detect-changes:
     uses: ./.github/workflows/detect-changes.yaml
 
-  docker-build:
+  build:
     runs-on: ubuntu-24.04
     needs: [detect-changes]
-    # E2E tests are not run in the merge queue, see the e2e-success job.
-    if: needs.detect-changes.outputs.skip != 'true' && github.event_name != 'merge_group'
+    if: needs.detect-changes.outputs.skip != 'true'
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,28 +31,28 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: "**/*.sum"
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache-dependency-path: |
+            extension/opampconnectionextension/go.sum
+            internal/testbed/integration/go.sum
 
-      - name: Install tools
-        run: |
-          mkdir -p .tools
-          make install-tools
+      - name: Grant access to private Dynatrace Go modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
 
-      - name: Generate source files
-        run: make generate
+      - name: Install ocb
+        run: make install-ocb
 
       - name: Build collector artifact
-        shell: bash
-        run: |
-          echo "Building collector artifact"
-          make build
+        run: GOOS=linux GOARCH=amd64 make agent
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: dynatrace-otel-collector-bin
-          path: bin/dynatrace-otel-collector
+          name: dynatrace-bindplane-otel-collector-bin
+          path: dist/collector_linux_amd64
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
@@ -65,51 +60,43 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      - name: Build and push to local registry
+      - name: Build collector image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ./bin
-          file: Dockerfile
+          context: ./dist
+          file: internal/testbed/docker/Dockerfile
           push: false
           load: true
-          tags: dynatrace-otel-collector:e2e-test
-          cache-from: type=gha
-          # Only pushes write the layer cache. PRs read main's, so they don't fill the
-          # repo cache quota with PR-scoped blobs.
-          cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max' || '' }}
+          tags: dynatrace-bindplane-otel-collector:e2e-test
 
       - name: export image to tar
         run: |
-          docker save dynatrace-otel-collector:e2e-test > /tmp/dynatrace-otel-collector.tar
+          docker save dynatrace-bindplane-otel-collector:e2e-test > /tmp/dynatrace-bindplane-otel-collector.tar
 
       - name: Upload container image artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: dynatrace-otel-collector-image
-          path: /tmp/dynatrace-otel-collector.tar
+          name: dynatrace-bindplane-otel-collector-image
+          path: /tmp/dynatrace-bindplane-otel-collector.tar
 
       - name: Build journald image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ./bin
-          file: Dockerfile-journald
+          context: ./dist
+          file: internal/testbed/docker/Dockerfile-journald
           push: false
           load: true
-          tags: dynatrace-otel-collector-journald:e2e-test
-          cache-from: type=gha
-          # Only pushes write the layer cache. PRs read main's, so they don't fill the
-          # repo cache quota with PR-scoped blobs.
-          cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max' || '' }}
+          tags: dynatrace-bindplane-otel-collector-journald:e2e-test
 
       - name: Export journald image to tar
         run: |
-          docker save dynatrace-otel-collector-journald:e2e-test > /tmp/dynatrace-otel-collector-journald.tar
+          docker save dynatrace-bindplane-otel-collector-journald:e2e-test > /tmp/dynatrace-bindplane-otel-collector-journald.tar
 
       - name: Upload journald container image artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: dynatrace-otel-collector-journald-image
-          path: /tmp/dynatrace-otel-collector-journald.tar
+          name: dynatrace-bindplane-otel-collector-journald-image
+          path: /tmp/dynatrace-bindplane-otel-collector-journald.tar
 
   k8s-multinode-matrix:
     strategy:
@@ -119,7 +106,7 @@ jobs:
           - k8scombined
           - prometheus-large-scale
     runs-on: ubuntu-24.04
-    needs: docker-build
+    needs: build
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -129,6 +116,9 @@ jobs:
         with:
           config: "./.github/actions/create-cluster/multi-node.yaml"
           go-cache-dependency-path: internal/testbed/integration/go.sum
+
+      - name: Fetch config examples
+        run: make e2e-config-examples
 
       - name: Run e2e tests
         run: |
@@ -149,7 +139,7 @@ jobs:
           - kubeletstats
           - loadbalancing
     runs-on: ubuntu-24.04
-    needs: docker-build
+    needs: build
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -158,6 +148,9 @@ jobs:
         uses: ./.github/actions/create-cluster
         with:
           go-cache-dependency-path: internal/testbed/integration/go.sum
+
+      - name: Fetch config examples
+        run: make e2e-config-examples
 
       - name: Run e2e tests
         run: |
@@ -168,33 +161,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - path: testbed/integration/bearertokenauth
-            module: testbed/integration
-          - path: testbed/integration/feature-flags
-            module: testbed/integration
-          - path: testbed/integration/filestorage
-            module: testbed/integration
-          - path: testbed/integration/genainormalizer
-            module: testbed/integration
-          - path: testbed/integration/kafka
-            module: testbed/integration
-          - path: testbed/integration/netflow
-            module: testbed/integration
-          - path: testbed/integration/prometheus
-            module: testbed/integration
-          - path: testbed/integration/redaction
-            module: testbed/integration
-          - path: testbed/integration/statsd
-            module: testbed/integration
-          - path: testbed/integration/self-monitoring
-            module: testbed/integration
-          - path: testbed/integration/zipkin
-            module: testbed/integration
-          - path: confmap/provider/eecprovider
-            module: confmap/provider/eecprovider
+        path:
+          - bearertokenauth
+          - feature-flags
+          - filestorage
+          - genainormalizer
+          - kafka
+          - netflow
+          - prometheus
+          - redaction
+          - statsd
+          - self-monitoring
+          - zipkin
     runs-on: ubuntu-24.04
-    needs: docker-build
+    needs: build
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -202,44 +182,29 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: internal/${{ matrix.module }}/go.sum
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache-dependency-path: internal/testbed/integration/go.sum
 
       - name: Download artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: dynatrace-otel-collector-bin
-          path: bin
+          name: dynatrace-bindplane-otel-collector-bin
+          path: dist
 
-      - run: chmod +x bin/*
+      - run: chmod +x dist/*
+
+      - name: Fetch config examples
+        run: make e2e-config-examples
 
       - name: Run e2e tests
         run: |
-          cd internal/${{ matrix.path }}
-          go test -v --tags=e2e
-
-  helm-install-test:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    needs: docker-build
-    steps:
-      - name: Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup cluster
-        uses: ./.github/actions/create-cluster
-
-      - name: Run helm installation
-        env:
-          REPOSITORY: "dynatrace-otel-collector"
-          TAG: "e2e-test"
-        run: |
-          ./internal/testbed/scripts/install_dt_collector_helm.sh || exit 1;
+          cd internal/testbed/integration/${{ matrix.path }}
+          go test -v
 
   hostmetrics-e2e-test:
     name: Test Hostmetrics configuration
     runs-on: ubuntu-24.04
-    needs: docker-build
+    needs: build
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -252,22 +217,25 @@ jobs:
       - name: Download journald image artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: dynatrace-otel-collector-journald-image
+          name: dynatrace-bindplane-otel-collector-journald-image
           path: /tmp
 
       - name: Load journald image into Kind
         run: |
-          kind load image-archive /tmp/dynatrace-otel-collector-journald.tar
+          kind load image-archive /tmp/dynatrace-bindplane-otel-collector-journald.tar
+
+      - name: Fetch config examples
+        run: make e2e-config-examples
 
       - name: Run e2e tests
         run: |
           cd internal/testbed/integration/hostmetrics
-          go test -v --tags=e2e
+          go test -v
 
   resource-detection-e2e-test:
     name: Test resource detection
     runs-on: ubuntu-24.04
-    needs: docker-build
+    needs: build
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -275,29 +243,32 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: extension/opampconnectionextension/go.mod
           cache-dependency-path: internal/testbed/integration/go.sum
 
       - name: Download image artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: dynatrace-otel-collector-image
+          name: dynatrace-bindplane-otel-collector-image
           path: /tmp
 
       - name: Load image into Docker
-        run: docker load -i /tmp/dynatrace-otel-collector.tar
+        run: docker load -i /tmp/dynatrace-bindplane-otel-collector.tar
+
+      - name: Fetch config examples
+        run: make e2e-config-examples
 
       - name: Run e2e tests
         run: |
           cd internal/testbed/integration/resource-detection
           go test -v
 
-  # Single required status check. Skipped jobs (docs-only changes, merge queue)
+  # Single required status check. Skipped jobs (docs-only changes)
   # count as success, failed or cancelled ones fail this job.
   e2e-success:
     name: E2E Success
     if: always()
-    needs: [detect-changes, docker-build, k8s-multinode-matrix, k8s-e2e-test-matrix, e2e-test-matrix, hostmetrics-e2e-test, resource-detection-e2e-test]
+    needs: [detect-changes, build, k8s-multinode-matrix, k8s-e2e-test-matrix, e2e-test-matrix, hostmetrics-e2e-test, resource-detection-e2e-test]
     runs-on: ubuntu-24.04
     steps:
       - name: Check results
@@ -306,17 +277,3 @@ jobs:
         run: |
           echo "$RESULTS"
           case " $RESULTS " in *" failure "*|*" cancelled "*) exit 1;; esac
-
-  notify-slack-e2e-tests:
-    runs-on: ubuntu-24.04
-    needs: [k8s-e2e-test-matrix, e2e-test-matrix, k8s-multinode-matrix, hostmetrics-e2e-test, resource-detection-e2e-test]
-    if: failure() && github.event_name == 'push'
-    steps:
-      - name: Slack Notification
-        uses: rtCamp/action-slack-notify@06cc13f74fa8d4d2296c09455d91e9453e4025f4 # v2.4.1
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "DT OTel Collector Distro - E2E Test Failure"
-          SLACK_COLOR: "failure"
-          SLACK_USERNAME: "GitHub Actions Notifier"
-          SLACK_ICON: "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/github.png"

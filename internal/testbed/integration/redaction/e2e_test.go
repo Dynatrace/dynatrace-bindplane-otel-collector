@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/consumertest"
@@ -29,7 +29,7 @@ func startCollector(t *testing.T, example string, edit func(*testutil.Config)) (
 	cfg := testutil.LoadConfigExample(t, example).
 		Replace("grpc receiver port", func(s string) string { return testutil.ReplaceOtlpGrpcReceiverPort(s, grpcPort) }).
 		Replace("health_check port", func(s string) string { return testutil.ReplaceHealthCheckPort(s, healthPort) }).
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") }).
 		Replace("internal metrics", testutil.DisableInternalMetrics)
 	edit(cfg)
@@ -74,7 +74,7 @@ func TestE2E_RedactionExample(t *testing.T) {
 	grpcPort, sink := startCollector(t, "redaction.yaml", func(c *testutil.Config) {
 		// The example also opens the OTLP/HTTP receiver, which is not used here.
 		c.Replace("http receiver port", func(s string) string {
-			return testutil.ReplaceOtlpHttpReceiverPort(s, testutil.GetAvailablePort(t))
+			return testutil.ReplaceOtlpHTTPReceiverPort(s, testutil.GetAvailablePort(t))
 		})
 	})
 

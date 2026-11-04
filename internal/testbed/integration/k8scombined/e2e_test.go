@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/k8stest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/k8stest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetricassert"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/ptracetest"
@@ -48,7 +48,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 	expectedTracesFile := testDir + "/e2e/expected-traces.yaml"
 	expectedNodeAssertFile := testDir + "/e2e/expected-node.assert.yaml"
 	expectedClusterAssertFile := testDir + "/e2e/expected-cluster.assert.yaml"
-	configExamplesDir := "../../../../config_examples"
+	configExamplesDir := "../../config_examples"
 
 	kubeconfigPath := k8stest.TestKubeConfig
 	if kubeConfigFromEnv := os.Getenv(k8stest.KubeConfigEnvVar); kubeConfigFromEnv != "" {
@@ -79,7 +79,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 			{
 				Consumer: logsConsumer,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4319,
+					HTTP: 4319,
 				},
 			},
 		},
@@ -87,7 +87,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 			{
 				Consumer: metricsConsumerCluster,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4320,
+					HTTP: 4320,
 				},
 			},
 		},
@@ -95,7 +95,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 			{
 				Consumer: tracesConsumer,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4322,
+					HTTP: 4322,
 				},
 			},
 		},
@@ -105,7 +105,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 			{
 				Consumer: metricsConsumerNode,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4321,
+					HTTP: 4321,
 				},
 			},
 		},

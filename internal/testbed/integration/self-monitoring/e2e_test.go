@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetricassert"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	collectorServiceName = "dynatrace-otel-collector"
+	collectorServiceName = "com.dynatrace.bindplane.otel.collector"
 	testServiceName      = "selfmon-test"
 )
 
@@ -147,7 +147,7 @@ func metricNames(md pmetric.Metrics) []string {
 }
 
 // assertGolden compares md, with the ignored attributes masked and resources deduplicated, to the golden file.
-func assertGolden(t testing.TB, tt assert.TestingT, path string, md pmetric.Metrics, resourceIgnore, dpIgnore []string) {
+func assertGolden(_ testing.TB, tt assert.TestingT, path string, md pmetric.Metrics, resourceIgnore, dpIgnore []string) {
 	actual := pmetric.NewMetrics()
 	md.CopyTo(actual)
 	testutil.ReplaceAttrValsWithStar(actual, resourceIgnore, dpIgnore)
@@ -164,8 +164,8 @@ func Test_Selfmonitoring(t *testing.T) {
 	sink, sinkPorts := oteltest.StartMetricsSink(t)
 	httpPort := testutil.GetAvailablePort(t)
 
-	startCollector(t, "self-monitoring.yaml", sinkPorts.Http, httpPort, func(c *testutil.Config) {
-		c.Replace("http receiver port", func(s string) string { return testutil.ReplaceOtlpHttpReceiverPort(s, httpPort) })
+	startCollector(t, "self-monitoring.yaml", sinkPorts.HTTP, httpPort, func(c *testutil.Config) {
+		c.Replace("http receiver port", func(s string) string { return testutil.ReplaceOtlpHTTPReceiverPort(s, httpPort) })
 		fastReader(c)
 	})
 
@@ -178,7 +178,7 @@ func Test_Selfmonitoring(t *testing.T) {
 		"k8s.pod.name":                oteltest.NewExpectedValue(oteltest.AttributeMatchTypeEqual, podEnv["MY_POD_NAME"]),
 		"k8s.node.name":               oteltest.NewExpectedValue(oteltest.AttributeMatchTypeEqual, podEnv["MY_NODE_NAME"]),
 		oteltest.ServiceNameAttribute: oteltest.NewExpectedValue(oteltest.AttributeMatchTypeEqual, collectorServiceName),
-		"service.instance.id":         oteltest.NewExpectedValue(oteltest.AttributeMatchTypeRegex, oteltest.UidRe),
+		"service.instance.id":         oteltest.NewExpectedValue(oteltest.AttributeMatchTypeRegex, oteltest.UIDRe),
 		"service.version":             oteltest.NewExpectedValue(oteltest.AttributeMatchTypeExist, ""),
 	}))
 
@@ -241,9 +241,9 @@ func Test_Selfmonitoring_checkMetrics(t *testing.T) {
 	grpcPort := testutil.GetAvailablePort(t)
 	httpPort := testutil.GetAvailablePort(t)
 
-	startCollector(t, "self-monitoring-check-metrics.yaml", sinkPorts.Http, httpPort, func(c *testutil.Config) {
+	startCollector(t, "self-monitoring-check-metrics.yaml", sinkPorts.HTTP, httpPort, func(c *testutil.Config) {
 		c.Replace("grpc receiver port", func(s string) string { return testutil.ReplaceOtlpGrpcReceiverPort(s, grpcPort) }).
-			Replace("http receiver port", func(s string) string { return testutil.ReplaceOtlpHttpReceiverPort(s, httpPort) })
+			Replace("http receiver port", func(s string) string { return testutil.ReplaceOtlpHTTPReceiverPort(s, httpPort) })
 		fastReader(c)
 	})
 
@@ -326,7 +326,7 @@ func Test_Selfmonitoring_Prometheus_checkMetrics(t *testing.T) {
 	grpcPort := testutil.GetAvailablePort(t)
 	promPort := testutil.GetAvailablePort(t)
 
-	startCollector(t, "self-monitoring-prometheus-check-metrics.yaml", sinkPorts.Http, grpcPort, func(c *testutil.Config) {
+	startCollector(t, "self-monitoring-prometheus-check-metrics.yaml", sinkPorts.HTTP, grpcPort, func(c *testutil.Config) {
 		c.Replace("grpc receiver port", func(s string) string { return testutil.ReplaceOtlpGrpcReceiverPort(s, grpcPort) }).
 			ReplaceString("port: 8888", fmt.Sprintf("port: %d", promPort)).
 			ReplaceString(`"localhost:8888"`, fmt.Sprintf(`"localhost:%d"`, promPort)).

@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -147,7 +147,7 @@ func TestE2E_FileStorageCheckpoint(t *testing.T) {
 	ports := oteltest.StartReceiver(t, oteltest.Consumers{Logs: b})
 	logDir := t.TempDir()
 	logPath := filepath.Join(logDir, "app.log")
-	cfg, healthPort := collectorConfig(t, logDir, filepath.Join(t.TempDir(), "file_storage"), ports.Http)
+	cfg, healthPort := collectorConfig(t, logDir, filepath.Join(t.TempDir(), "file_storage"), ports.HTTP)
 
 	c1 := testutil.StartCollector(t, testutil.CollectorParams{Name: "filestorage-1", Config: cfg, ReadyPort: healthPort})
 	waitForPipeline(t, logPath, b)
@@ -177,7 +177,7 @@ func TestE2E_FileStoragePersistentQueue(t *testing.T) {
 	ports := oteltest.StartReceiver(t, oteltest.Consumers{Logs: b})
 	logDir := t.TempDir()
 	logPath := filepath.Join(logDir, "app.log")
-	cfg, healthPort := collectorConfig(t, logDir, filepath.Join(t.TempDir(), "file_storage"), ports.Http)
+	cfg, healthPort := collectorConfig(t, logDir, filepath.Join(t.TempDir(), "file_storage"), ports.HTTP)
 
 	c1 := testutil.StartCollector(t, testutil.CollectorParams{Name: "filestorage-1", Config: cfg, ReadyPort: healthPort})
 	waitForPipeline(t, logPath, b)

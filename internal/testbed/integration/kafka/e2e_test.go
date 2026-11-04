@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/plogtest"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetricassert"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
@@ -196,7 +196,7 @@ func TestE2E_KafkaExporterReceiver(t *testing.T) {
 	receiverHealth := testutil.GetAvailablePort(t)
 	testutil.StartCollector(t, testutil.CollectorParams{
 		Name:      "kafka-receiver",
-		Config:    receiverConfig(t, broker, receiverHealth, sinkPorts.Http),
+		Config:    receiverConfig(t, broker, receiverHealth, sinkPorts.HTTP),
 		ReadyPort: receiverHealth,
 	})
 
@@ -278,7 +278,7 @@ func TestE2E_KafkaMetricsReceiver(t *testing.T) {
 	healthPort := testutil.GetAvailablePort(t)
 	testutil.StartCollector(t, testutil.CollectorParams{
 		Name:      "kafka-metrics",
-		Config:    metricsReceiverConfig(t, broker, healthPort, sinkPorts.Http),
+		Config:    metricsReceiverConfig(t, broker, healthPort, sinkPorts.HTTP),
 		ReadyPort: healthPort,
 	})
 

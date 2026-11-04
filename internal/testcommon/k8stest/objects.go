@@ -22,8 +22,10 @@ import (
 	"k8s.io/client-go/dynamic"
 )
 
+// OperationFunc applies an operation (for example create or delete) to a single manifest.
 type OperationFunc func(client *otelk8stest.K8sClient, manifest []byte) (*unstructured.Unstructured, error)
 
+// DeleteObjectFromManifest deletes the object described by manifest. It always returns a nil object.
 func DeleteObjectFromManifest(client *otelk8stest.K8sClient, manifest []byte) (*unstructured.Unstructured, error) {
 	unstruct, _, err := ConvertBytesToUnstructured(manifest)
 	if err != nil {
@@ -32,6 +34,7 @@ func DeleteObjectFromManifest(client *otelk8stest.K8sClient, manifest []byte) (*
 	return nil, otelk8stest.DeleteObject(client, unstruct)
 }
 
+// PerformOperationOnYAMLFiles runs operation on every .yaml and .yml file in dirPath, stopping at the first error.
 func PerformOperationOnYAMLFiles(client *otelk8stest.K8sClient, dirPath string, operation OperationFunc) error {
 	files, err := os.ReadDir(dirPath)
 	if err != nil {
@@ -41,6 +44,7 @@ func PerformOperationOnYAMLFiles(client *otelk8stest.K8sClient, dirPath string, 
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".yaml" || filepath.Ext(file.Name()) == ".yml" {
 			filePath := filepath.Join(dirPath, file.Name())
+			//#nosec G304 -- path comes from the test's manifests directory
 			yamlData, err := os.ReadFile(filePath)
 			if err != nil {
 				return fmt.Errorf("error reading file: %v", err)
@@ -90,6 +94,7 @@ func WaitForDeploymentPods(dynamicClient dynamic.Interface, namespace, deploymen
 	}
 }
 
+// GetPodNameByLabels returns the name of the first pod in namespace that matches podLabels.
 func GetPodNameByLabels(dynamicClient dynamic.Interface, namespace string, podLabels map[string]string) (string, error) {
 	// Convert the map of labels to a selector
 	labelSelector := labels.SelectorFromSet(podLabels).String()

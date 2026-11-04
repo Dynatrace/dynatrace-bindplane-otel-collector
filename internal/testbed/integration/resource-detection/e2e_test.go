@@ -13,8 +13,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/consumertest"
@@ -22,9 +22,9 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 )
 
-// image is built by the docker-build CI job; locally build it from the repository root with
-// docker build -t dynatrace-otel-collector:e2e-test -f Dockerfile bin
-const image = "dynatrace-otel-collector:e2e-test"
+// image is built by the build job of the E2E workflow; locally build it from the repository root with
+// `GOOS=linux GOARCH=amd64 make agent && make e2e-images`.
+const image = "dynatrace-bindplane-otel-collector:e2e-test"
 
 const (
 	enrichmentFile = "/var/lib/dynatrace/enrichment/dt_host_metadata.properties"
@@ -48,7 +48,7 @@ func startCollector(t *testing.T, enrichment string) (int, *consumertest.TracesS
 	// on the host through host.docker.internal.
 	cfg := testutil.LoadConfigExample(t, "resource-detection.yaml").
 		ReplaceString("${env:MY_POD_IP}", "0.0.0.0").
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		ReplaceString("http://0.0.0.0:", "http://host.docker.internal:").
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") })
 
@@ -76,7 +76,7 @@ func startCollector(t *testing.T, enrichment string) (int, *consumertest.TracesS
 		testcontainers.WithWaitStrategy(wait.ForLog("Everything is ready").WithStartupTimeout(time.Minute)),
 	)
 	testcontainers.CleanupContainer(t, ctr)
-	require.NoError(t, err, "failed to start %s; build it with: docker build -t %s -f Dockerfile bin", image, image)
+	require.NoError(t, err, "failed to start %s; build it with: GOOS=linux GOARCH=amd64 make agent && make e2e-images (image %s)", image)
 
 	port, err := ctr.MappedPort(t.Context(), "4317/tcp")
 	require.NoError(t, err)

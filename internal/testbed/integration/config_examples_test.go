@@ -21,13 +21,13 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	idutils "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils"
 )
 
 func TestConfigTailSampling(t *testing.T) {
 	// arrange
-	col := testbed.NewChildProcessCollector(testbed.WithAgentExePath(testutil.CollectorTestsExecPath))
+	col := testutil.NewChildProcessCollector(t)
 	cfg, err := os.ReadFile(path.Join(ConfigExamplesDir, "tail_sampling.yaml"))
 	require.NoError(t, err)
 
@@ -140,7 +140,7 @@ func TestConfigTailSampling(t *testing.T) {
 
 func TestConfigJaegerGrpc(t *testing.T) {
 	// arrange
-	col := testbed.NewChildProcessCollector(testbed.WithAgentExePath(testutil.CollectorTestsExecPath))
+	col := testutil.NewChildProcessCollector(t)
 	cfg, err := os.ReadFile(path.Join(ConfigExamplesDir, "jaeger.yaml"))
 	require.NoError(t, err)
 
@@ -233,7 +233,7 @@ func TestConfigJaegerGrpc(t *testing.T) {
 
 func TestConfigHistogramTransform(t *testing.T) {
 	// arrange
-	col := testbed.NewChildProcessCollector(testbed.WithAgentExePath(testutil.CollectorTestsExecPath))
+	col := testutil.NewChildProcessCollector(t)
 	cfg, err := os.ReadFile(path.Join(ConfigExamplesDir, "split_histogram.yaml"))
 	require.NoError(t, err)
 
@@ -343,7 +343,7 @@ func TestConfigHistogramTransform(t *testing.T) {
 
 func TestConfigMetricsFromPreSampledTraces(t *testing.T) {
 	// arrange
-	col := testbed.NewChildProcessCollector(testbed.WithAgentExePath(testutil.CollectorTestsExecPath))
+	col := testutil.NewChildProcessCollector(t)
 	cfg, err := os.ReadFile(path.Join(ConfigExamplesDir, "spanmetrics.yaml"))
 	require.NoError(t, err)
 
@@ -480,7 +480,7 @@ func TestConfigMetricsFromPreSampledTraces(t *testing.T) {
 }
 
 func TestSyslog_WithF5Receiver(t *testing.T) {
-	col := testbed.NewChildProcessCollector(testbed.WithAgentExePath(testutil.CollectorTestsExecPath))
+	col := testutil.NewChildProcessCollector(t)
 	cfg, err := os.ReadFile(path.Join(ConfigExamplesDir, "syslog.yaml"))
 	require.NoError(t, err)
 
@@ -587,7 +587,7 @@ func TestSyslog_WithF5Receiver(t *testing.T) {
 }
 
 func TestSyslog_WithHostReceiver(t *testing.T) {
-	col := testbed.NewChildProcessCollector(testbed.WithAgentExePath(testutil.CollectorTestsExecPath))
+	col := testutil.NewChildProcessCollector(t)
 	cfg, err := os.ReadFile(path.Join(ConfigExamplesDir, "syslog.yaml"))
 	require.NoError(t, err)
 

@@ -19,8 +19,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 )
 
 // step is how much the target's counter grows with every scrape.
@@ -28,7 +28,7 @@ const step = 10
 
 const (
 	targetService    = "node-exporter"
-	collectorService = "dynatrace-otel-collector"
+	collectorService = "com.dynatrace.bindplane.otel.collector"
 )
 
 // startTarget serves a Prometheus registry on a local port and returns its host:port. Every
@@ -135,7 +135,7 @@ func TestE2E_PrometheusScrape(t *testing.T) {
 			return strings.ReplaceAll(s, "scrape_interval: 60s", "scrape_interval: 1s")
 		}).
 		Replace("health_check port", func(s string) string { return testutil.ReplaceHealthCheckPort(s, healthPort) }).
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") })
 
 	testutil.StartCollector(t, testutil.CollectorParams{

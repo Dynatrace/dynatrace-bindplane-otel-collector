@@ -6,7 +6,7 @@ resources:
         k8s.node.name: local-node
         k8s.pod.name: otelcol-local
         service.instance.id: '*'
-        service.name: dynatrace-otel-collector
+        service.name: com.dynatrace.bindplane.otel.collector
         service.version: '*'
       scopes:
         - name: github.com/open-telemetry/opentelemetry-collector-contrib/processor/cumulativetodeltaprocessor
