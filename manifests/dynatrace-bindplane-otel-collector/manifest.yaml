@@ -134,7 +134,7 @@ processors:
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/threatenrichmentprocessor v1.3.0
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/throughputmeasurementprocessor v1.3.0
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.3.0
-  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/snapshotprocessor v1.3.1-0.20261104205216-24061cc41d21
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/snapshotprocessor v1.3.1-0.20261105151200-050fe8510cdc
 
 receivers:
   - gomod: go.opentelemetry.io/collector/receiver/nopreceiver v0.164.0
