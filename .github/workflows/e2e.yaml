@@ -98,6 +98,36 @@ jobs:
           name: dynatrace-bindplane-otel-collector-journald-image
           path: /tmp/dynatrace-bindplane-otel-collector-journald.tar
 
+  slim-smoke-test:
+    name: Smoke test slim build
+    runs-on: ubuntu-24.04
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.skip != 'true'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache-dependency-path: |
+            extension/opampconnectionextension/go.sum
+            internal/testbed/integration/go.sum
+
+      - name: Install ocb
+        run: make install-ocb
+
+      - name: Build slim collector
+        run: GOOS=linux GOARCH=amd64 make agent DISTRO=slim
+
+      - name: Run smoke tests
+        env:
+          DBDOT_COLLECTOR_BIN: ${{ github.workspace }}/dist/collector-slim_linux_amd64
+        run: |
+          cd internal/testbed/integration/smoke
+          go test -v
+
   k8s-multinode-matrix:
     strategy:
       fail-fast: false
@@ -268,7 +298,7 @@ jobs:
   e2e-success:
     name: E2E Success
     if: always()
-    needs: [detect-changes, build, k8s-multinode-matrix, k8s-e2e-test-matrix, e2e-test-matrix, hostmetrics-e2e-test, resource-detection-e2e-test]
+    needs: [detect-changes, build, slim-smoke-test, k8s-multinode-matrix, k8s-e2e-test-matrix, e2e-test-matrix, hostmetrics-e2e-test, resource-detection-e2e-test]
     runs-on: ubuntu-24.04
     steps:
       - name: Check results
