@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/ptracetest"
 	"github.com/stretchr/testify/require"

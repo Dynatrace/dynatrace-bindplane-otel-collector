@@ -1,10 +1,10 @@
-module github.com/Dynatrace/dynatrace-otel-collector/internal/testbed/integration
+module github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testbed/integration
 
-go 1.27.3
+go 1.26.10
 
 require (
-	github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon v0.0.0
 	github.com/coreos/go-oidc/v3 v3.21.0
+	github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon v0.0.0
 	github.com/google/uuid v1.6.0
 	github.com/moby/moby/api v1.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.164.1
@@ -235,4 +235,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon v0.0.0 => ../../testcommon
+replace github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon v0.0.0 => ../../testcommon

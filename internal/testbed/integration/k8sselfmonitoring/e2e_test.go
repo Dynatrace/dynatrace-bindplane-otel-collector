@@ -8,10 +8,10 @@ import (
 	"path"
 	"path/filepath"
 	"testing"
-	"uuid"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/k8stest"
-	oteltest "github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/k8stest"
+	oteltest "github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/google/uuid"
 	otelk8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
