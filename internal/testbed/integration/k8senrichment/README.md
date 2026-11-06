@@ -27,41 +27,30 @@ To create a new cluster, execute the following command:
 ```shell
 kind create cluster
 ```
-### Build the collector binary
+### Build the collector binary and the container
 
-This is done using the `make build` command.
-This will build the collector distro, and place the built binary 
-into the `bin` directory of your local copy of the repository.
+Fetch the config examples, build the Linux collector binary and build the e2e images from the repository root:
 
-**NOTE:** When using an M1 mac, the `make build` command will build the `arm64` binary, which
-will not be able to run as a container on a `kind` cluster.
-For now, as workaround you will need to use the `make build-all` command to build all binaries and then copy the
-`linux_amd64` binary from the `dist` directory into `bin` under the name `dynatrace-otel-collector`.
-
-### Build the container
-
-From the `bin` directory, use `docker` or `podman` to build the collector image, and to load the built
-image into the local registry of the `kind` cluster.
-
-Note that this process differs between `podman` and `docker`, as with `podman`, you will have to
-load the image using the `image-archive` argument:
-
-**Build and load with `podman`:**
 ```shell
-cd bin
-podman buildx build -t dynatrace-otel-collector:e2e-test -f ../Dockerfile . --load
-podman save -o dynatrace-otel-collector.tar dynatrace-otel-collector:e2e-test
-kind load image-archive dynatrace-otel-collector.tar --name kind
-cd ..
+make e2e-config-examples
+GOOS=linux GOARCH=amd64 make agent
+make e2e-images E2E_IMAGE_ARCH=amd64
 ```
 
-**Build and load with `docker`:**
+Use the architecture of your `kind` nodes, which on Apple silicon is `arm64`. The images are tagged
+`dynatrace-bindplane-otel-collector:e2e-test` and `dynatrace-bindplane-otel-collector-journald:e2e-test`.
+
+Load the image into the `kind` cluster.
+
+**With `docker`:**
 ```shell
-cd bin
-docker buildx build -t dynatrace-otel-collector:e2e-test -f ../Dockerfile . --load
-docker save -o dynatrace-otel-collector.tar dynatrace-otel-collector:e2e-test
-kind load docker-image dynatrace-otel-collector:e2e-test --name kind
-cd ..
+kind load docker-image dynatrace-bindplane-otel-collector:e2e-test --name kind
+```
+
+**With `podman`:**
+```shell
+podman save -o dynatrace-bindplane-otel-collector.tar dynatrace-bindplane-otel-collector:e2e-test
+kind load image-archive dynatrace-bindplane-otel-collector.tar --name kind
 ```
 
 ### Running the tests

@@ -181,9 +181,6 @@ func SetFeatureGateForTest(t testing.TB, gate *featuregate.Gate, enabled bool) f
 	}
 }
 
-// CollectorTestsExecPath is the path of the Collector binary used by the e2e tests, relative to a test package.
-const CollectorTestsExecPath string = "../../../bin/dynatrace-otel-collector"
-
 // replaceEndpointPort swaps oldPort for newPort only within endpoint: fields,
 // preventing silent corruption of other fields that happen to contain the port number.
 func replaceEndpointPort(cfg string, oldPort, newPort int) string {

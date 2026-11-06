@@ -34,7 +34,7 @@ type expectedValue struct {
 // See: https://docs.dynatrace.com/docs/shortlink/otel-collector-cases-k8s-enrich
 func TestEnrichFromKubernetes(t *testing.T) {
 	testDir := filepath.Join("testdata")
-	configExamplesDir := "../../../../config_examples"
+	configExamplesDir := "../../config_examples"
 
 	kubeconfigPath := k8stest.TestKubeConfig
 	if kubeConfigFromEnv := os.Getenv(k8stest.KubeConfigEnvVar); kubeConfigFromEnv != "" {

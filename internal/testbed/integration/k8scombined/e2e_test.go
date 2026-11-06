@@ -48,7 +48,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 	expectedTracesFile := testDir + "/e2e/expected-traces.yaml"
 	expectedNodeAssertFile := testDir + "/e2e/expected-node.assert.yaml"
 	expectedClusterAssertFile := testDir + "/e2e/expected-cluster.assert.yaml"
-	configExamplesDir := "../../../../config_examples"
+	configExamplesDir := "../../config_examples"
 
 	kubeconfigPath := k8stest.TestKubeConfig
 	if kubeConfigFromEnv := os.Getenv(k8stest.KubeConfigEnvVar); kubeConfigFromEnv != "" {

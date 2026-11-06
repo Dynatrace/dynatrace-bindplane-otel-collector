@@ -31,7 +31,7 @@ func TestE2E_HostMetricsReceiver(t *testing.T) {
 	expectedFile1mAssert := testDir + "/e2e/expected-1m.assert.yaml"
 	expectedFile5mAssert := testDir + "/e2e/expected-5m.assert.yaml"
 	expectedFile1hAssert := testDir + "/e2e/expected-1h.assert.yaml"
-	configExamplesDir := "../../../../config_examples"
+	configExamplesDir := "../../config_examples"
 
 	kubeconfigPath := k8stest.TestKubeConfig
 	if kubeConfigFromEnv := os.Getenv(k8stest.KubeConfigEnvVar); kubeConfigFromEnv != "" {

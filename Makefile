@@ -380,6 +380,36 @@ test-with-cover:
 	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go test -coverprofile=cover.out ./..."
 	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go tool cover -html=cover.out -o cover.html"
 
+# Fetches the config examples the e2e tests run against from the
+# dynatrace-otel-collector repo. DTOC_REF defaults to main; set it to a commit
+# SHA or tag to pin the examples, e.g. if they drift from the tests copied into
+# internal/testbed.
+DTOC_REPO ?= https://github.com/Dynatrace/dynatrace-otel-collector.git
+DTOC_REF ?= main
+E2E_CONFIG_EXAMPLES_DIR := internal/testbed/config_examples
+
+.PHONY: e2e-config-examples
+e2e-config-examples:
+	@set -e; tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
+	git -C "$$tmp" init -q; \
+	git -C "$$tmp" remote add origin "$(DTOC_REPO)"; \
+	git -C "$$tmp" sparse-checkout set config_examples; \
+	git -C "$$tmp" fetch -q --depth 1 --filter=blob:none origin "$(DTOC_REF)"; \
+	git -C "$$tmp" checkout -q FETCH_HEAD; \
+	rm -rf $(E2E_CONFIG_EXAMPLES_DIR); \
+	cp -R "$$tmp/config_examples" $(E2E_CONFIG_EXAMPLES_DIR); \
+	echo "Fetched config_examples from $(DTOC_REPO) at $(DTOC_REF) into $(E2E_CONFIG_EXAMPLES_DIR)"
+
+# Builds the e2e container images from the linux binaries in dist/ (run
+# `GOOS=linux GOARCH=<arch> make agent` first). The tests expect these tags.
+E2E_IMAGE_ARCH ?= $(shell go env GOARCH)
+.PHONY: e2e-images
+e2e-images:
+	docker build --platform linux/$(E2E_IMAGE_ARCH) --build-arg TARGETARCH=$(E2E_IMAGE_ARCH) \
+		-t dynatrace-bindplane-otel-collector:e2e-test -f internal/testbed/docker/Dockerfile ./dist
+	docker build --platform linux/$(E2E_IMAGE_ARCH) --build-arg TARGETARCH=$(E2E_IMAGE_ARCH) \
+		-t dynatrace-bindplane-otel-collector-journald:e2e-test -f internal/testbed/docker/Dockerfile-journald ./dist
+
 .PHONY: test-updater-integration
 test-updater-integration:
 	cd updater; gotestsum --rerun-fails --packages="./..." -- \
