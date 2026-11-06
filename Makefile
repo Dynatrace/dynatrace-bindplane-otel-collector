@@ -10,10 +10,6 @@ ALL_MODULES := $(shell find . -type f -name "go.mod" -not -path "./build/*" -not
 E2E_MODULES := ./internal/testbed/integration
 # Internal-only modules that are never published, so `make release` doesn't tag them.
 UNRELEASED_MODULES := ./internal/testbed/integration ./internal/testcommon
-# TEMPORARY: e2e modules (copied from dynatrace-otel-collector) that are excluded
-# from lint and gosec until they are adapted.
-# Remove each exclusion (search for E2E_UNADAPTED_MODULES) once the module passes.
-E2E_UNADAPTED_MODULES := ./internal/testcommon ./internal/testbed/integration
 ALL_MDATAGEN_MODULES := $(shell find . -type f -name "metadata.yaml" -exec dirname {} \; | sort )
 
 # All source code files
@@ -347,11 +343,9 @@ install-tools-ci:
 	@command -v goimports > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install golang.org/x/tools/cmd/goimports)
 	@command -v gotestsum > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install gotest.tools/gotestsum)
 
-# TEMPORARY: the -exclude flags skip E2E_UNADAPTED_MODULES; remove them once the modules pass lint.
 .PHONY: lint
 lint:
-	revive -config revive/config.toml -formatter friendly \
-		-exclude ./internal/testcommon/... -exclude ./internal/testbed/integration/... ./...
+	revive -config revive/config.toml -formatter friendly ./...
 
 .PHONY: misspell
 misspell:
@@ -407,14 +401,12 @@ fmt:
 tidy:
 	$(MAKE) for-all-modules CMD="go mod tidy -compat=1.26.10"
 
-# TEMPORARY: E2E_UNADAPTED_MODULES are skipped below; remove the skip once they pass gosec.
 .PHONY: gosec
 gosec:
 	@set -e; for dir in $(ALL_MODULES); do \
 		case "$${dir}" in \
 			"."|"./updater"|"./internal/tools"|"./cmd/plugindocgen") continue;; \
 		esac; \
-		case " $(E2E_UNADAPTED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		(cd "$${dir}" && \
 			echo "running gosec in $${dir}" && \
 			gosec ./...) || exit 1; \

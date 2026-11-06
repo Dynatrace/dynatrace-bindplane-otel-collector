@@ -91,7 +91,7 @@ func runMode(t *testing.T, modeIdx int, mode payloadMode, topos []topology) {
 
 	testutil.StartCollector(t, testutil.CollectorParams{
 		Name:      "feature-flags",
-		Config:    prepareConfig(t, receiverPort, sinkPorts.Http),
+		Config:    prepareConfig(t, receiverPort, sinkPorts.HTTP),
 		ReadyPort: receiverPort,
 		Args:      []string{featureGatesArg},
 	})

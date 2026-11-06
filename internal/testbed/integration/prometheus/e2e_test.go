@@ -135,7 +135,7 @@ func TestE2E_PrometheusScrape(t *testing.T) {
 			return strings.ReplaceAll(s, "scrape_interval: 60s", "scrape_interval: 1s")
 		}).
 		Replace("health_check port", func(s string) string { return testutil.ReplaceHealthCheckPort(s, healthPort) }).
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") })
 
 	testutil.StartCollector(t, testutil.CollectorParams{

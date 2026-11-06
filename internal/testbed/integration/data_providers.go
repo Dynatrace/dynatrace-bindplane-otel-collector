@@ -1,6 +1,8 @@
 // Copyright Dynatrace LLC
 // SPDX-License-Identifier: Apache-2.0
 
+// Package integration holds validators, data providers and scenario helpers shared
+// by the e2e tests under this directory.
 package integration
 
 import (
@@ -55,18 +57,21 @@ func (dp *sampleConfigsDataProvider) SetLoadGeneratorCounters(dataItemsGenerated
 	dp.dataItemsGenerated = dataItemsGenerated
 }
 
+// NewSampleConfigsTraceDataProvider returns a data provider that generates traces once and then stops.
 func NewSampleConfigsTraceDataProvider(traces ptrace.Traces) testbed.DataProvider {
 	return &sampleConfigsDataProvider{
 		traces: traces,
 	}
 }
 
+// NewSampleConfigsMetricsDataProvider returns a data provider that generates metrics once and then stops.
 func NewSampleConfigsMetricsDataProvider(metrics pmetric.Metrics) testbed.DataProvider {
 	return &sampleConfigsDataProvider{
 		metrics: metrics,
 	}
 }
 
+// NewSampleConfigsLogsDataProvider returns a data provider that generates logs once and then stops.
 func NewSampleConfigsLogsDataProvider(logs plog.Logs) testbed.DataProvider {
 	return &sampleConfigsDataProvider{
 		logs: logs,

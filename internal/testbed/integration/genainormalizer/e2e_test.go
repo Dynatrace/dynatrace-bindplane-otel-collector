@@ -30,9 +30,9 @@ func startCollector(t *testing.T) (int, *consumertest.TracesSink) {
 
 	cfg := testutil.LoadConfigExample(t, "genainormalizer-openinference.yaml").
 		Replace("OTLP gRPC receiver port", func(s string) string { return testutil.ReplaceOtlpGrpcReceiverPort(s, grpcPort) }).
-		Replace("OTLP HTTP receiver port", func(s string) string { return testutil.ReplaceOtlpHttpReceiverPort(s, httpPort) }).
+		Replace("OTLP HTTP receiver port", func(s string) string { return testutil.ReplaceOtlpHTTPReceiverPort(s, httpPort) }).
 		Replace("health_check port", func(s string) string { return testutil.ReplaceHealthCheckPort(s, healthPort) }).
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") }).
 		Replace("internal metrics", testutil.DisableInternalMetrics)
 

@@ -1,6 +1,8 @@
 // Copyright Dynatrace LLC
 // SPDX-License-Identifier: Apache-2.0
 
+// Package testutil provides helpers for running the Collector binary in tests and
+// for editing and comparing its configs and telemetry.
 package testutil
 
 import (
@@ -33,6 +35,7 @@ type Config struct {
 
 // LoadConfig reads the config at path.
 func LoadConfig(t testing.TB, path string) *Config {
+	//#nosec G304 -- path is chosen by the test
 	raw, err := os.ReadFile(path)
 	require.NoError(t, err)
 	return &Config{t: t, cfg: string(raw)}
@@ -53,16 +56,17 @@ func (c *Config) Replace(name string, f func(string) string) *Config {
 	return c
 }
 
-// ReplaceString replaces the first occurrence of old with new.
-func (c *Config) ReplaceString(old, new string) *Config {
+// ReplaceString replaces the first occurrence of old with replacement.
+func (c *Config) ReplaceString(old, replacement string) *Config {
 	c.t.Helper()
-	return c.Replace(old, func(s string) string { return strings.Replace(s, old, new, 1) })
+	return c.Replace(old, func(s string) string { return strings.Replace(s, old, replacement, 1) })
 }
 
 func (c *Config) String() string {
 	return c.cfg
 }
 
+// ReplaceHealthCheckPort changes the health check endpoint port (13133) in cfg to port.
 func ReplaceHealthCheckPort(cfg string, port int) string {
 	return replaceEndpointPort(cfg, 13133, port)
 }
