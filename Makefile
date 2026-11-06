@@ -11,7 +11,7 @@ E2E_MODULES := ./internal/testbed/integration
 # Internal-only modules that are never published, so `make release` doesn't tag them.
 UNRELEASED_MODULES := ./internal/testbed/integration ./internal/testcommon
 # TEMPORARY: e2e modules (copied from dynatrace-otel-collector) that are excluded
-# from lint, gosec, check-mod-paths and check-dependabot until they are adapted.
+# from lint and gosec until they are adapted.
 # Remove each exclusion (search for E2E_UNADAPTED_MODULES) once the module passes.
 E2E_UNADAPTED_MODULES := ./internal/testcommon ./internal/testbed/integration
 ALL_MDATAGEN_MODULES := $(shell find . -type f -name "metadata.yaml" -exec dirname {} \; | sort )
@@ -425,8 +425,7 @@ ci-checks: check-fmt check-license check-mod-paths check-dependabot misspell lin
 # Root must be github.com/dynatrace/dynatrace-bindplane-otel-collector.
 # Subdirectories must be github.com/dynatrace/dynatrace-bindplane-otel-collector/<relative-path>.
 # Modules with legacy paths that cannot be renamed are excluded.
-# TEMPORARY: E2E_UNADAPTED_MODULES are excluded until their module paths are renamed.
-MOD_PATH_EXCLUDES := ./cmd/plugindocgen $(E2E_UNADAPTED_MODULES)
+MOD_PATH_EXCLUDES := ./cmd/plugindocgen
 .PHONY: check-mod-paths
 check-mod-paths:
 	@FAILED=0; \
@@ -455,13 +454,11 @@ check-mod-paths:
 	fi
 
 # This target checks that every directory with a go.mod has an entry in dependabot.yml
-# TEMPORARY: E2E_UNADAPTED_MODULES are skipped until they get dependabot entries.
 .PHONY: check-dependabot
 check-dependabot:
 	@FAILED=0; \
 	DEPENDABOT_DIRS=$$(grep 'directory:' .github/dependabot.yml | sed 's/.*directory: *"\(.*\)"/\1/'); \
 	for dir in $(ALL_MODULES); do \
-		case " $(E2E_UNADAPTED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		if [ "$${dir}" = "." ]; then \
 			EXPECTED="/"; \
 		else \
