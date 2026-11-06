@@ -189,6 +189,9 @@ agent:
 	cd $(BUILD_DIR) && go mod tidy
 	cd $(BUILD_DIR) && CGO_ENABLED=0 go build -tags "$(AGENT_BUILD_TAGS)" -ldflags "$(AGENT_LDFLAGS)" -o ../$(OUTDIR)/$(AGENT_ARTIFACT)_$(GOOS)_$(GOARCH)$(EXT) .
 
+.PHONY: collector
+collector: agent
+
 # Builds just the updater for current GOOS/GOARCH pair
 .PHONY: updater
 updater:
