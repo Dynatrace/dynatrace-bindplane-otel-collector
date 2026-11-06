@@ -29,11 +29,11 @@ const (
 	testNamespace = "otel-ta"
 	// Selfmon sink ports (HTTP only — exporters use otlphttp)
 	selfmonScraperGrpcPort   = 4327
-	selfmonScraperHttpPort   = 4328
+	selfmonScraperHTTPPort   = 4328
 	selfmonGatewayGrpcPort   = 4329
-	selfmonGatewayHttpPort   = 4330
+	selfmonGatewayHTTPPort   = 4330
 	selfmonAllocatorGrpcPort = 4331
-	selfmonAllocatorHttpPort = 4332
+	selfmonAllocatorHTTPPort = 4332
 )
 
 // TestE2E_PrometheusLargeScale deploys the full tiered prometheus-large-scale
@@ -71,15 +71,15 @@ func TestE2E_PrometheusLargeScale(t *testing.T) {
 			},
 			{
 				Consumer: scraperSelfmonConsumer,
-				Ports:    &oteltest.ReceiverPorts{Grpc: selfmonScraperGrpcPort, Http: selfmonScraperHttpPort},
+				Ports:    &oteltest.ReceiverPorts{Grpc: selfmonScraperGrpcPort, HTTP: selfmonScraperHTTPPort},
 			},
 			{
 				Consumer: gatewaySelfmonConsumer,
-				Ports:    &oteltest.ReceiverPorts{Grpc: selfmonGatewayGrpcPort, Http: selfmonGatewayHttpPort},
+				Ports:    &oteltest.ReceiverPorts{Grpc: selfmonGatewayGrpcPort, HTTP: selfmonGatewayHTTPPort},
 			},
 			{
 				Consumer: allocatorSelfmonConsumer,
-				Ports:    &oteltest.ReceiverPorts{Grpc: selfmonAllocatorGrpcPort, Http: selfmonAllocatorHttpPort},
+				Ports:    &oteltest.ReceiverPorts{Grpc: selfmonAllocatorGrpcPort, HTTP: selfmonAllocatorHTTPPort},
 			},
 		},
 	})
@@ -226,9 +226,9 @@ func runSetup(configDir, helmOverrideDir, host, containerRegistry string) error 
 		"CONTAINER_REGISTRY="+containerRegistry,
 		"CONFIG_DIR="+configDir,
 		"HELM_OVERRIDE_DIR="+helmOverrideDir,
-		fmt.Sprintf("SELFMON_SCRAPER_HTTP_PORT=%d", selfmonScraperHttpPort),
-		fmt.Sprintf("SELFMON_GATEWAY_HTTP_PORT=%d", selfmonGatewayHttpPort),
-		fmt.Sprintf("SELFMON_ALLOCATOR_HTTP_PORT=%d", selfmonAllocatorHttpPort),
+		fmt.Sprintf("SELFMON_SCRAPER_HTTP_PORT=%d", selfmonScraperHTTPPort),
+		fmt.Sprintf("SELFMON_GATEWAY_HTTP_PORT=%d", selfmonGatewayHTTPPort),
+		fmt.Sprintf("SELFMON_ALLOCATOR_HTTP_PORT=%d", selfmonAllocatorHTTPPort),
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

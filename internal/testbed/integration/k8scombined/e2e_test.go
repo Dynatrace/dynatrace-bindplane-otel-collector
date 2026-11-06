@@ -79,7 +79,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 			{
 				Consumer: logsConsumer,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4319,
+					HTTP: 4319,
 				},
 			},
 		},
@@ -87,7 +87,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 			{
 				Consumer: metricsConsumerCluster,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4320,
+					HTTP: 4320,
 				},
 			},
 		},
@@ -95,7 +95,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 			{
 				Consumer: tracesConsumer,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4322,
+					HTTP: 4322,
 				},
 			},
 		},
@@ -105,7 +105,7 @@ func TestE2E_K8sCombinedReceiver(t *testing.T) {
 			{
 				Consumer: metricsConsumerNode,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4321,
+					HTTP: 4321,
 				},
 			},
 		},

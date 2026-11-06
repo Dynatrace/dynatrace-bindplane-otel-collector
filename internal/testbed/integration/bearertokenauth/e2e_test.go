@@ -44,9 +44,9 @@ func startCollector(t *testing.T, example string, edit func(*testutil.Config)) (
 
 	cfg := testutil.LoadConfigExample(t, example).
 		Replace("grpc receiver port", func(s string) string { return testutil.ReplaceOtlpGrpcReceiverPort(s, grpcPort) }).
-		Replace("http receiver port", func(s string) string { return testutil.ReplaceOtlpHttpReceiverPort(s, httpPort) }).
+		Replace("http receiver port", func(s string) string { return testutil.ReplaceOtlpHTTPReceiverPort(s, httpPort) }).
 		Replace("health_check port", func(s string) string { return testutil.ReplaceHealthCheckPort(s, healthPort) }).
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") }).
 		Replace("internal metrics", testutil.DisableInternalMetrics)
 	edit(cfg)
