@@ -7,7 +7,7 @@ resources:
         k8s.pod.name: otelcol-local
         server.port: '*'
         service.instance.id: '*'
-        service.name: dynatrace-otel-collector
+        service.name: com.dynatrace.bindplane.otel.collector
         service.version: '*'
         url.scheme: http
       scopes:

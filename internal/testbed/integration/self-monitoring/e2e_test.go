@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	collectorServiceName = "dynatrace-otel-collector"
+	collectorServiceName = "com.dynatrace.bindplane.otel.collector"
 	testServiceName      = "selfmon-test"
 )
 

@@ -14,7 +14,7 @@ resources:
         os.name: '*'
         os.type: '*'
         os.version: '*'
-        process.executable.name: dynatrace-otel-collector
+        process.executable.name: dynatrace-bindplane-otel-collector
       scopes:
         - name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/internal/scraper/processscraper
           version: '*'

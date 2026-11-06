@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -20,11 +21,55 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Paths relative to a package directory directly below internal/testbed/integration.
-const (
-	SubpackageCollectorExecPath = "../../../../bin/dynatrace-otel-collector"
-	SubpackageConfigExamplesDir = "../../../../config_examples"
-)
+// SubpackageConfigExamplesDir is the path of the config examples, relative to a package directory
+// directly below internal/testbed/integration. The directory is populated by `make e2e-config-examples`.
+const SubpackageConfigExamplesDir = "../../config_examples"
+
+// CollectorExecPath returns the path of the Collector binary under test. It is $DBDOT_COLLECTOR_BIN
+// if set, and otherwise the binary `make agent` writes to dist/ for the current platform.
+func CollectorExecPath() string {
+	if p := os.Getenv("DBDOT_COLLECTOR_BIN"); p != "" {
+		abs, err := filepath.Abs(p)
+		if err != nil {
+			return p
+		}
+		return abs
+	}
+	_, thisFile, _, _ := runtime.Caller(0)
+	// thisFile is <repo>/internal/testcommon/testutil/collector.go
+	repoRoot := filepath.Join(filepath.Dir(thisFile), "..", "..", "..")
+	name := "collector_" + runtime.GOOS + "_" + runtime.GOARCH
+	if runtime.GOOS == "windows" {
+		name += ".exe"
+	}
+	return filepath.Join(repoRoot, "dist", name)
+}
+
+// StandaloneEnv returns the environment that makes the DBDOT Collector run standalone and log to
+// stdout, without touching the working directory. Without it the Collector writes a logging.yaml
+// into the current directory and switches to managed mode if a manager.yaml or OPAMP_* variables exist.
+func StandaloneEnv(t testing.TB) map[string]string {
+	t.Helper()
+	dir := t.TempDir()
+	loggingPath := filepath.Join(dir, "logging.yaml")
+	require.NoError(t, os.WriteFile(loggingPath, []byte("output: stdout\nlevel: info\n"), 0o600))
+	return map[string]string{
+		"LOGGING_YAML_PATH": loggingPath,
+		// Never created, so the Collector doesn't pick up a manager config.
+		"MANAGER_YAML_PATH": filepath.Join(dir, "manager.yaml"),
+	}
+}
+
+// NewChildProcessCollector returns a child process runner for the Collector binary under test,
+// configured with StandaloneEnv. Use it instead of testbed.NewChildProcessCollector.
+func NewChildProcessCollector(t testing.TB) testbed.OtelcolRunner {
+	t.Helper()
+	opts := []testbed.ChildProcessOption{testbed.WithAgentExePath(CollectorExecPath())}
+	for k, v := range StandaloneEnv(t) {
+		opts = append(opts, testbed.WithEnvVar(k, v))
+	}
+	return testbed.NewChildProcessCollector(opts...)
+}
 
 // Config is a Collector config that is adapted for a test. Every edit is required to change
 // the config, so that changes to the original can't silently break the test.
@@ -102,7 +147,7 @@ type CollectorParams struct {
 	Config string
 	// ReadyPort is a port the Collector listens on once it has started, e.g. its OTLP receiver.
 	ReadyPort int
-	// ExecPath defaults to SubpackageCollectorExecPath.
+	// ExecPath defaults to CollectorExecPath().
 	ExecPath string
 	// Args are additional command line arguments, e.g. feature gates.
 	Args []string
@@ -131,9 +176,12 @@ func StartCollector(t *testing.T, p CollectorParams) *Collector {
 	t.Helper()
 	execPath := p.ExecPath
 	if execPath == "" {
-		execPath = SubpackageCollectorExecPath
+		execPath = CollectorExecPath()
 	}
 	opts := []testbed.ChildProcessOption{testbed.WithAgentExePath(execPath)}
+	for k, v := range StandaloneEnv(t) {
+		opts = append(opts, testbed.WithEnvVar(k, v))
+	}
 	for k, v := range p.Env {
 		opts = append(opts, testbed.WithEnvVar(k, v))
 	}
@@ -163,7 +211,26 @@ func StartCollector(t *testing.T, p CollectorParams) *Collector {
 	})
 
 	WaitForListener(t, net.JoinHostPort("localhost", strconv.Itoa(p.ReadyPort)))
+	waitForStartupComplete(t, c.logPath)
 	return c
+}
+
+// startupPollGrace is how long to wait after the Collector logs "Everything is ready". That line is
+// logged inside svc.Run, but waitForStartup in extension/opampconnectionextension/internal/collector
+// (used in standalone and managed mode) only checks for StateRunning every 250ms, and a stop that
+// arrives before that check makes the process exit 1. 500ms is twice the poll interval.
+const startupPollGrace = 500 * time.Millisecond
+
+// waitForStartupComplete waits until the DBDOT Collector has finished starting, so that stopping it
+// right after its port opens doesn't make it exit with an error.
+func waitForStartupComplete(t testing.TB, logPath string) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		//#nosec G304 -- path is chosen by the test
+		b, err := os.ReadFile(logPath)
+		return err == nil && strings.Contains(string(b), "Everything is ready")
+	}, 30*time.Second, 50*time.Millisecond, "the Collector did not finish starting, see %s", logPath)
+	time.Sleep(startupPollGrace)
 }
 
 // WaitForListener waits until addr accepts TCP connections.
