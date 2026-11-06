@@ -15,18 +15,21 @@ import (
 
 var _ testbed.TestCaseValidator = &MetricsValidator{}
 
+// WithHiddenMetricsValidationErrorMessages makes the validator omit the metrics from its failure messages.
 func WithHiddenMetricsValidationErrorMessages() func(validator *MetricsValidator) {
 	return func(v *MetricsValidator) {
 		v.hideValidationErrorMessage = true
 	}
 }
 
+// MetricsValidator checks that the expected metrics were received by the mock backend.
 type MetricsValidator struct {
 	expectedMetrics            []pmetric.Metrics
 	t                          *testing.T
 	hideValidationErrorMessage bool
 }
 
+// NewMetricValidator returns a MetricsValidator for expectedMetrics.
 func NewMetricValidator(t *testing.T, expectedMetrics []pmetric.Metrics, opts ...func(validator *MetricsValidator)) *MetricsValidator {
 	v := &MetricsValidator{
 		expectedMetrics: expectedMetrics,
@@ -40,11 +43,13 @@ func NewMetricValidator(t *testing.T, expectedMetrics []pmetric.Metrics, opts ..
 	return v
 }
 
+// Validate asserts that every expected metric is among those received.
 func (v *MetricsValidator) Validate(tc *testbed.TestCase) {
 	assertExpectedMetricsAreInReceived(v.t, v.expectedMetrics, tc.MockBackend.ReceivedMetrics, v.hideValidationErrorMessage)
 }
 
-func (v *MetricsValidator) RecordResults(tc *testbed.TestCase) {
+// RecordResults does nothing; the validator records no results.
+func (v *MetricsValidator) RecordResults(_ *testbed.TestCase) {
 }
 
 func assertExpectedMetricsAreInReceived(t *testing.T, expected, actual []pmetric.Metrics, hideError bool) {

@@ -15,10 +15,13 @@ import (
 )
 
 const (
-	TestKubeConfig   = "/tmp/kube-config-collector-e2e-testing"
+	// TestKubeConfig is the default kubeconfig path used by the e2e cluster; KubeConfigEnvVar overrides it.
+	TestKubeConfig = "/tmp/kube-config-collector-e2e-testing"
+	// KubeConfigEnvVar is the environment variable that overrides the kubeconfig path.
 	KubeConfigEnvVar = "KUBECONFIG"
 )
 
+// NewMetricsClientSet creates a metrics-server client from the kubeconfig in KubeConfigEnvVar, or TestKubeConfig if unset.
 func NewMetricsClientSet() (*metricsv.Clientset, error) {
 	kubeconfigPath := TestKubeConfig
 	if kubeConfigFromEnv := os.Getenv(KubeConfigEnvVar); kubeConfigFromEnv != "" {
@@ -43,6 +46,8 @@ func NewMetricsClientSet() (*metricsv.Clientset, error) {
 	return metricsClientset, nil
 }
 
+// FetchPodMetrics returns the CPU (in millicores, e.g. "12m") and memory (in MiB, e.g. "34Mi") usage of a pod,
+// summed over its containers.
 func FetchPodMetrics(metricsClientset *metricsv.Clientset, namespace, podName string) (string, string, error) {
 	// Fetch pod metrics
 	podMetrics, err := metricsClientset.MetricsV1beta1().PodMetricses(namespace).Get(context.TODO(), podName, metav1.GetOptions{})

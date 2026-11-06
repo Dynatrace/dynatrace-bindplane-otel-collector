@@ -63,19 +63,19 @@ func TestE2E_HostMetricsReceiver(t *testing.T) {
 			{
 				Consumer: metricsConsumer1m,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4320,
+					HTTP: 4320,
 				},
 			},
 			{
 				Consumer: metricsConsumer5m,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4321,
+					HTTP: 4321,
 				},
 			},
 			{
 				Consumer: metricsConsumer1h,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4322,
+					HTTP: 4322,
 				},
 			},
 		},
@@ -83,7 +83,7 @@ func TestE2E_HostMetricsReceiver(t *testing.T) {
 			{
 				Consumer: logsConsumer,
 				Ports: &oteltest.ReceiverPorts{
-					Http: 4323,
+					HTTP: 4323,
 				},
 			},
 		},

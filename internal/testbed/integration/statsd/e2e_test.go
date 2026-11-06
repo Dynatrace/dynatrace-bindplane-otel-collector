@@ -29,7 +29,7 @@ func startCollector(t *testing.T) (int, *consumertest.MetricsSink) {
 		Replace("statsd receiver port", func(s string) string { return testutil.ReplaceStatsdReceiverPort(s, statsdPort) }).
 		ReplaceString("aggregation_interval: 60s", "aggregation_interval: 1s").
 		Replace("health_check port", func(s string) string { return testutil.ReplaceHealthCheckPort(s, healthPort) }).
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") }).
 		Replace("internal metrics", testutil.DisableInternalMetrics)
 

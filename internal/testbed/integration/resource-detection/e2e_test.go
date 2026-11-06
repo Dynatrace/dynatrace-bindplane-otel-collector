@@ -48,7 +48,7 @@ func startCollector(t *testing.T, enrichment string) (int, *consumertest.TracesS
 	// on the host through host.docker.internal.
 	cfg := testutil.LoadConfigExample(t, "resource-detection.yaml").
 		ReplaceString("${env:MY_POD_IP}", "0.0.0.0").
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		ReplaceString("http://0.0.0.0:", "http://host.docker.internal:").
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") })
 

@@ -20,11 +20,11 @@ import (
 )
 
 const metricsPortGrpc = 4327
-const metricsPortHttp = 4328
+const metricsPortHTTP = 4328
 const tracesPortGrpc = 4337
-const tracesPortHttp = 4438
+const tracesPortHTTP = 4438
 const logsPortGrpc = 4347
-const logsPortHttp = 4448
+const logsPortHTTP = 4448
 
 func TestE2E_LoadBalancing(t *testing.T) {
 	testDir := filepath.Join("testdata")
@@ -59,7 +59,7 @@ func TestE2E_LoadBalancing(t *testing.T) {
 				Consumer: metricsConsumer,
 				Ports: &oteltest.ReceiverPorts{
 					Grpc: metricsPortGrpc,
-					Http: metricsPortHttp,
+					HTTP: metricsPortHTTP,
 				},
 			},
 		},
@@ -68,7 +68,7 @@ func TestE2E_LoadBalancing(t *testing.T) {
 				Consumer: tracesConsumer,
 				Ports: &oteltest.ReceiverPorts{
 					Grpc: tracesPortGrpc,
-					Http: tracesPortHttp,
+					HTTP: tracesPortHTTP,
 				},
 			},
 		},
@@ -77,7 +77,7 @@ func TestE2E_LoadBalancing(t *testing.T) {
 				Consumer: logsConsumer,
 				Ports: &oteltest.ReceiverPorts{
 					Grpc: logsPortGrpc,
-					Http: logsPortHttp,
+					HTTP: logsPortHTTP,
 				},
 			},
 		},

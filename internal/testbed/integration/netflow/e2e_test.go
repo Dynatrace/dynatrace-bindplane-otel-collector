@@ -89,7 +89,7 @@ func startCollector(t *testing.T) (int, *consumertest.LogsSink) {
 	cfg := testutil.LoadConfigExample(t, "netflow.yaml").
 		ReplaceString("port: 2055", fmt.Sprintf("port: %d", udpPort)).
 		Replace("health_check port", func(s string) string { return testutil.ReplaceHealthCheckPort(s, healthPort) }).
-		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.Http) }).
+		Replace("exporter endpoint", func(s string) string { return testutil.ReplaceDynatraceExporterEndpoint(s, sinkPorts.HTTP) }).
 		Replace("sending_queue and retry_on_failure", func(s string) string { return testutil.DisableSendingQueueAndRetry(s, "otlp_http") }).
 		Replace("internal metrics", testutil.DisableInternalMetrics)
 
