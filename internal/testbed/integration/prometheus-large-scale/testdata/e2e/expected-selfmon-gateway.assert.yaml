@@ -14,7 +14,7 @@ resources:
         k8s.workload.name: tiered-gateway
         k8s.workload.uid: '*'
         service.instance.id: '*'
-        service.name: dynatrace-otel-collector
+        service.name: com.dynatrace.bindplane.otel.collector
         service.version: '*'
       scopes:
         - name: github.com/open-telemetry/opentelemetry-collector-contrib/processor/cumulativetodeltaprocessor
