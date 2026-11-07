@@ -44,6 +44,10 @@ SNAPSHOT_TAG := $(if $(CURRENT_TAG),$(CURRENT_TAG),$(PREVIOUS_TAG))
 # command line if your machine needs a different budget.
 GORELEASER_TIMEOUT ?= 180m
 
+# Directory holding the goreleaser configs of the full build. Goreleaser still runs
+# from the repository root; only the config files live here.
+GORELEASER_DIR := manifests/dynatrace-bindplane-otel-collector
+
 # Build-info stamps. These get linked into the binary via -ldflags so
 # `collector --version` shows real values instead of "unknown".
 GIT_HASH ?= $(shell git rev-parse HEAD)
@@ -209,7 +213,7 @@ build-binaries: agent updater container-init
 .PHONY: build-all
 build-all: build-linux build-darwin build-windows
 
-# AIX builds from its own manifest and ships through .goreleaser-aix.yml, so the
+# AIX builds from its own manifest and ships through manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml, so the
 # main goreleaser before-hook builds every other platform with this target.
 .PHONY: build-all-non-aix
 build-all-non-aix: build-all
@@ -579,12 +583,12 @@ release-test:
 # The main release lists the AIX package in its SHA256SUMS, so AIX builds first
 	$(MAKE) release-test-aix
 	rm -rf aix-dist && mkdir aix-dist && cp dist/*.tar.gz aix-dist/
-	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
+	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot --config $(GORELEASER_DIR)/.goreleaser.yml
 
 # Build AIX, skip release and signing, and ignore a dirty git tree
 .PHONY: release-test-aix
 release-test-aix:
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --config .goreleaser-aix.yml --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
 
 .PHONY: release-containers-test
 release-containers-test:
@@ -593,7 +597,7 @@ release-containers-test:
 	mv ./dist/collector_linux_amd64 ./tmp/collector_linux_amd64
 	mv ./dist/collector_linux_arm64 ./tmp/collector_linux_arm64
 	mv ./dist/collector_linux_ppc64le ./tmp/collector_linux_ppc64le
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot --config .goreleaser-docker.yml
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot --config $(GORELEASER_DIR)/.goreleaser-docker.yml
 
 .PHONY: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le
 agent-linux-amd64:
@@ -634,11 +638,11 @@ agent-windows-arm64:
 
 build-single:
 	$(MAKE)
-	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=sign --clean --skip=validate --snapshot --single-target
+	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=sign --clean --skip=validate --snapshot --single-target --config $(GORELEASER_DIR)/.goreleaser.yml
 
 .PHONY: release-test-single
 release-test-single:
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release -f .goreleaser.arm64.yml --timeout $(GORELEASER_TIMEOUT) --skip=publish --clean --skip=validate --snapshot
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release -f $(GORELEASER_DIR)/.goreleaser.arm64.yml --timeout $(GORELEASER_TIMEOUT) --skip=publish --clean --skip=validate --snapshot
 
 .PHONY: for-all
 for-all:
