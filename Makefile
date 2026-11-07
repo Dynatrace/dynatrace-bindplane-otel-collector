@@ -44,10 +44,6 @@ SNAPSHOT_TAG := $(if $(CURRENT_TAG),$(CURRENT_TAG),$(PREVIOUS_TAG))
 # command line if your machine needs a different budget.
 GORELEASER_TIMEOUT ?= 180m
 
-# Directory holding the goreleaser configs of the full build. Goreleaser still runs
-# from the repository root; only the config files live here.
-GORELEASER_DIR := manifests/dynatrace-bindplane-otel-collector
-
 # Build-info stamps. These get linked into the binary via -ldflags so
 # `collector --version` shows real values instead of "unknown".
 GIT_HASH ?= $(shell git rev-parse HEAD)
@@ -69,6 +65,14 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 #   PRODUCT_NAME       product slug (see below).
 #   PLIST_SRC          launchd plist packaged into the macOS archives.
 #   DISTRO_BUILD_TAGS  extra build tags for the distro, added to AGENT_BUILD_TAGS.
+#   GORELEASER_DIR     directory holding the goreleaser configs of the build.
+#                      Goreleaser still runs from the repository root; only the
+#                      config files live there.
+#   RELEASE_TEST_SKIP  extra goreleaser --skip steps of the local `release-test`
+#                      snapshot. The slim build skips the container images and
+#                      SBOMs by default, they need docker buildx and
+#                      cyclonedx-gomod. Run
+#                      `make release-test DISTRO=slim RELEASE_TEST_SKIP=` for all.
 DISTRO ?= full
 ifeq ($(DISTRO),full)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
@@ -79,6 +83,8 @@ AGENT_ARTIFACT = collector
 PRODUCT_NAME = dynatrace-bindplane-otel-collector
 PLIST_SRC = service/com.dynatrace.bindplane.otel.collector.plist
 DISTRO_BUILD_TAGS =
+GORELEASER_DIR = manifests/dynatrace-bindplane-otel-collector
+RELEASE_TEST_SKIP ?=
 else ifeq ($(DISTRO),slim)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
 BUILD_DIR ?= ./build-slim
@@ -90,6 +96,8 @@ PLIST_SRC = manifests/dynatrace-bindplane-otel-collector-slim/service/com.dynatr
 # Selects the slim feature gate skip list (see
 # extension/opampconnectionextension/internal/collector/featuregates_slim.go).
 DISTRO_BUILD_TAGS = dbdot_slim
+GORELEASER_DIR = manifests/dynatrace-bindplane-otel-collector-slim
+RELEASE_TEST_SKIP ?= docker,sbom
 else
 $(error Unknown DISTRO '$(DISTRO)'. Supported: full, slim)
 endif
@@ -603,13 +611,16 @@ release-prep-gpg:
 # Build and sign, skip release and ignore dirty git tree
 .PHONY: release-test
 release-test:
-# If there are no MSIs in the root dir, we'll create dummy ones so that goreleaser can complete successfully
-	if [ ! -e "./dynatrace-bindplane-otel-collector-amd64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-amd64.msi; fi
-	if [ ! -e "./dynatrace-bindplane-otel-collector-arm64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-arm64.msi; fi
-# The main release lists the AIX package in its SHA256SUMS, so AIX builds first
-	$(MAKE) release-test-aix
-	rm -rf aix-dist && mkdir aix-dist && cp dist/*.tar.gz aix-dist/
-	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot --config $(GORELEASER_DIR)/.goreleaser.yml
+# The full build also publishes the MSIs. If there are none in the root dir, we'll create dummy ones so that goreleaser can complete successfully
+	@if [ "$(DISTRO)" = "full" ]; then \
+		if [ ! -e "./dynatrace-bindplane-otel-collector-amd64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-amd64.msi; fi; \
+		if [ ! -e "./dynatrace-bindplane-otel-collector-arm64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-arm64.msi; fi; \
+	fi
+# The full release lists the AIX package in its SHA256SUMS, so AIX builds first. The slim build has no AIX package.
+	@if [ "$(DISTRO)" = "full" ]; then \
+		$(MAKE) release-test-aix && rm -rf aix-dist && mkdir aix-dist && cp dist/*.tar.gz aix-dist/; \
+	fi
+	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign $(if $(RELEASE_TEST_SKIP),--skip=$(RELEASE_TEST_SKIP)) --clean --snapshot --config $(GORELEASER_DIR)/.goreleaser.yml
 
 # Build AIX, skip release and signing, and ignore a dirty git tree
 .PHONY: release-test-aix
