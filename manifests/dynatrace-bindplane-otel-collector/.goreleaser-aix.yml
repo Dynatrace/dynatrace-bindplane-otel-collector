@@ -67,14 +67,18 @@ checksum:
 
 # https://goreleaser.com/customization/sign/
 # The AIX install path verifies packages with GPG, so artifacts get a GPG signature
-# alongside the cosign one the other platforms use.
+# alongside the keyless cosign one the other platforms use.
 signs:
   - id: cosign
     cmd: cosign
-    stdin: "{{ .Env.COSIGN_PWD }}"
-    args:
-      ["sign-blob", "--key=cosign.key", "--output=${signature}", "${artifact}"]
+    signature: "${artifact}.sigstore.json"
     artifacts: all
+    output: true
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
   - id: gpg
     cmd: gpg
     args:
