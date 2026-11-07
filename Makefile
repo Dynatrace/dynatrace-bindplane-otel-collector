@@ -67,6 +67,7 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 #   AGENT_DESCRIPTION  populates component.BuildInfo.
 #   AGENT_ARTIFACT     base name of the binary written to $(OUTDIR).
 #   PRODUCT_NAME       product slug (see below).
+#   PLIST_SRC          launchd plist packaged into the macOS archives.
 #   DISTRO_BUILD_TAGS  extra build tags for the distro, added to AGENT_BUILD_TAGS.
 DISTRO ?= full
 ifeq ($(DISTRO),full)
@@ -76,6 +77,7 @@ AGENT_NAME = com.dynatrace.bindplane.otel.collector
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
 AGENT_ARTIFACT = collector
 PRODUCT_NAME = dynatrace-bindplane-otel-collector
+PLIST_SRC = service/com.dynatrace.bindplane.otel.collector.plist
 DISTRO_BUILD_TAGS =
 else ifeq ($(DISTRO),slim)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
@@ -84,6 +86,7 @@ AGENT_NAME = com.dynatrace.bindplane.otel.collector-slim
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
 AGENT_ARTIFACT = collector-slim
 PRODUCT_NAME = dynatrace-bindplane-otel-collector-slim
+PLIST_SRC = manifests/dynatrace-bindplane-otel-collector-slim/service/com.dynatrace.bindplane.otel.collector-slim.plist
 # Selects the slim feature gate skip list (see
 # extension/opampconnectionextension/internal/collector/featuregates_slim.go).
 DISTRO_BUILD_TAGS = dbdot_slim
@@ -313,6 +316,15 @@ build-windows-amd64:
 .PHONY: build-windows-arm64
 build-windows-arm64:
 	CGO_ENABLED=0 GOOS=windows GOARCH=arm64 $(MAKE) build-binaries -j2
+
+# Platforms the slim build is released for. Goreleaser's before hook in the slim
+# config calls build-all-slim. Unlike the full build there is no windows/arm64
+# binary: the slim Windows artifact is the amd64 zip only.
+SLIM_RELEASE_PLATFORMS := linux-amd64 linux-arm64 linux-arm linux-ppc64 linux-ppc64le darwin-amd64 darwin-arm64 windows-amd64
+
+.PHONY: build-all-slim
+build-all-slim:
+	$(MAKE) DISTRO=slim $(addprefix build-,$(SLIM_RELEASE_PLATFORMS))
 
 # tool-related commands
 .PHONY: install-tools
@@ -549,7 +561,9 @@ update-contrib:
 	sed -i '' -E 's#(dynatrace-bindplane-otel-contrib/(blob|tree)/)[^/]*#\1$(DBDOT_CONTRIB_VERSION)#g' docs/*.md
 	$(MAKE) tidy
 
-# Downloads and setups dependencies that are packaged with binary
+# Downloads and setups dependencies that are packaged with binary. The launchd
+# plist follows the selected DISTRO. The Windows service definition is only
+# needed by the full build's MSI and archives.
 .PHONY: release-prep
 release-prep:
 	@rm -rf release_deps
@@ -559,8 +573,8 @@ release-prep:
 	@cp -r ./plugins release_deps/
 	@cp config/example.yaml release_deps/config.yaml
 	@cp config/logging.yaml release_deps/logging.yaml
-	@cp service/com.dynatrace.bindplane.otel.collector.plist release_deps/com.dynatrace.bindplane.otel.collector.plist
-	@jq ".files[] | select(.service != null)" windows/wix.json >> release_deps/windows_service.json
+	@cp $(PLIST_SRC) release_deps/$(notdir $(PLIST_SRC))
+	@if [ "$(DISTRO)" = "full" ]; then jq ".files[] | select(.service != null)" windows/wix.json >> release_deps/windows_service.json; fi
 
 # Downloads and sets up the dependencies packaged with the AIX binaries
 .PHONY: release-prep-aix
