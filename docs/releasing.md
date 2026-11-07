@@ -28,7 +28,7 @@ For dbdot-contrib:
 make update-contrib DBDOT_CONTRIB_VERSION=v1.2.0
 ```
 
-This updates the `go.mod` files, the manifest and the doc links. For anything else, edit the manifest line, its doc entry and any `replaces:` pin by hand.
+This updates the `go.mod` files, the full and slim manifests and the doc links. For anything else, edit the manifest line (in both manifests), its doc entry and any `replaces:` pin by hand.
 
 Then check nothing moved OTel:
 
@@ -54,7 +54,9 @@ NEXT=v1.110.1
 make update-modules NEW_VERSION=$NEXT
 ```
 
-This also updates the in-tree module line in the manifest.
+This also updates the in-tree module line in the full and slim manifests.
+
+Also set `dist.version` in `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` to the release version without the leading `v` (`1.110.1` for `v1.110.1`). `update-modules` does not change it. The `release` workflow fails if the tag does not match `dist.version` exactly.
 
 PR title: `chore: vX.Y.Z release prep`. Merge it.
 
@@ -66,7 +68,7 @@ PR title: `chore: vX.Y.Z release prep`. Merge it.
    make release version=vX.Y.Z
    ```
 
-   This tags and pushes `vX.Y.Z`, plus `<module dir>/vX.Y.Z` for every in-tree module.
+   This tags and pushes `vX.Y.Z`, plus `<module dir>/vX.Y.Z` for every in-tree module. Only `vX.Y.Z` triggers the `release` workflow. RC tags (`vX.Y.Z-rc.N`) are accepted by `make release` but only tag the root, since they are reserved for the slim build.
 
 2. The `release` workflow runs on the tag. It builds the signed Windows MSI, then goreleaser builds every platform, creates a GitHub pre-release with a changelog from commit titles, attaches the packages, and uploads them to Google Cloud Storage.
 
@@ -85,7 +87,7 @@ Then edit the GitHub release, clear the pre-release flag, and set it as the late
 - [ ] Every component bump is on DBDOT's current OTel
 - [ ] Component bump PR merged (if any)
 - [ ] Security alerts resolved
-- [ ] `chore: vX.Y.Z release prep` merged
+- [ ] `chore: vX.Y.Z release prep` merged, with `dist.version` set to the release version
 - [ ] `make release version=vX.Y.Z` run from up-to-date `main`
 - [ ] `release` workflow green
 - [ ] `release-containers` run on the tag and green
