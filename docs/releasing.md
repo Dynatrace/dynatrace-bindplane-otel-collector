@@ -1,3 +1,15 @@
+# Releasing
+Releases are managed through GitHub releases. This repository releases two builds, and the tag decides which one. The guide below describes the full build, [Slim releases](#slim-releases) describes the slim build:
+
+| Build | Tag | Workflow | Manifest |
+|---|---|---|---|
+| full | `vX.Y.Z` | `release-full` | `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` |
+| slim | `vX.Y.Z-rc.N` | `release-slim` | `manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml` |
+
+Both workflows are thin callers of the reusable `base-release` workflow. Each build has its own goreleaser configuration next to its manifest.
+
+Before tagging, set `dist.version` in the manifest of the build you are releasing to the version without the leading `v`. The first job of the release workflow compares the tag with it and fails on a mismatch: a full tag (`v1.2.3`) must equal `dist.version`, a slim RC tag (`v1.2.3-rc.1`) must equal it once `-rc.N` is removed, so several RCs can share one manifest version. The checks live in `scripts/ci/check-tag-version.sh`.
+
 # Patch releases
 
 A patch release ships fixes on the OTel version DBDOT is already on. It does not change the OTel version.
@@ -98,6 +110,28 @@ Then edit the GitHub release, clear the pre-release flag, and set it as the late
 ## Testing a release locally
 
 1. Run `make install-tools`
-2. Run `make release-test`
+2. Run `make release-test`, or `make release-test DISTRO=slim` for the slim build. The slim snapshot skips the container images and SBOMs by default because they need docker buildx and cyclonedx-gomod, run `make release-test DISTRO=slim RELEASE_TEST_SKIP=` to include them.
 
-To test the Docker release, run the `release-containers-test` workflow with an existing release version. It runs the full build with `--skip=publish`, so nothing is pushed.
+To rehearse a release in GitHub Actions, run the `release-test` workflow and select the `distro`. It runs the release pipeline with `--skip=publish`, so nothing is published. Slim skips signing in the rehearsal because keyless signing needs the identity of a real release run.
+
+To test the Docker release of the full build, run the `release-containers-test` workflow with an existing release version. It runs the full build with `--skip=publish`, so nothing is pushed.
+
+# Slim releases
+
+1. Set `dist.version` in the slim manifest to the version the RC is for, without `-rc.N`. The component versions follow the full manifest: `make update-otel`, `make update-contrib` and `make update-modules` bump both manifests. Only components you change by hand in the full manifest need the same change in the slim one.
+
+2. Run `make release version=vX.Y.Z-rc.N`. Only the root tag is created and pushed, RC versions do not tag the Go modules.
+
+3. The `release-slim` workflow triggers on the tag push and, without user intervention:
+  - Checks the tag against the slim manifest
+  - Builds the slim binaries and updater (linux, darwin and windows/amd64) with the slim OpAMP agent identity (`com.dynatrace.bindplane.otel.collector-slim`)
+  - Creates the archives (`dynatrace-bindplane-otel-collector-slim-*`), the `apk`, `deb` and `rpm` packages. The `deb` and `rpm` packages are signed with the GPG key, the `apk` is not signed.
+  - Creates a CycloneDX SBOM per collector binary (`cyclonedx-gomod`), like the Dynatrace OTel Collector
+  - Creates the checksums file and signs it and the archives keyless with cosign (`*.sigstore.json` bundles)
+  - Builds and pushes the container images for amd64, arm64 and ppc64le with multi-arch manifests to Docker Hub (`dynatrace/dynatrace-bindplane-otel-collector-slim`), AWS ECR public (`public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim`) and GHCR (`ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim`), signs them keyless and writes `digests.txt`
+  - Attests the checksums and the image digests
+  - Publishes the GitHub release as a pre-release and uploads the artifact bundles
+
+There is no Windows MSI and no install script for the slim build, and there are no `latest` image tags: an RC release never moves them. The slim artifacts are not uploaded to GCS yet, because the bucket for them does not exist. The `release-slim` workflow does not authenticate to GCP, and the goreleaser config has no `blobs` section until the bucket exists.
+
+Verifying the keyless signatures is described in [Verifying Artifact Signatures](./verify-signature.md).
