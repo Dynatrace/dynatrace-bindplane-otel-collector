@@ -1,0 +1,276 @@
+// Copyright Dynatrace LLC
+// SPDX-License-Identifier: Apache-2.0
+
+package hostmetrics
+
+import (
+	"fmt"
+	"os"
+	"path"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/k8stest"
+	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
+	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetricassert"
+	otelk8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+)
+
+// TestE2E_HostMetricsReceiver validates the Host Metrics Receiver functionality
+// against expected data collected from a GitHub runner machine. Therefore, local test results can vary based on
+// different metrics being produced based on the underlying OS.
+func TestE2E_HostMetricsReceiver(t *testing.T) {
+	testDir := filepath.Join("testdata")
+	expectedFile1mAssert := testDir + "/e2e/expected-1m.assert.yaml"
+	expectedFile5mAssert := testDir + "/e2e/expected-5m.assert.yaml"
+	expectedFile1hAssert := testDir + "/e2e/expected-1h.assert.yaml"
+	configExamplesDir := "../../../../config_examples"
+
+	kubeconfigPath := k8stest.TestKubeConfig
+	if kubeConfigFromEnv := os.Getenv(k8stest.KubeConfigEnvVar); kubeConfigFromEnv != "" {
+		kubeconfigPath = kubeConfigFromEnv
+	}
+
+	k8sClient, err := otelk8stest.NewK8sClient(kubeconfigPath)
+	require.NoError(t, err)
+
+	// Create the namespace specific for the test
+	nsFile := filepath.Join(testDir, "namespace.yaml")
+	buf, err := os.ReadFile(nsFile)
+	require.NoErrorf(t, err, "failed to read namespace object file %s", nsFile)
+	nsObj, err := otelk8stest.CreateObject(k8sClient, buf)
+	require.NoErrorf(t, err, "failed to create k8s namespace from file %s", nsFile)
+
+	testNs := nsObj.GetName()
+	defer func() {
+		require.NoErrorf(t, otelk8stest.DeleteObject(k8sClient, nsObj), "failed to delete namespace %s", testNs)
+	}()
+
+	metricsConsumer1m := new(consumertest.MetricsSink)
+	metricsConsumer5m := new(consumertest.MetricsSink)
+	metricsConsumer1h := new(consumertest.MetricsSink)
+	logsConsumer := new(consumertest.LogsSink)
+
+	shutdownSinks := oteltest.StartUpSinks(t, oteltest.ReceiverSinks{
+		Metrics: []*oteltest.MetricSinkConfig{
+			{
+				Consumer: metricsConsumer1m,
+				Ports: &oteltest.ReceiverPorts{
+					Http: 4320,
+				},
+			},
+			{
+				Consumer: metricsConsumer5m,
+				Ports: &oteltest.ReceiverPorts{
+					Http: 4321,
+				},
+			},
+			{
+				Consumer: metricsConsumer1h,
+				Ports: &oteltest.ReceiverPorts{
+					Http: 4322,
+				},
+			},
+		},
+		Logs: []*oteltest.LogSinkConfig{
+			{
+				Consumer: logsConsumer,
+				Ports: &oteltest.ReceiverPorts{
+					Http: 4323,
+				},
+			},
+		},
+	})
+
+	defer func() {
+		// give some more time to the collector to finish exporting before stopping the sinks
+		// so we do not have any dropped data after the test is finished
+		time.Sleep(10 * time.Second)
+		shutdownSinks()
+	}()
+
+	// create collector
+	testID, err := testutil.GenerateRandomString(10)
+	require.NoError(t, err)
+	collectorConfigPath := path.Join(configExamplesDir, "host-metrics.yaml")
+	host := otelk8stest.HostEndpoint(t)
+
+	// Read overlay from file
+	localOverlay := fmt.Sprintf(k8stest.MustRead(t, filepath.Join(testDir, "config-overlays", "service-local.yaml")), host)
+
+	collectorConfig, err := k8stest.GetCollectorConfig(collectorConfigPath, k8stest.ConfigTemplate{
+		Host: host,
+		Templates: []string{
+			localOverlay,
+		},
+	})
+
+	require.NoErrorf(t, err, "Failed to read collector config from file %s", collectorConfigPath)
+	collectorObjs := otelk8stest.CreateCollectorObjects(
+		t,
+		k8sClient,
+		testID,
+		filepath.Join(testDir, "collector"),
+		map[string]string{
+			"ContainerRegistry": os.Getenv("CONTAINER_REGISTRY"),
+			"CollectorConfig":   collectorConfig,
+		},
+		host,
+	)
+
+	defer func() {
+		for _, obj := range collectorObjs {
+			require.NoErrorf(t, otelk8stest.DeleteObject(k8sClient, obj), "failed to delete object %s", obj.GetName())
+		}
+	}()
+
+	// Create Telemetry Generator
+	createTeleOpts := &otelk8stest.TelemetrygenCreateOpts{
+		ManifestsDir: filepath.Join(testDir, "telemetrygen"),
+		TestID:       testID,
+		OtlpEndpoint: fmt.Sprintf("otelcol-%s.%s:4317", testID, testNs),
+		DataTypes:    []string{"logs"},
+	}
+
+	telemetryGenObjs, telemetryGenObjInfos := otelk8stest.CreateTelemetryGenObjects(t, k8sClient, createTeleOpts)
+	defer func() {
+		for _, obj := range append(collectorObjs, telemetryGenObjs...) {
+			require.NoErrorf(t, otelk8stest.DeleteObject(k8sClient, obj), "failed to delete object %s", obj.GetName())
+		}
+	}()
+
+	for _, info := range telemetryGenObjInfos {
+		otelk8stest.WaitForTelemetryGenToStart(t, k8sClient, info.Namespace, info.PodLabelSelectors, info.Workload, info.DataType)
+	}
+
+	// Compare timeouts
+	const (
+		compareTimeout = 3 * time.Minute
+		compareTick    = 5 * time.Second
+	)
+
+	t.Log("Waiting for host metrics...")
+	oteltest.WaitForMetrics(t, 1, metricsConsumer1m)
+	oteltest.WaitForMetrics(t, 1, metricsConsumer5m)
+	oteltest.WaitForMetrics(t, 1, metricsConsumer1h)
+	t.Logf("Received metrics on all consumers...")
+
+	// Logs
+	t.Logf("Checking logs...")
+	oteltest.WaitForLogs(t, 1, logsConsumer)
+
+	t.Logf("Received %d log record(s)", logsConsumer.LogRecordCount())
+
+	// Assert that the operators transformed the fields correctly:
+	//   body._PID   -> body.pid
+	//   body._EXE   -> attributes.process.executable.name
+	//   body.MESSAGE -> body.message
+	var foundMessage, foundProcessExec bool
+	for _, logs := range logsConsumer.AllLogs() {
+		for i := 0; i < logs.ResourceLogs().Len(); i++ {
+			scopeLogs := logs.ResourceLogs().At(i).ScopeLogs()
+			for j := 0; j < scopeLogs.Len(); j++ {
+				logRecords := scopeLogs.At(j).LogRecords()
+				for k := 0; k < logRecords.Len(); k++ {
+					record := logRecords.At(k)
+
+					// Only inspect records whose body is a map (all journald records are)
+					if record.Body().Type() != pcommon.ValueTypeMap {
+						continue
+					}
+					body := record.Body().Map()
+
+					// Old field names must be absent – the move operators should have renamed them
+					_, hasPID := body.Get("_PID")
+					require.False(t, hasPID, "body._PID should have been moved to body.pid by the operator")
+					_, hasEXE := body.Get("_EXE")
+					require.False(t, hasEXE, "body._EXE should have been moved to attributes.process.executable.name by the operator")
+					_, hasMESSAGE := body.Get("MESSAGE")
+					require.False(t, hasMESSAGE, "body.MESSAGE should have been moved to body.message by the operator")
+
+					// Track that the new field names appear at least once across all records
+					if _, ok := body.Get("message"); ok {
+						foundMessage = true
+					}
+					if _, ok := record.Attributes().Get("process.executable.name"); ok {
+						foundProcessExec = true
+					}
+				}
+			}
+		}
+	}
+	require.True(t, foundMessage, "expected at least one log record with body.message (moved from body.MESSAGE by the operator)")
+	require.True(t, foundProcessExec, "expected at least one log record with attributes.process.executable.name (moved from body._EXE by the operator)")
+
+	t.Log("Logs checked successfully")
+
+	resourceIgnoreList := []string{
+		"host.arch",
+		"host.ip",
+		"host.id",
+		"host.mac",
+		"host.name",
+		"host.cpu.model.name",
+		"host.interface",
+		"os.type",
+		"os.description",
+		"os.build.id",
+		"os.name",
+		"os.version",
+	}
+	dpIgnoreList := []string{
+		"mountpoint",
+		"direction",
+		"cpu",
+		"state",
+		"interface",
+		"device",
+		"status",
+	}
+
+	// 1m Metrics
+	t.Logf("Checking 1m metrics...")
+
+	// To regenerate: uncomment, run the test once, re-comment.
+	// require.NoError(t, pmetricassert.WriteAssertionFile(t, expectedFile1mAssert, metricsConsumer1m.AllMetrics()[len(metricsConsumer1m.AllMetrics())-1]))
+
+	checkMetricsPmetricassert(t, expectedFile1mAssert, metricsConsumer1m, resourceIgnoreList, dpIgnoreList, compareTimeout, compareTick)
+
+	// 5m Metrics
+	t.Logf("Checking 5m metrics...")
+
+	// To regenerate: uncomment, run the test once, re-comment.
+	// require.NoError(t, pmetricassert.WriteAssertionFile(t, expectedFile5mAssert, metricsConsumer5m.AllMetrics()[len(metricsConsumer5m.AllMetrics())-1]))
+
+	checkMetricsPmetricassert(t, expectedFile5mAssert, metricsConsumer5m, resourceIgnoreList, dpIgnoreList, compareTimeout, compareTick)
+
+	// 1h Metrics
+	t.Logf("Checking 1h metrics...")
+
+	// To regenerate: uncomment, run the test once, re-comment.
+	// require.NoError(t, pmetricassert.WriteAssertionFile(t, expectedFile1hAssert, metricsConsumer1h.AllMetrics()[len(metricsConsumer1h.AllMetrics())-1]))
+
+	checkMetricsPmetricassert(t, expectedFile1hAssert, metricsConsumer1h, resourceIgnoreList, dpIgnoreList, compareTimeout, compareTick)
+
+	t.Log("Host metrics checked successfully")
+}
+
+func checkMetricsPmetricassert(t *testing.T, expectedFile string, consumer *consumertest.MetricsSink, resourceIgnoreList, dpIgnoreList []string, timeout, tick time.Duration) {
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		actual := consumer.AllMetrics()[len(consumer.AllMetrics())-1]
+		actualForAssert := pmetric.NewMetrics()
+		actual.CopyTo(actualForAssert)
+		testutil.ReplaceAttrValsWithStar(actualForAssert, resourceIgnoreList, dpIgnoreList)
+		testutil.DeduplicateResources(actualForAssert)
+		assert.NoError(tt, pmetricassert.AssertMetrics(expectedFile, actualForAssert))
+	}, timeout, tick)
+}
+
+func substituteWithStar(_ string) string { return "*" }

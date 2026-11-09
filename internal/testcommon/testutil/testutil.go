@@ -1,0 +1,825 @@
+// Copyright Dynatrace LLC
+// SPDX-License-Identifier: Apache-2.0
+
+package testutil
+
+import (
+	"crypto/rand"
+	"fmt"
+	"math/big"
+	"net"
+	"os/exec"
+	"regexp"
+	"runtime"
+	"slices"
+	"sort"
+	"strconv"
+	"strings"
+	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/testbed/testbed"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/featuregate"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+)
+
+type portpair struct {
+	first string
+	last  string
+}
+
+// GetAvailableLocalAddress finds an available local port on tcp network and returns an endpoint
+// describing it. The port is available for opening when this function returns
+// provided that there is no race by some other code to grab the same port
+// immediately.
+func GetAvailableLocalAddress(t testing.TB) string {
+	return GetAvailableLocalNetworkAddress(t, "tcp")
+}
+
+// GetAvailableLocalNetworkAddress finds an available local port on specified network and returns an endpoint
+// describing it. The port is available for opening when this function returns
+// provided that there is no race by some other code to grab the same port
+// immediately.
+func GetAvailableLocalNetworkAddress(t testing.TB, network string) string {
+	// Retry has been added for windows as net.Listen can return a port that is not actually available. Details can be
+	// found in https://github.com/docker/for-win/issues/3171 but to summarize Hyper-V will reserve ranges of ports
+	// which do not show up under the "netstat -ano" but can only be found by
+	// "netsh interface ipv4 show excludedportrange protocol=tcp".  We'll use []exclusions to hold those ranges and
+	// retry if the port returned by GetAvailableLocalAddress falls in one of those them.
+	var exclusions []portpair
+
+	portFound := false
+	if runtime.GOOS == "windows" {
+		exclusions = getExclusionsList(t)
+	}
+
+	var endpoint string
+	for !portFound {
+		endpoint = findAvailableAddress(t, network)
+		_, port, err := net.SplitHostPort(endpoint)
+		require.NoError(t, err)
+		portFound = true
+		if runtime.GOOS == "windows" {
+			for _, pair := range exclusions {
+				if port >= pair.first && port <= pair.last {
+					portFound = false
+					break
+				}
+			}
+		}
+	}
+
+	return endpoint
+}
+
+func findAvailableAddress(t testing.TB, network string) string {
+	switch network {
+	// net.Listen supported network strings
+	case "tcp", "tcp4", "tcp6", "unix", "unixpacket":
+		ln, err := net.Listen(network, "localhost:0")
+		require.NoError(t, err, "Failed to get a free local port")
+		// There is a possible race if something else takes this same port before
+		// the test uses it, however, that is unlikely in practice.
+		defer func() {
+			assert.NoError(t, ln.Close())
+		}()
+		return ln.Addr().String()
+	// net.ListenPacket supported network strings
+	case "udp", "udp4", "udp6", "unixgram":
+		ln, err := net.ListenPacket(network, "localhost:0")
+		require.NoError(t, err, "Failed to get a free local port")
+		// There is a possible race if something else takes this same port before
+		// the test uses it, however, that is unlikely in practice.
+		defer func() {
+			assert.NoError(t, ln.Close())
+		}()
+		return ln.LocalAddr().String()
+	}
+	return ""
+}
+
+// Get excluded ports on Windows from the command: netsh interface ipv4 show excludedportrange protocol=tcp
+func getExclusionsList(t testing.TB) []portpair {
+	cmdTCP := exec.Command("netsh", "interface", "ipv4", "show", "excludedportrange", "protocol=tcp")
+	outputTCP, errTCP := cmdTCP.CombinedOutput()
+	require.NoError(t, errTCP)
+	exclusions := createExclusionsList(t, string(outputTCP))
+
+	cmdUDP := exec.Command("netsh", "interface", "ipv4", "show", "excludedportrange", "protocol=udp")
+	outputUDP, errUDP := cmdUDP.CombinedOutput()
+	require.NoError(t, errUDP)
+	exclusions = append(exclusions, createExclusionsList(t, string(outputUDP))...)
+
+	return exclusions
+}
+
+func createExclusionsList(t testing.TB, exclusionsText string) []portpair {
+	var exclusions []portpair
+
+	parts := strings.Split(exclusionsText, "--------")
+	require.Len(t, parts, 3)
+	portsText := strings.Split(parts[2], "*")
+	require.Greater(t, len(portsText), 1) // original text may have a suffix like " - Administered port exclusions."
+	lines := strings.Split(portsText[0], "\n")
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			entries := strings.Fields(strings.TrimSpace(line))
+			require.Len(t, entries, 2)
+			pair := portpair{entries[0], entries[1]}
+			exclusions = append(exclusions, pair)
+		}
+	}
+	return exclusions
+}
+
+// GetAvailableUDPPort returns a local UDP port that is currently free.
+func GetAvailableUDPPort(t testing.TB) int {
+	_, port, err := net.SplitHostPort(GetAvailableLocalNetworkAddress(t, "udp"))
+	require.NoError(t, err)
+
+	portInt, err := strconv.Atoi(port)
+	require.NoError(t, err)
+
+	return portInt
+}
+
+func GetAvailablePort(t testing.TB) int {
+	endpoint := GetAvailableLocalAddress(t)
+	_, port, err := net.SplitHostPort(endpoint)
+	require.NoError(t, err)
+
+	portInt, err := strconv.Atoi(port)
+	require.NoError(t, err)
+
+	return portInt
+}
+
+func GetAvailablePorts(t testing.TB, numberOfPorts int) []int {
+	ports := make([]int, numberOfPorts)
+
+	for i := 0; i < numberOfPorts; i++ {
+		ports[i] = GetAvailablePort(t)
+	}
+	return ports
+}
+
+// Force the state of feature gate for a test
+// usage: defer SetFeatureGateForTest("gateName", true)()
+func SetFeatureGateForTest(t testing.TB, gate *featuregate.Gate, enabled bool) func() {
+	originalValue := gate.IsEnabled()
+	require.NoError(t, featuregate.GlobalRegistry().Set(gate.ID(), enabled))
+	return func() {
+		require.NoError(t, featuregate.GlobalRegistry().Set(gate.ID(), originalValue))
+	}
+}
+
+const CollectorTestsExecPath string = "../../../bin/dynatrace-otel-collector"
+
+// replaceEndpointPort swaps oldPort for newPort only within endpoint: fields,
+// preventing silent corruption of other fields that happen to contain the port number.
+func replaceEndpointPort(cfg string, oldPort, newPort int) string {
+	re := regexp.MustCompile(fmt.Sprintf(`(endpoint:\s*\S+:)%d\b`, oldPort))
+	return re.ReplaceAllString(cfg, "${1}"+strconv.Itoa(newPort))
+}
+
+func ReplaceOtlpGrpcReceiverPort(cfg string, receiverPort int) string {
+	return replaceEndpointPort(cfg, 4317, receiverPort)
+}
+
+func ReplaceOtlpHttpReceiverPort(cfg string, receiverPort int) string {
+	return replaceEndpointPort(cfg, 4318, receiverPort)
+}
+
+func ReplaceJaegerGrpcReceiverPort(cfg string, receiverPort int) string {
+	return replaceEndpointPort(cfg, 14250, receiverPort)
+}
+
+func ReplaceZipkinReceiverPort(cfg string, receiverPort int) string {
+	return replaceEndpointPort(cfg, 9411, receiverPort)
+}
+
+func ReplaceStatsdReceiverPort(cfg string, receiverPort int) string {
+	return replaceEndpointPort(cfg, 8125, receiverPort)
+}
+
+func ReplaceSyslogHostReceiverPort(cfg string, receiverPort int) string {
+	return replaceEndpointPort(cfg, 54527, receiverPort)
+}
+
+func ReplaceSyslogF5ReceiverPort(cfg string, receiverPort int) string {
+	return replaceEndpointPort(cfg, 54526, receiverPort)
+}
+
+func ReplaceDynatraceExporterEndpoint(cfg string, exporterPort int) string {
+	r := strings.NewReplacer(
+		"${env:DT_ENDPOINT}", fmt.Sprintf("http://0.0.0.0:%v", exporterPort),
+		"${env:DT_PLATFORM_TOKEN}", "",
+	)
+	return r.Replace(cfg)
+}
+
+func CreateLoadTestConfigYaml(
+	t *testing.T,
+	sender testbed.DataSender,
+	receiver testbed.DataReceiver,
+	resultDir string,
+	processors map[string]string,
+	extensions map[string]string,
+) string {
+
+	pprofString := fmt.Sprintf(`
+  pprof:
+    save_to_file: %v/cpu.prof
+`, resultDir)
+
+	if extensions == nil {
+		extensions = map[string]string{}
+	}
+
+	extensions["pprof"] = pprofString
+
+	return CreateGeneralConfigYaml(t, sender, receiver, processors, extensions)
+}
+
+// CreateConfigYaml creates a collector config file that corresponds to the
+// sender and receiver used in the test and returns the config file name.
+// Map of processor names to their configs. Config is in YAML and must be
+// indented by 2 spaces. Processors will be placed between batch and queue for traces
+// pipeline. For metrics pipeline these will be sole processors.
+func CreateGeneralConfigYaml(
+	t *testing.T,
+	sender testbed.DataSender,
+	receiver testbed.DataReceiver,
+	processors map[string]string,
+	extensions map[string]string,
+) string {
+
+	// Create a config. Note that our DataSender is used to generate a config for Collector's
+	// receiver and our DataReceiver is used to generate a config for Collector's exporter.
+	// This is because our DataSender sends to Collector's receiver and our DataReceiver
+	// receives from Collector's exporter.
+
+	// Prepare extra processor config section and comma-separated list of extra processor
+	// names to use in corresponding "processors" settings.
+	processorsSections := ""
+	processorsList := ""
+	if len(processors) > 0 {
+		first := true
+		for name, cfg := range processors {
+			processorsSections += cfg + "\n"
+			if !first {
+				processorsList += ","
+			}
+			processorsList += name
+			first = false
+		}
+	}
+
+	// Prepare extra extension config section and comma-separated list of extra extension
+	// names to use in corresponding "extensions" settings.
+	extensionsSections := ""
+	extensionsList := ""
+	if len(extensions) > 0 {
+		first := true
+		for name, cfg := range extensions {
+			extensionsSections += cfg + "\n"
+			if !first {
+				extensionsList += ","
+			}
+			extensionsList += name
+			first = false
+		}
+	}
+
+	// Set pipeline based on DataSender type
+	var pipeline string
+	switch sender.(type) {
+	case testbed.TraceDataSender:
+		pipeline = "traces"
+	case testbed.MetricDataSender:
+		pipeline = "metrics"
+	case testbed.LogDataSender:
+		pipeline = "logs"
+	default:
+		t.Error("Invalid DataSender type")
+	}
+
+	format := `
+receivers:%v
+exporters:%v
+processors:
+%s
+
+extensions:
+%s
+
+service:
+  extensions: [%s]
+  pipelines:
+    %s:
+      receivers: [%v]
+      processors: [%s]
+      exporters: [%v]
+`
+
+	// Put corresponding elements into the config template to generate the final config.
+	return fmt.Sprintf(
+		format,
+		sender.GenConfigYAMLStr(),
+		receiver.GenConfigYAMLStr(),
+		processorsSections,
+		extensionsSections,
+		extensionsList,
+		pipeline,
+		sender.ProtocolName(),
+		processorsList,
+		receiver.ProtocolName(),
+	)
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+// Function to generate a random string of specified length
+func GenerateRandomString(length int) (string, error) {
+	result := make([]byte, length)
+	for i := range result {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", err
+		}
+		result[i] = charset[num.Int64()]
+	}
+	return string(result), nil
+}
+
+func MergeResources(metrics pmetric.Metrics) pmetric.Metrics {
+	m := pmetric.NewMetrics()
+	metrics.CopyTo(m)
+	new := pmetric.NewMetrics()
+	for i := 0; i < m.ResourceMetrics().Len(); i++ {
+		attrsHash := pdatautil.MapHash(m.ResourceMetrics().At(i).Resource().Attributes())
+		found := false
+		for j := 0; j < new.ResourceMetrics().Len(); j++ {
+			if pdatautil.MapHash(new.ResourceMetrics().At(j).Resource().Attributes()) == attrsHash {
+				m.ResourceMetrics().At(i).ScopeMetrics().MoveAndAppendTo(new.ResourceMetrics().At(j).ScopeMetrics())
+				found = true
+				break
+			}
+		}
+		if !found {
+			m.ResourceMetrics().At(i).MoveTo(new.ResourceMetrics().AppendEmpty())
+		}
+	}
+
+	return new
+}
+
+func MaskParentSpanID(traces ptrace.Traces) {
+	for i := 0; i < traces.ResourceSpans().Len(); i++ {
+		scopeSpans := traces.ResourceSpans().At(i).ScopeSpans()
+		for j := 0; j < scopeSpans.Len(); j++ {
+			for k := 0; k < scopeSpans.At(j).Spans().Len(); k++ {
+				scopeSpans.At(j).Spans().At(k).SetParentSpanID(pcommon.NewSpanIDEmpty())
+			}
+		}
+	}
+}
+
+// DeduplicateLogs removes ResourceLogs entries that are identical to an earlier
+// entry when log record timestamps are ignored, keeping the first occurrence.
+func DeduplicateLogs(logs plog.Logs) {
+	seen := make(map[string]bool)
+	logs.ResourceLogs().RemoveIf(func(rl plog.ResourceLogs) bool {
+		key := logsKey(rl)
+		if seen[key] {
+			return true
+		}
+		seen[key] = true
+		return false
+	})
+}
+
+func logsKey(rl plog.ResourceLogs) string {
+	l := plog.NewLogs()
+	rl.CopyTo(l.ResourceLogs().AppendEmpty())
+	for _, sl := range l.ResourceLogs().At(0).ScopeLogs().All() {
+		for _, lr := range sl.LogRecords().All() {
+			lr.SetTimestamp(0)
+			lr.SetObservedTimestamp(0)
+		}
+	}
+	b, _ := (&plog.ProtoMarshaler{}).MarshalLogs(l)
+	return string(b)
+}
+
+// DeduplicateTraces removes ResourceSpans entries that are identical to an
+// earlier entry when span timestamps and IDs are ignored, keeping the first
+// occurrence.
+func DeduplicateTraces(traces ptrace.Traces) {
+	seen := make(map[string]bool)
+	traces.ResourceSpans().RemoveIf(func(rs ptrace.ResourceSpans) bool {
+		key := tracesKey(rs)
+		if seen[key] {
+			return true
+		}
+		seen[key] = true
+		return false
+	})
+}
+
+func tracesKey(rs ptrace.ResourceSpans) string {
+	t := ptrace.NewTraces()
+	rs.CopyTo(t.ResourceSpans().AppendEmpty())
+	for _, ss := range t.ResourceSpans().At(0).ScopeSpans().All() {
+		for _, span := range ss.Spans().All() {
+			span.SetStartTimestamp(0)
+			span.SetEndTimestamp(0)
+			span.SetTraceID(pcommon.NewTraceIDEmpty())
+			span.SetSpanID(pcommon.NewSpanIDEmpty())
+			span.SetParentSpanID(pcommon.NewSpanIDEmpty())
+		}
+	}
+	b, _ := (&ptrace.ProtoMarshaler{}).MarshalTraces(t)
+	return string(b)
+}
+
+// Debug can be used in integration tests after a pmetrictest.CompareMetrics to display diverging metrics values
+// testutil.Debug(err, t, expectedMerged, actualMerged)
+func Debug(err error, t *testing.T, expectedMerged pmetric.Metrics, actualMerged pmetric.Metrics) {
+	if err != nil {
+		// Print resource counts and details for debugging
+		t.Logf("[DEBUG] Expected resource count: %d", expectedMerged.ResourceMetrics().Len())
+		t.Logf("[DEBUG] Actual resource count: %d", actualMerged.ResourceMetrics().Len())
+
+		logMetrics := func(prefix string, metrics pmetric.Metrics) {
+			for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
+				rm := metrics.ResourceMetrics().At(i)
+				t.Logf("[DEBUG] %s resource[%d] attributes: %v", prefix, i, rm.Resource().Attributes().AsRaw())
+				for s := 0; s < rm.ScopeMetrics().Len(); s++ {
+					sm := rm.ScopeMetrics().At(s)
+					scope := sm.Scope()
+					t.Logf("[DEBUG] %s resource[%d] scope[%d]: name=%q version=%q metrics=%d", prefix, i, s, scope.Name(), scope.Version(), sm.Metrics().Len())
+					for mi := 0; mi < sm.Metrics().Len(); mi++ {
+						met := sm.Metrics().At(mi)
+						t.Logf("[DEBUG] %s resource[%d] scope[%d] metric[%d]: name=%q desc=%q unit=%q type=%s datapoints=%d", prefix, i, s, mi, met.Name(), met.Description(), met.Unit(), met.Type(), dataPointsCount(met))
+						printDataPoints(prefix, met, t, i, s, mi, scopeInfoFrom(sm))
+					}
+				}
+			}
+		}
+
+		logMetrics("Expected", expectedMerged)
+		logMetrics("Actual", actualMerged)
+	}
+}
+
+// helper that builds a readable scope info string
+func scopeInfoFrom(sm pmetric.ScopeMetrics) string {
+	// for older API use sm.InstrumentationLibrary().Name() / Version()
+	name := sm.Scope().Name()
+	ver := sm.Scope().Version()
+	if name == "" && ver == "" {
+		return "unnamed"
+	}
+	if ver == "" {
+		return name
+	}
+	return name + "@" + ver
+}
+
+// small helper to get datapoints count (for the header)
+func dataPointsCount(m pmetric.Metric) int {
+	switch m.Type() {
+	case pmetric.MetricTypeGauge:
+		return m.Gauge().DataPoints().Len()
+	case pmetric.MetricTypeSum:
+		return m.Sum().DataPoints().Len()
+	case pmetric.MetricTypeHistogram:
+		return m.Histogram().DataPoints().Len()
+	case pmetric.MetricTypeExponentialHistogram:
+		return m.ExponentialHistogram().DataPoints().Len()
+	case pmetric.MetricTypeSummary:
+		return m.Summary().DataPoints().Len()
+	default:
+		return 0
+	}
+}
+
+// Print datapoints for the metric (limited to a reasonable number)
+
+func printDataPoints(prefix string, met pmetric.Metric, t *testing.T, r int, s int, mi int, scopeInfo string) {
+	maxPrint := 10
+
+	switch met.Type() {
+	case pmetric.MetricTypeGauge:
+		dps := met.Gauge().DataPoints()
+		for dpi := 0; dpi < dps.Len() && dpi < maxPrint; dpi++ {
+			dp := dps.At(dpi)
+			t.Logf("[DEBUG] %s resource[%d] scope[%d:%s] metric[%d] dp[%d]: int=%d double=%v attrs=%v start=%d time=%d",
+				prefix, r, s, scopeInfo, mi, dpi, dp.IntValue(), dp.DoubleValue(), dp.Attributes().AsRaw(), dp.StartTimestamp(), dp.Timestamp())
+		}
+	case pmetric.MetricTypeSum:
+		dps := met.Sum().DataPoints()
+		for dpi := 0; dpi < dps.Len() && dpi < maxPrint; dpi++ {
+			dp := dps.At(dpi)
+			t.Logf("[DEBUG] %s resource[%d] scope[%d:%s] metric[%d] dp[%d]: int=%d double=%v attrs=%v start=%d time=%d",
+				prefix, r, s, scopeInfo, mi, dpi, dp.IntValue(), dp.DoubleValue(), dp.Attributes().AsRaw(), dp.StartTimestamp(), dp.Timestamp())
+		}
+	case pmetric.MetricTypeHistogram:
+		dps := met.Histogram().DataPoints()
+		for dpi := 0; dpi < dps.Len() && dpi < maxPrint; dpi++ {
+			dp := dps.At(dpi)
+			t.Logf("[DEBUG] %s resource[%d] scope[%d:%s] metric[%d] hist dp[%d]: count=%d sum=%v bounds=%v attrs=%v start=%d time=%d",
+				prefix, r, s, scopeInfo, mi, dpi, dp.Count(), dp.Sum(), dp.BucketCounts(), dp.Attributes().AsRaw(), dp.StartTimestamp(), dp.Timestamp())
+		}
+	case pmetric.MetricTypeExponentialHistogram:
+		dps := met.ExponentialHistogram().DataPoints()
+		for dpi := 0; dpi < dps.Len() && dpi < maxPrint; dpi++ {
+			dp := dps.At(dpi)
+			t.Logf("[DEBUG] %s resource[%d] scope[%d:%s] metric[%d] exp-hist dp[%d]: count=%d sum=%v attrs=%v start=%d time=%d",
+				prefix, r, s, scopeInfo, mi, dpi, dp.Count(), dp.Sum(), dp.Attributes().AsRaw(), dp.StartTimestamp(), dp.Timestamp())
+		}
+	case pmetric.MetricTypeSummary:
+		dps := met.Summary().DataPoints()
+		for dpi := 0; dpi < dps.Len() && dpi < maxPrint; dpi++ {
+			dp := dps.At(dpi)
+			t.Logf("[DEBUG] %s resource[%d] scope[%d:%s] metric[%d] summary dp[%d]: count=%d sum=%v attrs=%v start=%d time=%d",
+				prefix, r, s, scopeInfo, mi, dpi, dp.Count(), dp.Sum(), dp.Attributes().AsRaw(), dp.StartTimestamp(), dp.Timestamp())
+		}
+	default:
+		t.Logf("[DEBUG] %s resource[%d] scope[%d:%s] metric[%d]: unknown metric type=%v",
+			prefix, r, s, scopeInfo, mi, met.Type())
+	}
+}
+
+func ReplaceAttrValsWithStar(metrics pmetric.Metrics, resourceKeys []string, datapointKeys []string) {
+	for _, r := range metrics.ResourceMetrics().All() {
+		for key, val := range r.Resource().Attributes().All() {
+			if slices.Contains(resourceKeys, key) {
+				val.SetStr("*")
+			}
+		}
+
+		for _, s := range r.ScopeMetrics().All() {
+			// Scope versions are tied to module versions, which are not used in
+			// any of our dashboards. Setting them to "*" avoids unnecessary
+			// test failures.
+			if s.Scope().Version() != "" {
+				s.Scope().SetVersion("*")
+			}
+
+			for _, m := range s.Metrics().All() {
+				switch m.Type() {
+				case pmetric.MetricTypeGauge:
+					for _, dp := range m.Gauge().DataPoints().All() {
+						for key, val := range dp.Attributes().All() {
+							if slices.Contains(datapointKeys, key) {
+								val.SetStr("*")
+							}
+						}
+					}
+				case pmetric.MetricTypeSum:
+					for _, dp := range m.Sum().DataPoints().All() {
+						for key, val := range dp.Attributes().All() {
+							if slices.Contains(datapointKeys, key) {
+								val.SetStr("*")
+							}
+						}
+					}
+				case pmetric.MetricTypeSummary:
+					for _, dp := range m.Summary().DataPoints().All() {
+						for key, val := range dp.Attributes().All() {
+							if slices.Contains(datapointKeys, key) {
+								val.SetStr("*")
+							}
+						}
+					}
+				case pmetric.MetricTypeHistogram:
+					for _, dp := range m.Histogram().DataPoints().All() {
+						for key, val := range dp.Attributes().All() {
+							if slices.Contains(datapointKeys, key) {
+								val.SetStr("*")
+							}
+						}
+					}
+				case pmetric.MetricTypeExponentialHistogram:
+					for _, dp := range m.ExponentialHistogram().DataPoints().All() {
+						for key, val := range dp.Attributes().All() {
+							if slices.Contains(datapointKeys, key) {
+								val.SetStr("*")
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// DeduplicateResources merges ResourceMetrics entries that have identical
+// resource attributes into a single entry, combining their scope metrics.
+// Within each scope, metrics with the same name are merged and their datapoints
+// are deduplicated. This is useful after ReplaceAttrValsWithStar which can
+// make originally-distinct resources (e.g. different pods) or datapoints (e.g.
+// different server addresses) identical, causing pmetricassert.AssertMetrics to
+// fail on duplicate datapoints after merging.
+func DeduplicateResources(metrics pmetric.Metrics) {
+	// Map from resource key to the index of the first ResourceMetrics with that key.
+	seen := make(map[string]int)
+	rms := metrics.ResourceMetrics()
+	for i := 0; i < rms.Len(); i++ {
+		rm := rms.At(i)
+		key := canonicalAttrsKey(rm.Resource().Attributes())
+		if firstIdx, exists := seen[key]; exists {
+			// Merge all ScopeMetrics from this duplicate into the first occurrence.
+			first := rms.At(firstIdx)
+			rm.ScopeMetrics().MoveAndAppendTo(first.ScopeMetrics())
+		} else {
+			seen[key] = i
+		}
+	}
+	// Remove entries that were merged (their ScopeMetrics were moved out).
+	rms.RemoveIf(func(rm pmetric.ResourceMetrics) bool {
+		return rm.ScopeMetrics().Len() == 0
+	})
+	// Now deduplicate scopes within each resource, and datapoints within each metric.
+	deduplicateScopes(metrics)
+	deduplicateMetricsByName(metrics)
+	deduplicateDatapoints(metrics)
+}
+
+// deduplicateScopes merges ScopeMetrics with identical scope names within each
+// ResourceMetrics, combining their metrics into a single ScopeMetrics entry.
+func deduplicateScopes(metrics pmetric.Metrics) {
+	for _, rm := range metrics.ResourceMetrics().All() {
+		seen := make(map[string]int)
+		sms := rm.ScopeMetrics()
+		for i := 0; i < sms.Len(); i++ {
+			sm := sms.At(i)
+			key := sm.Scope().Name()
+			if firstIdx, exists := seen[key]; exists {
+				first := sms.At(firstIdx)
+				sm.Metrics().MoveAndAppendTo(first.Metrics())
+			} else {
+				seen[key] = i
+			}
+		}
+		sms.RemoveIf(func(sm pmetric.ScopeMetrics) bool {
+			return sm.Metrics().Len() == 0
+		})
+	}
+}
+
+// deduplicateMetricsByName merges metrics with the same name within a scope.
+// This handles the case where the same metric name appears multiple times after
+// merging scope metrics from different resources.
+func deduplicateMetricsByName(metrics pmetric.Metrics) {
+	for _, rm := range metrics.ResourceMetrics().All() {
+		for _, sm := range rm.ScopeMetrics().All() {
+			seen := make(map[string]int)
+			ms := sm.Metrics()
+			for i := 0; i < ms.Len(); i++ {
+				m := ms.At(i)
+				if firstIdx, exists := seen[m.Name()]; exists {
+					first := ms.At(firstIdx)
+					mergeMetricDataPoints(first, m)
+				} else {
+					seen[m.Name()] = i
+				}
+			}
+			// Remove metrics whose datapoints were moved out.
+			ms.RemoveIf(func(m pmetric.Metric) bool {
+				switch m.Type() {
+				case pmetric.MetricTypeGauge:
+					return m.Gauge().DataPoints().Len() == 0
+				case pmetric.MetricTypeSum:
+					return m.Sum().DataPoints().Len() == 0
+				case pmetric.MetricTypeSummary:
+					return m.Summary().DataPoints().Len() == 0
+				case pmetric.MetricTypeHistogram:
+					return m.Histogram().DataPoints().Len() == 0
+				case pmetric.MetricTypeExponentialHistogram:
+					return m.ExponentialHistogram().DataPoints().Len() == 0
+				}
+				return false
+			})
+		}
+	}
+}
+
+// deduplicateDatapoints removes datapoints with identical attributes within
+// each metric, keeping only the first occurrence.
+func deduplicateDatapoints(metrics pmetric.Metrics) {
+	for _, rm := range metrics.ResourceMetrics().All() {
+		for _, sm := range rm.ScopeMetrics().All() {
+			for _, m := range sm.Metrics().All() {
+				switch m.Type() {
+				case pmetric.MetricTypeGauge:
+					deduplicateNumberDataPoints(m.Gauge().DataPoints())
+				case pmetric.MetricTypeSum:
+					deduplicateNumberDataPoints(m.Sum().DataPoints())
+				case pmetric.MetricTypeSummary:
+					deduplicateSummaryDataPoints(m.Summary().DataPoints())
+				case pmetric.MetricTypeHistogram:
+					deduplicateHistogramDataPoints(m.Histogram().DataPoints())
+				case pmetric.MetricTypeExponentialHistogram:
+					deduplicateExponentialHistogramDataPoints(m.ExponentialHistogram().DataPoints())
+				}
+			}
+		}
+	}
+}
+
+func canonicalAttrsKey(attrs pcommon.Map) string {
+	keys := make([]string, 0, attrs.Len())
+	for k := range attrs.All() {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var b strings.Builder
+	for _, k := range keys {
+		v, _ := attrs.Get(k)
+		fmt.Fprintf(&b, "%s=%s,", k, v.AsString())
+	}
+	return b.String()
+}
+
+func deduplicateNumberDataPoints(dps pmetric.NumberDataPointSlice) {
+	seen := make(map[string]bool)
+	dps.RemoveIf(func(dp pmetric.NumberDataPoint) bool {
+		key := canonicalAttrsKey(dp.Attributes())
+		if seen[key] {
+			return true
+		}
+		seen[key] = true
+		return false
+	})
+}
+
+func deduplicateSummaryDataPoints(dps pmetric.SummaryDataPointSlice) {
+	seen := make(map[string]bool)
+	dps.RemoveIf(func(dp pmetric.SummaryDataPoint) bool {
+		key := canonicalAttrsKey(dp.Attributes())
+		if seen[key] {
+			return true
+		}
+		seen[key] = true
+		return false
+	})
+}
+
+func deduplicateHistogramDataPoints(dps pmetric.HistogramDataPointSlice) {
+	seen := make(map[string]bool)
+	dps.RemoveIf(func(dp pmetric.HistogramDataPoint) bool {
+		key := canonicalAttrsKey(dp.Attributes())
+		if seen[key] {
+			return true
+		}
+		seen[key] = true
+		return false
+	})
+}
+
+func deduplicateExponentialHistogramDataPoints(dps pmetric.ExponentialHistogramDataPointSlice) {
+	seen := make(map[string]bool)
+	dps.RemoveIf(func(dp pmetric.ExponentialHistogramDataPoint) bool {
+		key := canonicalAttrsKey(dp.Attributes())
+		if seen[key] {
+			return true
+		}
+		seen[key] = true
+		return false
+	})
+}
+
+// mergeMetricDataPoints moves datapoints from src into dst for metrics of the same type.
+// Uses MoveAndAppendTo so that the source slice becomes empty (Len()==0),
+// allowing the caller to remove the now-empty source metric.
+func mergeMetricDataPoints(dst, src pmetric.Metric) {
+	switch dst.Type() {
+	case pmetric.MetricTypeGauge:
+		src.Gauge().DataPoints().MoveAndAppendTo(dst.Gauge().DataPoints())
+	case pmetric.MetricTypeSum:
+		src.Sum().DataPoints().MoveAndAppendTo(dst.Sum().DataPoints())
+	case pmetric.MetricTypeSummary:
+		src.Summary().DataPoints().MoveAndAppendTo(dst.Summary().DataPoints())
+	case pmetric.MetricTypeHistogram:
+		src.Histogram().DataPoints().MoveAndAppendTo(dst.Histogram().DataPoints())
+	case pmetric.MetricTypeExponentialHistogram:
+		src.ExponentialHistogram().DataPoints().MoveAndAppendTo(dst.ExponentialHistogram().DataPoints())
+	}
+}
+
+func CountLogRecords(sink *consumertest.LogsSink) int {
+	n := 0
+	for _, l := range sink.AllLogs() {
+		n += l.LogRecordCount()
+	}
+	return n
+}

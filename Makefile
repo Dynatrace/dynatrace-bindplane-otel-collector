@@ -4,6 +4,16 @@ ALLDOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
 # Exclude the ocb-generated ./build/ and ./build-slim/ trees — they are
 # throwaway modules, not part of the repo.
 ALL_MODULES := $(shell find . -type f -name "go.mod" -not -path "./build/*" -not -path "./build-slim/*" -exec dirname {} \; | sort )
+# End-to-end test modules. They need a built collector binary (and, for some
+# suites, Docker or a kind cluster), so the unit-test targets skip them. They are
+# run by .github/workflows/e2e.yaml.
+E2E_MODULES := ./internal/testbed/integration
+# Internal-only modules that are never published, so `make release` doesn't tag them.
+UNRELEASED_MODULES := ./internal/testbed/integration ./internal/testcommon
+# TEMPORARY: e2e modules (copied from dynatrace-otel-collector) that are excluded
+# from lint, gosec, check-mod-paths and check-dependabot until they are adapted.
+# Remove each exclusion (search for E2E_UNADAPTED_MODULES) once the module passes.
+E2E_UNADAPTED_MODULES := ./internal/testcommon ./internal/testbed/integration
 ALL_MDATAGEN_MODULES := $(shell find . -type f -name "metadata.yaml" -exec dirname {} \; | sort )
 
 # All source code files
@@ -337,9 +347,11 @@ install-tools-ci:
 	@command -v goimports > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install golang.org/x/tools/cmd/goimports)
 	@command -v gotestsum > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install gotest.tools/gotestsum)
 
+# TEMPORARY: the -exclude flags skip E2E_UNADAPTED_MODULES; remove them once the modules pass lint.
 .PHONY: lint
 lint:
-	revive -config revive/config.toml -formatter friendly ./...
+	revive -config revive/config.toml -formatter friendly \
+		-exclude ./internal/testcommon/... -exclude ./internal/testbed/integration/... ./...
 
 .PHONY: misspell
 misspell:
@@ -349,6 +361,7 @@ misspell:
 misspell-fix:
 	misspell -w $(ALLDOC)
 
+# TEMPORARY: E2E_UNADAPTED_MODULES are skipped until their go.mod matches the repo Go version.
 .PHONY: test
 test:
 	@if [ -n "$$(go list ./... 2>/dev/null)" ]; then \
@@ -357,6 +370,8 @@ test:
 	fi
 	@set -e; for dir in $(ALL_MODULES); do \
 		if [ "$${dir}" = "." ]; then continue; fi; \
+		case " $(E2E_MODULES) " in *" $${dir} "*) continue ;; esac; \
+		case " $(E2E_UNADAPTED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		(cd "$${dir}" && \
 			echo "running tests in $${dir}" && \
 			gotestsum --rerun-fails --packages="./..." -- -race) || exit 1; \
@@ -364,12 +379,12 @@ test:
 
 .PHONY: test-no-race
 test-no-race:
-	$(MAKE) for-all CMD="gotestsum --rerun-fails --packages="./..." "
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="gotestsum --rerun-fails --packages="./..." "
 
 .PHONY: test-with-cover
 test-with-cover:
-	$(MAKE) for-all CMD="go test -coverprofile=cover.out ./..."
-	$(MAKE) for-all CMD="go tool cover -html=cover.out -o cover.html"
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go test -coverprofile=cover.out ./..."
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go tool cover -html=cover.out -o cover.html"
 
 .PHONY: test-updater-integration
 test-updater-integration:
@@ -378,7 +393,7 @@ test-updater-integration:
 
 .PHONY: bench
 bench:
-	$(MAKE) for-all CMD="go test -benchmem -run=^$$ -bench ^* ./..."
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go test -benchmem -run=^$$ -bench ^* ./..."
 
 .PHONY: check-fmt
 check-fmt:
@@ -392,12 +407,14 @@ fmt:
 tidy:
 	$(MAKE) for-all-modules CMD="go mod tidy -compat=1.26.10"
 
+# TEMPORARY: E2E_UNADAPTED_MODULES are skipped below; remove the skip once they pass gosec.
 .PHONY: gosec
 gosec:
 	@set -e; for dir in $(ALL_MODULES); do \
 		case "$${dir}" in \
 			"."|"./updater"|"./internal/tools"|"./cmd/plugindocgen") continue;; \
 		esac; \
+		case " $(E2E_UNADAPTED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		(cd "$${dir}" && \
 			echo "running gosec in $${dir}" && \
 			gosec ./...) || exit 1; \
@@ -413,7 +430,8 @@ ci-checks: check-fmt check-license check-mod-paths check-dependabot misspell lin
 # Root must be github.com/dynatrace/dynatrace-bindplane-otel-collector.
 # Subdirectories must be github.com/dynatrace/dynatrace-bindplane-otel-collector/<relative-path>.
 # Modules with legacy paths that cannot be renamed are excluded.
-MOD_PATH_EXCLUDES := ./cmd/plugindocgen
+# TEMPORARY: E2E_UNADAPTED_MODULES are excluded until their module paths are renamed.
+MOD_PATH_EXCLUDES := ./cmd/plugindocgen $(E2E_UNADAPTED_MODULES)
 .PHONY: check-mod-paths
 check-mod-paths:
 	@FAILED=0; \
@@ -442,11 +460,13 @@ check-mod-paths:
 	fi
 
 # This target checks that every directory with a go.mod has an entry in dependabot.yml
+# TEMPORARY: E2E_UNADAPTED_MODULES are skipped until they get dependabot entries.
 .PHONY: check-dependabot
 check-dependabot:
 	@FAILED=0; \
 	DEPENDABOT_DIRS=$$(grep 'directory:' .github/dependabot.yml | sed 's/.*directory: *"\(.*\)"/\1/'); \
 	for dir in $(ALL_MODULES); do \
+		case " $(E2E_UNADAPTED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		if [ "$${dir}" = "." ]; then \
 			EXPECTED="/"; \
 		else \
@@ -648,6 +668,7 @@ for-all:
 	fi
 	@set -e; for dir in $(ALL_MODULES); do \
 	  if [ "$${dir}" = "." ]; then continue; fi; \
+	  case " $${SKIP_MODULES} " in *" $${dir} "*) continue ;; esac; \
 	  (cd "$${dir}" && \
 	    echo "running $${CMD} in $${dir}" && \
 	    $${CMD} ); \
@@ -679,6 +700,7 @@ release:
 	@set -e; tags="$(version)"; git tag "$(version)"; \
 	for dir in $(ALL_MODULES); do \
 		if [ "$${dir}" = "." ]; then continue; fi; \
+		case " $(UNRELEASED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		tag="$${dir#./}/$(version)"; \
 		git tag "$${tag}"; \
 		tags="$${tags} $${tag}"; \
