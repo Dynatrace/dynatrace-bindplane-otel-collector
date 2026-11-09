@@ -6,6 +6,9 @@ Releases are managed through GitHub releases. This repository releases two build
 | full | `vX.Y.Z` | `release-full` | `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` |
 | slim | `vX.Y.Z-rc.N` | `release-slim` | `manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml` |
 
+> [!NOTE]
+> Using RC tags to release the slim build is temporary. It lets us test the multi-build release process, and is not a long-term convention. RC tags will stop being reserved for the slim build once the process is settled.
+
 Both workflows are thin callers of the reusable `base-release` workflow. Each build has its own goreleaser configuration next to its manifest.
 
 Before tagging, set `dist.version` in the manifest of the build you are releasing to the version without the leading `v`. The first job of the release workflow compares the tag with it and fails on a mismatch: a full tag (`v1.2.3`) must equal `dist.version`, a slim RC tag (`v1.2.3-rc.1`) must equal it once `-rc.N` is removed, so several RCs can share one manifest version. The checks live in `scripts/ci/check-tag-version.sh`.
