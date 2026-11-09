@@ -1,8 +1,9 @@
 name: base-release
 
 # Reusable release pipeline shared by the per-build release workflows
-# (release-full.yml, ...). Callers must pass `secrets: inherit` and grant
-# `contents: write`, which the release job needs to publish the GitHub release.
+# (release-full.yml, ...) and the release-test rehearsal. Callers must pass
+# `secrets: inherit` and grant `contents: write`, which the release job needs to
+# publish the GitHub release.
 on:
   workflow_call:
     inputs:
@@ -22,6 +23,16 @@ on:
         description: "Path of the goreleaser config of the build"
         required: true
         type: string
+      version:
+        description: "Version to release, with the leading v. Defaults to the pushed tag"
+        required: false
+        type: string
+        default: ""
+      dry-run:
+        description: "Rehearse the release: skip the tag check, publishing and validation, and upload the artifact bundles as workflow artifacts instead of to a release"
+        required: false
+        type: boolean
+        default: false
       build-msi:
         description: "Build and sign the Windows MSIs, the signed Windows binaries and install script, and verify the signatures after the release"
         required: false
@@ -42,7 +53,10 @@ permissions:
   contents: read
 
 jobs:
+  # A rehearsal runs from a branch with an arbitrary version, so there is no tag
+  # to check.
   check-version:
+    if: ${{ !inputs.dry-run }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -55,11 +69,13 @@ jobs:
           MODE: ${{ inputs.version-check-mode }}
 
   build-msi:
-    if: ${{ inputs.build-msi }}
+    # check-version is skipped on a dry run, which would skip this job too
+    # without a status function.
+    if: ${{ inputs.build-msi && !(cancelled() || failure()) }}
     needs: [check-version]
     uses: ./.github/workflows/build-signed-windows.yml
     with:
-      version: ${{ github.ref_name }}
+      version: ${{ inputs.version || github.ref_name }}
       sign_install_script: true
     secrets: inherit
 
@@ -76,6 +92,8 @@ jobs:
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - name: Redirect temp directories
         run: |
@@ -199,37 +217,64 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --clean --timeout 120m --config ${{ inputs.goreleaser-config }}
+          args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }} --config ${{ inputs.goreleaser-config }}
         env:
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
           SIGNING_KEY_FILE: ci-signing-key.asc
+
+      - name: Debug list dist/
+        run: ls -laR dist/
+
       # Create artifact bundles (all-platform plus one per OS) and upload to release
       - name: Create artifact archives
-        run: ./scripts/ci/create-artifact-bundles.sh ${{ github.ref_name }} ${{ inputs.product }}
+        run: ./scripts/ci/create-artifact-bundles.sh ${{ env.VERSION }} ${{ inputs.product }}
       - name: Sign artifact archives
         run: |
-          for bundle in ./${{ inputs.product }}-${{ github.ref_name }}-artifacts*.tar.gz; do
+          for bundle in ./${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz; do
             cosign sign-blob --key=cosign.key --output-signature "$bundle.sig" "$bundle"
           done
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
       - name: Upload Latest Install Scripts
-        if: ${{ inputs.publish-latest-scripts }}
+        if: ${{ inputs.publish-latest-scripts && !inputs.dry-run }}
         run: |
           gsutil cp ./scripts/install/install_unix.sh gs://dbdot-release/latest/install_unix.sh
           gsutil cp ./scripts/install/install_macos.sh gs://dbdot-release/latest/install_macos.sh
           gsutil cp ./scripts/install/install_windows.ps1 gs://dbdot-release/latest/install_windows.ps1
           gsutil cp ./release_deps/gpg-keys.tar.gz gs://dbdot-release/latest/gpg-keys.tar.gz
+
       - name: Upload artifact bundles to release
+        if: ${{ !inputs.dry-run }}
         uses: AButler/upload-release-assets@34491005a5d7ec239a784e460807ce844fde7962 # v4.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          files: "${{ inputs.product }}-${{ github.ref_name }}-artifacts*.tar.gz*"
-          release-tag: ${{ github.ref_name }}
+          files: "${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz*"
+          release-tag: ${{ env.VERSION }}
+
+      # A rehearsal has no release to read the bundles from, so the signature
+      # verification of the verify-windows-release job reads them from here.
+      - name: Check artifact bundles
+        if: ${{ inputs.dry-run }}
+        run: |
+          ls -la ${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz*
+          for dir in bundle-*; do
+            echo "== $dir"
+            ls -la "$dir"
+            du -sh "$dir"
+          done
+
+      - name: Upload artifact bundles as workflow artifacts
+        if: ${{ inputs.dry-run }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: artifact-bundles
+          path: ${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz*
+          retention-days: 1
+
       # TODO(dbdot): the installer testing repo does not exist yet. GITHUB_TOKEN
       # cannot dispatch to another repository; this needs a PAT or GitHub App
       # token once the repo exists.
@@ -245,9 +290,14 @@ jobs:
   # packages and lists their hashes in the main SHA256SUMS.
   build-aix:
     needs: [check-version]
+    # check-version is skipped on a dry run, which would skip this job too
+    # without a status function.
+    if: ${{ !(cancelled() || failure()) }}
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -305,9 +355,9 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --skip=publish --clean
+          args: release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --skip=publish${{ inputs.dry-run && ',validate' || '' }} --clean
         env:
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
@@ -328,13 +378,16 @@ jobs:
     if: ${{ inputs.build-msi }}
     needs: [release]
     runs-on: windows-2022
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Download Windows Release Artifacts
+        if: ${{ !inputs.dry-run }}
         run: |
           mkdir artifacts
-          gh release download "$env:TAG" `
+          gh release download "$env:VERSION" `
             --repo "$env:GITHUB_REPOSITORY" `
             --dir artifacts `
             --pattern "*-windows-*.zip" `
@@ -342,8 +395,22 @@ jobs:
             --pattern "install_windows.ps1"
         shell: pwsh
         env:
-          TAG: ${{ github.ref_name }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Windows Artifact Bundle
+        if: ${{ inputs.dry-run }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: artifact-bundles
+          path: bundle
+
+      - name: Unpack Windows Artifact Bundle
+        if: ${{ inputs.dry-run }}
+        run: |
+          mkdir artifacts
+          tar -xzvf "bundle/${{ inputs.product }}-$env:VERSION-artifacts-windows.tar.gz" -C artifacts
+        shell: pwsh
+
       - name: Verify Windows Signatures
         run: ./scripts/ci/verify-windows-signatures.ps1 -Root ./artifacts
         shell: pwsh
