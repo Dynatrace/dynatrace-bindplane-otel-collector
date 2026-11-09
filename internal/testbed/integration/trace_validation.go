@@ -17,12 +17,14 @@ import (
 
 var _ testbed.TestCaseValidator = &TraceValidator{}
 
+// WithHiddenTracesValidationErrorMessages makes the validator omit the traces from its failure messages.
 func WithHiddenTracesValidationErrorMessages() func(*TraceValidator) {
 	return func(v *TraceValidator) {
 		v.hideValidationErrorMessage = true
 	}
 }
 
+// TraceValidator checks that the expected spans were received by the mock backend.
 type TraceValidator struct {
 	expectedTraces []ptrace.Traces
 	t              *testing.T
@@ -30,6 +32,7 @@ type TraceValidator struct {
 	hideValidationErrorMessage bool
 }
 
+// NewTraceValidator returns a TraceValidator for expectedTraces.
 func NewTraceValidator(t *testing.T, expectedTraces []ptrace.Traces, opts ...func(*TraceValidator)) *TraceValidator {
 	v := &TraceValidator{
 		expectedTraces: expectedTraces,
@@ -43,11 +46,13 @@ func NewTraceValidator(t *testing.T, expectedTraces []ptrace.Traces, opts ...fun
 	return v
 }
 
+// Validate asserts that every expected span is among those received.
 func (v *TraceValidator) Validate(tc *testbed.TestCase) {
 	assertExpectedSpansAreInReceived(v.t, v.expectedTraces, tc.MockBackend.ReceivedTraces, v.hideValidationErrorMessage)
 }
 
-func (v *TraceValidator) RecordResults(tc *testbed.TestCase) {
+// RecordResults does nothing; the validator records no results.
+func (v *TraceValidator) RecordResults(_ *testbed.TestCase) {
 }
 
 func assertExpectedSpansAreInReceived(t *testing.T, expected, actual []ptrace.Traces, hideError bool) {

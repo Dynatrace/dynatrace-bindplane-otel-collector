@@ -149,6 +149,7 @@ func GetAvailableUDPPort(t testing.TB) int {
 	return portInt
 }
 
+// GetAvailablePort returns a free local TCP port.
 func GetAvailablePort(t testing.TB) int {
 	endpoint := GetAvailableLocalAddress(t)
 	_, port, err := net.SplitHostPort(endpoint)
@@ -160,6 +161,7 @@ func GetAvailablePort(t testing.TB) int {
 	return portInt
 }
 
+// GetAvailablePorts returns numberOfPorts free local TCP ports.
 func GetAvailablePorts(t testing.TB, numberOfPorts int) []int {
 	ports := make([]int, numberOfPorts)
 
@@ -169,7 +171,7 @@ func GetAvailablePorts(t testing.TB, numberOfPorts int) []int {
 	return ports
 }
 
-// Force the state of feature gate for a test
+// SetFeatureGateForTest sets the feature gate to enabled and returns a function that restores its original value.
 // usage: defer SetFeatureGateForTest("gateName", true)()
 func SetFeatureGateForTest(t testing.TB, gate *featuregate.Gate, enabled bool) func() {
 	originalValue := gate.IsEnabled()
@@ -179,6 +181,7 @@ func SetFeatureGateForTest(t testing.TB, gate *featuregate.Gate, enabled bool) f
 	}
 }
 
+// CollectorTestsExecPath is the path of the Collector binary used by the e2e tests, relative to a test package.
 const CollectorTestsExecPath string = "../../../bin/dynatrace-otel-collector"
 
 // replaceEndpointPort swaps oldPort for newPort only within endpoint: fields,
@@ -188,34 +191,43 @@ func replaceEndpointPort(cfg string, oldPort, newPort int) string {
 	return re.ReplaceAllString(cfg, "${1}"+strconv.Itoa(newPort))
 }
 
+// ReplaceOtlpGrpcReceiverPort changes the OTLP gRPC receiver endpoint port (4317) in cfg to receiverPort.
 func ReplaceOtlpGrpcReceiverPort(cfg string, receiverPort int) string {
 	return replaceEndpointPort(cfg, 4317, receiverPort)
 }
 
-func ReplaceOtlpHttpReceiverPort(cfg string, receiverPort int) string {
+// ReplaceOtlpHTTPReceiverPort changes the OTLP HTTP receiver endpoint port (4318) in cfg to receiverPort.
+func ReplaceOtlpHTTPReceiverPort(cfg string, receiverPort int) string {
 	return replaceEndpointPort(cfg, 4318, receiverPort)
 }
 
+// ReplaceJaegerGrpcReceiverPort changes the Jaeger gRPC receiver endpoint port (14250) in cfg to receiverPort.
 func ReplaceJaegerGrpcReceiverPort(cfg string, receiverPort int) string {
 	return replaceEndpointPort(cfg, 14250, receiverPort)
 }
 
+// ReplaceZipkinReceiverPort changes the Zipkin receiver endpoint port (9411) in cfg to receiverPort.
 func ReplaceZipkinReceiverPort(cfg string, receiverPort int) string {
 	return replaceEndpointPort(cfg, 9411, receiverPort)
 }
 
+// ReplaceStatsdReceiverPort changes the StatsD receiver endpoint port (8125) in cfg to receiverPort.
 func ReplaceStatsdReceiverPort(cfg string, receiverPort int) string {
 	return replaceEndpointPort(cfg, 8125, receiverPort)
 }
 
+// ReplaceSyslogHostReceiverPort changes the host syslog receiver endpoint port (54527) in cfg to receiverPort.
 func ReplaceSyslogHostReceiverPort(cfg string, receiverPort int) string {
 	return replaceEndpointPort(cfg, 54527, receiverPort)
 }
 
+// ReplaceSyslogF5ReceiverPort changes the F5 syslog receiver endpoint port (54526) in cfg to receiverPort.
 func ReplaceSyslogF5ReceiverPort(cfg string, receiverPort int) string {
 	return replaceEndpointPort(cfg, 54526, receiverPort)
 }
 
+// ReplaceDynatraceExporterEndpoint points the Dynatrace exporter placeholders in cfg at a local sink on exporterPort
+// and blanks the platform token.
 func ReplaceDynatraceExporterEndpoint(cfg string, exporterPort int) string {
 	r := strings.NewReplacer(
 		"${env:DT_ENDPOINT}", fmt.Sprintf("http://0.0.0.0:%v", exporterPort),
@@ -224,6 +236,7 @@ func ReplaceDynatraceExporterEndpoint(cfg string, exporterPort int) string {
 	return r.Replace(cfg)
 }
 
+// CreateLoadTestConfigYaml is CreateGeneralConfigYaml with the pprof extension added, saving the CPU profile to resultDir.
 func CreateLoadTestConfigYaml(
 	t *testing.T,
 	sender testbed.DataSender,
@@ -247,7 +260,7 @@ func CreateLoadTestConfigYaml(
 	return CreateGeneralConfigYaml(t, sender, receiver, processors, extensions)
 }
 
-// CreateConfigYaml creates a collector config file that corresponds to the
+// CreateGeneralConfigYaml creates a collector config file that corresponds to the
 // sender and receiver used in the test and returns the config file name.
 // Map of processor names to their configs. Config is in YAML and must be
 // indented by 2 spaces. Processors will be placed between batch and queue for traces
@@ -345,7 +358,7 @@ service:
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
-// Function to generate a random string of specified length
+// GenerateRandomString returns a random string of the given length made of lowercase letters and digits.
 func GenerateRandomString(length int) (string, error) {
 	result := make([]byte, length)
 	for i := range result {
@@ -358,28 +371,30 @@ func GenerateRandomString(length int) (string, error) {
 	return string(result), nil
 }
 
+// MergeResources returns a copy of metrics in which resources with identical attributes are merged into one.
 func MergeResources(metrics pmetric.Metrics) pmetric.Metrics {
 	m := pmetric.NewMetrics()
 	metrics.CopyTo(m)
-	new := pmetric.NewMetrics()
+	merged := pmetric.NewMetrics()
 	for i := 0; i < m.ResourceMetrics().Len(); i++ {
 		attrsHash := pdatautil.MapHash(m.ResourceMetrics().At(i).Resource().Attributes())
 		found := false
-		for j := 0; j < new.ResourceMetrics().Len(); j++ {
-			if pdatautil.MapHash(new.ResourceMetrics().At(j).Resource().Attributes()) == attrsHash {
-				m.ResourceMetrics().At(i).ScopeMetrics().MoveAndAppendTo(new.ResourceMetrics().At(j).ScopeMetrics())
+		for j := 0; j < merged.ResourceMetrics().Len(); j++ {
+			if pdatautil.MapHash(merged.ResourceMetrics().At(j).Resource().Attributes()) == attrsHash {
+				m.ResourceMetrics().At(i).ScopeMetrics().MoveAndAppendTo(merged.ResourceMetrics().At(j).ScopeMetrics())
 				found = true
 				break
 			}
 		}
 		if !found {
-			m.ResourceMetrics().At(i).MoveTo(new.ResourceMetrics().AppendEmpty())
+			m.ResourceMetrics().At(i).MoveTo(merged.ResourceMetrics().AppendEmpty())
 		}
 	}
 
-	return new
+	return merged
 }
 
+// MaskParentSpanID clears the parent span ID of every span in traces.
 func MaskParentSpanID(traces ptrace.Traces) {
 	for i := 0; i < traces.ResourceSpans().Len(); i++ {
 		scopeSpans := traces.ResourceSpans().At(i).ScopeSpans()
@@ -558,6 +573,8 @@ func printDataPoints(prefix string, met pmetric.Metric, t *testing.T, r int, s i
 	}
 }
 
+// ReplaceAttrValsWithStar sets the listed resource and data point attributes, and non-empty scope versions, to "*"
+// so that they do not affect comparisons.
 func ReplaceAttrValsWithStar(metrics pmetric.Metrics, resourceKeys []string, datapointKeys []string) {
 	for _, r := range metrics.ResourceMetrics().All() {
 		for key, val := range r.Resource().Attributes().All() {
@@ -816,6 +833,7 @@ func mergeMetricDataPoints(dst, src pmetric.Metric) {
 	}
 }
 
+// CountLogRecords returns the number of log records the sink has received.
 func CountLogRecords(sink *consumertest.LogsSink) int {
 	n := 0
 	for _, l := range sink.AllLogs() {

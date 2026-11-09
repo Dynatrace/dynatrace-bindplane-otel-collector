@@ -2,6 +2,8 @@
 // Copyright Dynatrace LLC
 // SPDX-License-Identifier: Apache-2.0
 
+// Package k8stest provides helpers for the Kubernetes e2e tests: collector config
+// rendering, object creation and metrics-server queries.
 package k8stest // import "github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8stest"
 
 import (
@@ -17,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
+// ConfigTemplate holds the values substituted into a Collector config by GetCollectorConfig.
 type ConfigTemplate struct {
 	Host      string
 	Namespace string
@@ -24,11 +27,14 @@ type ConfigTemplate struct {
 	Templates []string
 }
 
+// GetCollectorConfig reads the config at path, substitutes the ${env:...} placeholders from template, and deep-merges
+// template.Templates over it. It returns "" if path is empty.
 func GetCollectorConfig(path string, template ConfigTemplate) (string, error) {
 	if path == "" {
 		return "", nil
 	}
 
+	//#nosec G304 -- path is chosen by the test
 	baseBytes, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
@@ -70,7 +76,9 @@ func GetCollectorConfig(path string, template ConfigTemplate) (string, error) {
 	if err := enc.Encode(baseDoc.Content[0]); err != nil {
 		return "", fmt.Errorf("marshal merged config: %w", err)
 	}
-	enc.Close()
+	if err := enc.Close(); err != nil {
+		return "", fmt.Errorf("close merged config encoder: %w", err)
+	}
 
 	// 4) Indent for ConfigMap
 	var b strings.Builder
@@ -134,6 +142,7 @@ func cloneNode(n *yaml.Node) *yaml.Node {
 	return &clone
 }
 
+// KubeconfigFromEnvOrDefault returns the kubeconfig path from KubeConfigEnvVar, or TestKubeConfig if unset.
 func KubeconfigFromEnvOrDefault() string {
 	if fromEnv := os.Getenv(KubeConfigEnvVar); fromEnv != "" {
 		return fromEnv
@@ -141,7 +150,9 @@ func KubeconfigFromEnvOrDefault() string {
 	return TestKubeConfig
 }
 
+// CreateObjectFromFile creates the object in file and deletes it when the test ends.
 func CreateObjectFromFile(t *testing.T, client *xk8stest.K8sClient, file string) *unstructured.Unstructured {
+	//#nosec G304 -- path is chosen by the test
 	buf, err := os.ReadFile(file)
 	require.NoErrorf(t, err, "failed to read object file %s", file)
 
@@ -154,6 +165,7 @@ func CreateObjectFromFile(t *testing.T, client *xk8stest.K8sClient, file string)
 	return obj
 }
 
+// CreateCollectorObjects creates the Collector objects from manifestsDir and deletes them when the test ends.
 func CreateCollectorObjects(t *testing.T, client *xk8stest.K8sClient, testID string, manifestsDir string, values map[string]string, host string) []*unstructured.Unstructured {
 	objs := xk8stest.CreateCollectorObjects(t, client, testID, manifestsDir, values, host)
 	t.Cleanup(func() {
@@ -164,8 +176,9 @@ func CreateCollectorObjects(t *testing.T, client *xk8stest.K8sClient, testID str
 	return objs
 }
 
-// Helper to read overlay file content as string
+// MustRead returns the content of the file p as a string.
 func MustRead(t *testing.T, p string) string {
+	//#nosec G304 -- path is chosen by the test
 	b, err := os.ReadFile(p)
 	require.NoErrorf(t, err, "read file %s", p)
 	return string(b)

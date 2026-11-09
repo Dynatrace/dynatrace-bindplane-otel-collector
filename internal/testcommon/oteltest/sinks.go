@@ -29,23 +29,32 @@ import (
 	"go.opentelemetry.io/collector/receiver/receivertest"
 )
 
+// ExpectedValueMode selects how an attribute value is compared with an ExpectedValue.
 type ExpectedValueMode int
 
 const (
+	// AttributeMatchTypeEqual requires the attribute value to equal the expected value.
 	AttributeMatchTypeEqual ExpectedValueMode = iota
+	// AttributeMatchTypeRegex requires the attribute value to match the expected value as a regular expression.
 	AttributeMatchTypeRegex
+	// AttributeMatchTypeExist only requires the attribute to be present.
 	AttributeMatchTypeExist
-	UidRe = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
-	IPRe  = "((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?){4}"
+	// UIDRe matches a UUID.
+	UIDRe = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+	// IPRe matches an IPv4 address.
+	IPRe = "((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?){4}"
 
+	// ServiceNameAttribute is the resource attribute that holds the service name.
 	ServiceNameAttribute = "service.name"
 )
 
+// ExpectedValue is an expected attribute value and how to match it.
 type ExpectedValue struct {
 	Mode  ExpectedValueMode
 	Value string
 }
 
+// NewExpectedValue returns an ExpectedValue with the given mode and value.
 func NewExpectedValue(mode ExpectedValueMode, value string) ExpectedValue {
 	return ExpectedValue{
 		Mode:  mode,
@@ -53,32 +62,38 @@ func NewExpectedValue(mode ExpectedValueMode, value string) ExpectedValue {
 	}
 }
 
+// ReceiverSinks lists the OTLP sinks that StartUpSinks starts for each signal.
 type ReceiverSinks struct {
 	Metrics []*MetricSinkConfig
 	Traces  []*TraceSinkConfig
 	Logs    []*LogSinkConfig
 }
 
+// MetricSinkConfig is a metrics sink and the ports its OTLP receiver listens on.
 type MetricSinkConfig struct {
 	Ports    *ReceiverPorts
 	Consumer *consumertest.MetricsSink
 }
 
+// TraceSinkConfig is a traces sink and the ports its OTLP receiver listens on.
 type TraceSinkConfig struct {
 	Ports    *ReceiverPorts
 	Consumer *consumertest.TracesSink
 }
 
+// LogSinkConfig is a logs sink and the ports its OTLP receiver listens on.
 type LogSinkConfig struct {
 	Ports    *ReceiverPorts
 	Consumer *consumertest.LogsSink
 }
 
+// ReceiverPorts are the OTLP gRPC and HTTP ports a sink listens on. A nil *ReceiverPorts means the default ports 4317 and 4318.
 type ReceiverPorts struct {
 	Grpc int
-	Http int
+	HTTP int
 }
 
+// StartUpSinks starts an OTLP receiver for every sink in sinks and returns a function that shuts them all down.
 func StartUpSinks(t *testing.T, sinks ReceiverSinks) func() {
 	shutDownFuncs := []func(){}
 
@@ -140,7 +155,7 @@ func availablePort(t *testing.T) int {
 }
 
 func availablePorts(t *testing.T) *ReceiverPorts {
-	return &ReceiverPorts{Grpc: availablePort(t), Http: availablePort(t)}
+	return &ReceiverPorts{Grpc: availablePort(t), HTTP: availablePort(t)}
 }
 
 // StartTracesSink starts a traces sink on free ports until the test ends.
@@ -235,13 +250,14 @@ func setupReceiverPorts(cfg *otlpreceiver.Config, ports *ReceiverPorts) {
 
 	if ports != nil {
 		cfg.Protocols.GRPC.Get().NetAddr.Endpoint = "0.0.0.0:" + strconv.Itoa(ports.Grpc)
-		cfg.Protocols.HTTP.Get().ServerConfig.NetAddr.Endpoint = "0.0.0.0:" + strconv.Itoa(ports.Http)
+		cfg.Protocols.HTTP.Get().ServerConfig.NetAddr.Endpoint = "0.0.0.0:" + strconv.Itoa(ports.HTTP)
 	} else {
 		cfg.Protocols.GRPC.Get().NetAddr.Endpoint = "0.0.0.0:4317"
 		cfg.Protocols.HTTP.Get().ServerConfig.NetAddr.Endpoint = "0.0.0.0:4318"
 	}
 }
 
+// WaitForMetrics fails the test unless the sink receives at least entriesNum metric batches within 5 minutes.
 func WaitForMetrics(t *testing.T, entriesNum int, mc *consumertest.MetricsSink) {
 	timeoutMinutes := 5
 	require.Eventuallyf(t, func() bool {
@@ -251,6 +267,7 @@ func WaitForMetrics(t *testing.T, entriesNum int, mc *consumertest.MetricsSink) 
 		len(mc.AllMetrics()), timeoutMinutes)
 }
 
+// WaitForTraces fails the test unless the sink receives at least entriesNum trace batches within 5 minutes.
 func WaitForTraces(t *testing.T, entriesNum int, tc *consumertest.TracesSink) {
 	timeoutMinutes := 5
 	require.Eventuallyf(t, func() bool {
@@ -260,6 +277,7 @@ func WaitForTraces(t *testing.T, entriesNum int, tc *consumertest.TracesSink) {
 		len(tc.AllTraces()), timeoutMinutes)
 }
 
+// WaitForLogs fails the test unless the sink receives at least entriesNum log batches within 5 minutes.
 func WaitForLogs(t *testing.T, entriesNum int, tc *consumertest.LogsSink) {
 	timeoutMinutes := 5
 	require.Eventuallyf(t, func() bool {
@@ -269,6 +287,9 @@ func WaitForLogs(t *testing.T, entriesNum int, tc *consumertest.LogsSink) {
 		len(tc.AllLogs()), timeoutMinutes)
 }
 
+// ScanTracesForAttributes finds the first trace whose resource has service.name expectedService and asserts that the
+// resource matches kvs and that, for each entry of scopeSpanAttrs, a span of its first scope matches it. It fails the
+// test if no such trace exists.
 func ScanTracesForAttributes(t *testing.T, ts *consumertest.TracesSink, expectedService string, kvs map[string]ExpectedValue, scopeSpanAttrs []map[string]ExpectedValue) {
 	for i := 0; i < len(ts.AllTraces()); i++ {
 		traces := ts.AllTraces()[i]
@@ -308,6 +329,7 @@ func ScanTracesForAttributes(t *testing.T, ts *consumertest.TracesSink, expected
 	t.Fatalf("no spans found for service %s", expectedService)
 }
 
+// AssertExpectedAttributes returns an error listing the entries of kvs that attrs does not match.
 func AssertExpectedAttributes(attrs pcommon.Map, kvs map[string]ExpectedValue) error {
 	foundAttrs := make(map[string]bool)
 	for k := range kvs {
@@ -343,9 +365,9 @@ func AssertExpectedAttributes(attrs pcommon.Map, kvs map[string]ExpectedValue) e
 	}
 	if err != nil {
 		// if something is missing, add a summary with an overview of the expected and actual attributes for easier troubleshooting
-		expectedJson, _ := json.MarshalIndent(kvs, "", "  ")
-		actualJson, _ := json.MarshalIndent(attrs.AsRaw(), "", "  ")
-		err = errors.Join(err, fmt.Errorf("one or more attributes were not found.\nExpected attributes:\n %s \nActual attributes: \n%s", expectedJson, actualJson))
+		expectedJSON, _ := json.MarshalIndent(kvs, "", "  ")
+		actualJSON, _ := json.MarshalIndent(attrs.AsRaw(), "", "  ")
+		err = errors.Join(err, fmt.Errorf("one or more attributes were not found.\nExpected attributes:\n %s \nActual attributes: \n%s", expectedJSON, actualJSON))
 	}
 	return err
 }
