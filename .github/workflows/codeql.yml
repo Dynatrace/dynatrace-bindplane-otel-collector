@@ -1,41 +1,55 @@
-name: "CodeQL"
+name: CodeQL
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, "release/*"]
+  pull_request:
+    branches: [main, "release/*"]
+  schedule:
+    - cron: "27 5 * * 1" # At 05:27 on Monday.
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   analyze:
-    name: Analyze
+    name: Analyze (${{ matrix.language }})
     if: github.actor != 'dependabot[bot]'
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-8-cores
-    timeout-minutes:  360
+    timeout-minutes: 360
     permissions:
       actions: read
       contents: read
       security-events: write
-
     strategy:
       fail-fast: false
       matrix:
-        language: ["go"]
-
+        include:
+          - language: actions
+            build-mode: none
+          - language: ruby
+            build-mode: none
+          - language: go
+            # There is no root Go module (the collector is assembled by ocb
+            # from the manifest), so the Go code can not be autobuilt from the
+            # repository root.
+            build-mode: manual
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Go
+        if: matrix.language == 'go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false
+
       - name: Set up Go cache
+        if: matrix.language == 'go'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
@@ -45,26 +59,28 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
         with:
           languages: ${{ matrix.language }}
-          # If you wish to specify custom queries, you can do so here or in a config file.
-          # By default, queries listed here will override any specified in a config file.
-          # Prefix the list here with "+" to use these queries and those in the config file.
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended
 
-          # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-          # queries: security-extended,security-and-quality
+      # verify-manifest generates the collector sources into build/ via ocb
+      # and compiles them with the release build tags.
+      - name: Build collector
+        if: matrix.language == 'go'
+        run: |
+          make install-ocb
+          make verify-manifest
 
-      # There is no root Go module (the collector is assembled by ocb from
-      # the manifest), so autobuild would find nothing to trace at the repo
-      # root. Build every module explicitly so CodeQL's Go tracer extracts
-      # all first-party packages.
+      # Build every in-tree module so CodeQL's Go tracer extracts all
+      # first-party packages.
       - name: Build all modules
+        if: matrix.language == 'go'
         run: make for-all-modules CMD="go build ./..."
 
-      - name: Perform CodeQL Analysis
+      - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
         with:
-          category: "/language:${{matrix.language}}"
+          category: "/language:${{ matrix.language }}"
