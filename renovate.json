@@ -20,9 +20,12 @@
     {
       "matchPackageNames": [
         "open-telemetry/opentelemetry-collector-contrib",
-        "/^(go\\.opentelemetry\\.io/collector|github\\.com/open-telemetry/opentelemetry-collector-contrib)//"
+        "/^github\\.com/open-telemetry/opentelemetry-collector/",
+        "/^go\\.opentelemetry\\.io//",
+        "github.com/open-telemetry/opamp-go"
       ],
-      "groupName": "OpenTelemetry Collector"
+      "description": "OpenTelemetry updates are done manually via make update-otel",
+      "enabled": false
     },
     {
       "matchPackageNames": [
