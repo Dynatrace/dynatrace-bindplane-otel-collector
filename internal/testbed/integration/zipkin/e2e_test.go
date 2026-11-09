@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/oteltest"
-	"github.com/Dynatrace/dynatrace-otel-collector/internal/testcommon/testutil"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/oteltest"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/internal/testcommon/testutil"
 	"github.com/openzipkin/zipkin-go/model"
 	"github.com/openzipkin/zipkin-go/proto/zipkin_proto3"
 	"github.com/stretchr/testify/assert"
@@ -65,8 +65,7 @@ func testSpans(traceID model.TraceID) []*model.SpanModel {
 
 	return []*model.SpanModel{
 		{
-			TraceID:       traceID,
-			ID:            frontendServerID,
+			SpanContext:   model.SpanContext{TraceID: traceID, ID: frontendServerID},
 			Name:          "get /",
 			Kind:          model.Server,
 			Timestamp:     baseTime,
@@ -76,9 +75,7 @@ func testSpans(traceID model.TraceID) []*model.SpanModel {
 			Tags:          map[string]string{"http.method": "GET", "http.path": "/"},
 		},
 		{
-			TraceID:        traceID,
-			ID:             frontendClientID,
-			ParentID:       parent(frontendServerID),
+			SpanContext:    model.SpanContext{TraceID: traceID, ID: frontendClientID, ParentID: parent(frontendServerID)},
 			Name:           "get /api",
 			Kind:           model.Client,
 			Timestamp:      baseTime.Add(time.Millisecond),
@@ -88,9 +85,7 @@ func testSpans(traceID model.TraceID) []*model.SpanModel {
 			Tags:           map[string]string{"http.method": "GET", "http.path": "/api"},
 		},
 		{
-			TraceID:       traceID,
-			ID:            backendServerID,
-			ParentID:      parent(frontendClientID),
+			SpanContext:   model.SpanContext{TraceID: traceID, ID: backendServerID, ParentID: parent(frontendClientID)},
 			Name:          "get /api",
 			Kind:          model.Server,
 			Timestamp:     baseTime.Add(2 * time.Millisecond),
