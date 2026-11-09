@@ -2,11 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
-    "schedule:nonOfficeHours",
+    "schedule:weekly",
     "customManagers:githubActionsVersions",
     "customManagers:makefileVersions"
   ],
   "labels": ["dependencies"],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "deps",
+  "semanticCommitScope": null,
   "prConcurrentLimit": 25,
   "minimumReleaseAge": "3 days",
   "minimumReleaseAgeBehaviour": "timestamp-optional",
