@@ -16,12 +16,6 @@
     "gomodTidy",
     "gomodMassage"
   ],
-  "ignoreDeps": [
-    "docker.redpanda.com/redpandadata/redpanda",
-    "ghcr.io/openzipkin/brave-example",
-    "networkstatic/nflow-generator",
-    "rockylinux"
-  ],
   "packageRules": [
     {
       "matchPackageNames": [
@@ -55,13 +49,10 @@
     }
   ],
   "ocb": {
-    "managerFilePatterns": ["manifest.yaml"]
+    "managerFilePatterns": ["/^manifests/.*/manifest(-aix)?\\.yaml$/"]
   },
   "kubernetes": {
     "managerFilePatterns": ["/internal/testbed/integration/.*/testdata/.*\\.ya?ml$/"]
-  },
-  "helm-values": {
-    "managerFilePatterns": ["/config_examples/prometheus-large-scale/.*\\.ya?ml$/"]
   },
   "customManagers": [
     {
