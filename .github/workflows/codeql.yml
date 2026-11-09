@@ -59,6 +59,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Grant access to private Dynatrace Go modules
+        if: matrix.language == 'go'
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
