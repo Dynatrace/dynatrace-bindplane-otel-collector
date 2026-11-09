@@ -280,9 +280,11 @@ signs:
       - "${artifact}"
       - "--yes"
 
-# Container images: a scratch image per architecture, pushed to Docker Hub, AWS
-# ECR (public) and GHCR, plus one multi-arch manifest per registry. Only version
-# tags are pushed: RC releases must never move a `latest` tag.
+# Container images: a scratch image per architecture, pushed to GHCR, plus a
+# multi-arch manifest. Only version tags are pushed: RC releases must never move
+# a `latest` tag.
+# TODO: also push to Docker Hub and AWS ECR (public) once the infrastructure for
+# them exists.
 dockers:
   - id: scratch-amd64
     goos: linux
@@ -295,8 +297,6 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-amd64"
-      - "public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-amd64"
       - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-amd64"
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
@@ -324,8 +324,6 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-arm64"
-      - "public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-arm64"
       - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-arm64"
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
@@ -353,8 +351,6 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-ppc64le"
-      - "public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-ppc64le"
       - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-ppc64le"
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
@@ -373,16 +369,6 @@ dockers:
       - LICENSE
 
 docker_manifests:
-  - name_template: "dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}"
-    image_templates:
-      - "dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-amd64"
-      - "dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-arm64"
-      - "dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-ppc64le"
-  - name_template: "public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}"
-    image_templates:
-      - "public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-amd64"
-      - "public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-arm64"
-      - "public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-ppc64le"
   - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}"
     image_templates:
       - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-amd64"
