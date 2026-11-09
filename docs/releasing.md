@@ -128,7 +128,7 @@ To test the Docker release of the full build, run the `release-containers-test` 
   - Creates the archives (`dynatrace-bindplane-otel-collector-slim-*`), the `apk`, `deb` and `rpm` packages. The `deb` and `rpm` packages are signed with the GPG key, the `apk` is not signed.
   - Creates a CycloneDX SBOM per collector binary (`cyclonedx-gomod`), like the Dynatrace OTel Collector
   - Creates the checksums file and signs it and the archives keyless with cosign (`*.sigstore.json` bundles)
-  - Builds and pushes the container images for amd64, arm64 and ppc64le with multi-arch manifests to Docker Hub (`dynatrace/dynatrace-bindplane-otel-collector-slim`), AWS ECR public (`public.ecr.aws/dynatrace/dynatrace-bindplane-otel-collector-slim`) and GHCR (`ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim`), signs them keyless and writes `digests.txt`
+  - Builds and pushes the container images for amd64, arm64 and ppc64le with a multi-arch manifest to GHCR (`ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim`), signs them keyless and writes `digests.txt`. Docker Hub and AWS ECR are not published to yet.
   - Attests the checksums and the image digests
   - Publishes the GitHub release as a pre-release and uploads the artifact bundles
 
