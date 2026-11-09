@@ -65,8 +65,9 @@ jobs:
 
   release:
     needs: [check-version, build-msi, build-aix]
-    # build-msi is skipped when the caller does not build MSIs; without a status
-    # function a skipped dependency would skip this job too.
+    # build-msi and build-aix are skipped when the caller does not enable them.
+    # By default a job is skipped when any of its dependencies was skipped, so
+    # a status check function is needed here to let this job run anyway.
     if: ${{ !cancelled() && !failure() }}
     permissions:
       contents: write
