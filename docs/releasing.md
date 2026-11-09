@@ -100,4 +100,6 @@ Then edit the GitHub release, clear the pre-release flag, and set it as the late
 1. Run `make install-tools`
 2. Run `make release-test`
 
+To rehearse a release in GitHub Actions, run the `release-test` workflow. It calls the same reusable `base-release` workflow as `release-full` with `dry-run` set, so goreleaser skips publishing and nothing is released. The artifact bundles are uploaded as the `artifact-bundles` workflow artifact instead.
+
 To test the Docker release, run the `release-containers-test` workflow with an existing release version. It runs the full build with `--skip=publish`, so nothing is pushed.
