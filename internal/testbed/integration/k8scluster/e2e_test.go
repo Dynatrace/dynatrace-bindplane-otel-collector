@@ -25,7 +25,7 @@ import (
 func TestE2E_K8sClusterReceiver(t *testing.T) {
 	testDir := filepath.Join("testdata")
 	expectedAssertFile := testDir + "/e2e/expected.assert.yaml"
-	configExamplesDir := "../../../../config_examples"
+	configExamplesDir := "../../config_examples"
 
 	kubeconfigPath := k8stest.TestKubeConfig
 	if kubeConfigFromEnv := os.Getenv(k8stest.KubeConfigEnvVar); kubeConfigFromEnv != "" {

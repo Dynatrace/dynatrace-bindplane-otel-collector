@@ -13,7 +13,7 @@ SELFMON_SCRAPER_HTTP_PORT="${SELFMON_SCRAPER_HTTP_PORT:-4328}"
 SELFMON_GATEWAY_HTTP_PORT="${SELFMON_GATEWAY_HTTP_PORT:-4330}"
 SELFMON_ALLOCATOR_HTTP_PORT="${SELFMON_ALLOCATOR_HTTP_PORT:-4332}"
 
-COLLECTOR_IMAGE="${CONTAINER_REGISTRY}dynatrace-otel-collector"
+COLLECTOR_IMAGE="${CONTAINER_REGISTRY}dynatrace-bindplane-otel-collector"
 COLLECTOR_TAG="e2e-test"
 
 echo "=== Setting up prometheus-large-scale test ==="
@@ -83,6 +83,7 @@ helm upgrade --install otel-gateway open-telemetry/opentelemetry-collector \
     "${GATEWAY_HELM_ARGS[@]+"${GATEWAY_HELM_ARGS[@]}"}" \
     --set "image.repository=${COLLECTOR_IMAGE}" \
     --set "image.tag=${COLLECTOR_TAG}" \
+    --set "command.name=dynatrace-bindplane-otel-collector" \
     --set "autoscaling.enabled=false" \
     --set "replicaCount=1" \
     --wait --timeout 180s
@@ -99,6 +100,7 @@ helm upgrade --install otel-scraper open-telemetry/opentelemetry-collector \
     "${SCRAPER_HELM_ARGS[@]+"${SCRAPER_HELM_ARGS[@]}"}" \
     --set "image.repository=${COLLECTOR_IMAGE}" \
     --set "image.tag=${COLLECTOR_TAG}" \
+    --set "command.name=dynatrace-bindplane-otel-collector" \
     --set "autoscaling.enabled=false" \
     --set "replicaCount=1" \
     --wait --timeout 180s
@@ -115,6 +117,7 @@ helm upgrade --install otel-selfmon open-telemetry/opentelemetry-collector \
     -f "${SELFMON_VALUES}" \
     --set "image.repository=${COLLECTOR_IMAGE}" \
     --set "image.tag=${COLLECTOR_TAG}" \
+    --set "command.name=dynatrace-bindplane-otel-collector" \
     --set "extraEnvsFrom[0].secretRef.name=selfmon-credentials" \
     --wait --timeout 180s
 

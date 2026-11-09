@@ -81,3 +81,6 @@ ocsf_schema.json
 # Claude Code per-user local settings
 .claude/settings.local.json
 cmd/container-init/container-init
+
+# Fetched by `make e2e-config-examples` from dynatrace-otel-collector.
+/internal/testbed/config_examples/

@@ -42,7 +42,7 @@ const (
 // normal data path (avalanche → scraper → gateway → sink) and the self-monitoring
 // path (selfmon-scraper → 3 separate sinks, one per source).
 func TestE2E_PrometheusLargeScale(t *testing.T) {
-	configDir, err := filepath.Abs("../../../../config_examples/prometheus-large-scale")
+	configDir, err := filepath.Abs("../../config_examples/prometheus-large-scale")
 	require.NoError(t, err)
 
 	helmOverrideDir, err := filepath.Abs("./testdata/helm")

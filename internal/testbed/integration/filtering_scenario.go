@@ -15,7 +15,7 @@ import (
 )
 
 // ConfigExamplesDir is the config_examples directory, relative to a test package.
-const ConfigExamplesDir = "../../../config_examples"
+const ConfigExamplesDir = "../config_examples"
 
 // SenderFunc creates the data sender for a scenario.
 type SenderFunc func(host string, port int) testbed.DataSender
@@ -33,7 +33,7 @@ func FilteringScenario(
 	validator testbed.TestCaseValidator,
 	configName string,
 ) {
-	agentProc := testbed.NewChildProcessCollector(testbed.WithAgentExePath(testutil.CollectorTestsExecPath))
+	agentProc := testutil.NewChildProcessCollector(t)
 
 	//#nosec G304 -- path is built from a config name chosen by the test
 	cfg, err := os.ReadFile(path.Join(ConfigExamplesDir, configName))

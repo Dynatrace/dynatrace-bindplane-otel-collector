@@ -5,7 +5,9 @@ This is the e2e test for the Collector use-case:
 
 ## Requirements to run the tests
 
-- The Collector binary: run `make build` in the repository root.
+- The Collector binary: run `make agent` in the repository root. The test uses `dist/collector_<GOOS>_<GOARCH>`, or the
+  binary at `$DBDOT_COLLECTOR_BIN`.
+- The config examples: run `make e2e-config-examples` in the repository root.
 
 No Docker or Kubernetes cluster is needed. The test runs the Collector with
 `config_examples/prometheus.yaml` as a local process. The scrape targets are an in-process

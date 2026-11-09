@@ -28,7 +28,7 @@ const step = 10
 
 const (
 	targetService    = "node-exporter"
-	collectorService = "dynatrace-otel-collector"
+	collectorService = "com.dynatrace.bindplane.otel.collector"
 )
 
 // startTarget serves a Prometheus registry on a local port and returns its host:port. Every
