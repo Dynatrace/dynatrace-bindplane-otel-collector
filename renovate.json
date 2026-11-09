@@ -1,6 +1,82 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices",
+    "schedule:nonOfficeHours",
+    "customManagers:githubActionsVersions",
+    "customManagers:makefileVersions"
+  ],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 25,
+  "minimumReleaseAge": "3 days",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "timezone": "Europe/Vienna",
+  "rebaseWhen": "behind-base-branch",
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodMassage"
+  ],
+  "ignoreDeps": [
+    "docker.redpanda.com/redpandadata/redpanda",
+    "ghcr.io/openzipkin/brave-example",
+    "networkstatic/nflow-generator",
+    "rockylinux"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "open-telemetry/opentelemetry-collector-contrib",
+        "/^(go\\.opentelemetry\\.io/collector|github\\.com/open-telemetry/opentelemetry-collector-contrib)//"
+      ],
+      "groupName": "OpenTelemetry Collector"
+    },
+    {
+      "matchPackageNames": [
+        "ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen"
+      ],
+      "groupName": "OpenTelemetry Collector - telemetrygen"
+    },
+    {
+      "matchDatasources": ["golang-version"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions deps"
+    },
+    {
+      "matchPackageNames": [
+        "goreleaser-pro",
+        "goreleaser/goreleaser-pro",
+        "github.com/goreleaser/goreleaser-pro/v2",
+        "github.com/goreleaser/goreleaser-pro"
+      ],
+      "groupName": "GoReleaser Pro"
+    }
+  ],
+  "ocb": {
+    "managerFilePatterns": ["manifest.yaml"]
+  },
+  "kubernetes": {
+    "managerFilePatterns": ["/internal/testbed/integration/.*/testdata/.*\\.ya?ml$/"]
+  },
+  "helm-values": {
+    "managerFilePatterns": ["/config_examples/prometheus-large-scale/.*\\.ya?ml$/"]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "(^|\\/)Makefile$",
+        "(^|\\/)Makefile.Common$",
+        "(^|\\/)Dockerfile",
+        "(^|\\/).*\\.ya?ml$",
+        "(^|\\/).*\\.toml$",
+        "(^|\\/).*\\.sh$"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)\\s.*(:|=|\\?=|:=|\\+=) ?\\\"?(?<currentValue>.+?)?\\\"?\\s"
+      ]
+    }
   ]
 }
