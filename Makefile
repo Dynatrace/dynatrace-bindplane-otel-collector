@@ -361,6 +361,7 @@ misspell:
 misspell-fix:
 	misspell -w $(ALLDOC)
 
+# TEMPORARY: E2E_UNADAPTED_MODULES are skipped until their go.mod matches the repo Go version.
 .PHONY: test
 test:
 	@if [ -n "$$(go list ./... 2>/dev/null)" ]; then \
@@ -370,6 +371,7 @@ test:
 	@set -e; for dir in $(ALL_MODULES); do \
 		if [ "$${dir}" = "." ]; then continue; fi; \
 		case " $(E2E_MODULES) " in *" $${dir} "*) continue ;; esac; \
+		case " $(E2E_UNADAPTED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		(cd "$${dir}" && \
 			echo "running tests in $${dir}" && \
 			gotestsum --rerun-fails --packages="./..." -- -race) || exit 1; \
