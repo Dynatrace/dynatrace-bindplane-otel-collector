@@ -34,6 +34,18 @@
       "groupName": "OpenTelemetry Collector - telemetrygen"
     },
     {
+      "matchPackageNames": ["github.com/securego/gosec/v2"],
+      "matchFileNames": ["internal/tools/go.mod"],
+      "description": "Keep gosec at v2.18.2",
+      "enabled": false
+    },
+    {
+      "matchFileNames": ["internal/tools/go.mod"],
+      "matchUpdateTypes": ["patch"],
+      "description": "Ignore patch updates for tools",
+      "enabled": false
+    },
+    {
       "matchDatasources": ["golang-version"],
       "rangeStrategy": "bump"
     },
