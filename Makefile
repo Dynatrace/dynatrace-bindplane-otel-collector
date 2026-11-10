@@ -706,6 +706,14 @@ build-single:
 	$(MAKE)
 	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=sign --clean --skip=validate --snapshot --single-target --config $(GORELEASER_DIR)/.goreleaser.yml
 
+# Installs, checks and uninstalls a Linux package of the selected DISTRO in a
+# podman container (see scripts/package-tests/package-tests.sh). ARCH is the
+# package's architecture, other than the host's it runs through QEMU.
+# Example: make package-test DISTRO=slim ARCH=amd64 PACKAGE_PATH=dist/linux_amd64_v1/<package>.deb
+.PHONY: package-test
+package-test:
+	./scripts/package-tests/package-tests.sh $(PACKAGE_PATH) $(ARCH) $(PRODUCT_NAME)
+
 .PHONY: release-test-single
 release-test-single:
 	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release -f $(GORELEASER_DIR)/.goreleaser.arm64.yml --timeout $(GORELEASER_TIMEOUT) --skip=publish --clean --skip=validate --snapshot

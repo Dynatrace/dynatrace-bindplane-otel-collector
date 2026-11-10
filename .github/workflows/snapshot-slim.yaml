@@ -1,0 +1,82 @@
+name: Snapshot - DBDOT slim
+
+# Goreleaser snapshot of every OS/arch target the slim build ships, plus
+# package tests on its Linux packages. See base-snapshot.yaml and
+# base-package-tests.yaml.
+
+on:
+  # GitHub ignores paths filters for merge_group, so the merge queue always
+  # runs this workflow. Intended: every merge is built.
+  merge_group:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    # Shared with pull_request below via a YAML anchor.
+    paths: &paths
+      # Includes the slim package scripts and service files.
+      - "manifests/dynatrace-bindplane-otel-collector-slim/**"
+      - "extension/**"
+      - "pkg/**"
+      - "updater/**"
+      - "cmd/container-init/**"
+      # Files the goreleaser config packages (make release-prep-gpg).
+      - "buildscripts/**"
+      - "JAVA_CONTRIB_VERSION"
+      - "config/example.yaml"
+      - "config/logging.yaml"
+      - "plugins/**"
+      - "signature/gpg/**"
+      - "scripts/package-tests/**"
+      - "Makefile"
+      - ".github/workflows/base-snapshot.yaml"
+      - ".github/workflows/base-package-tests.yaml"
+      - ".github/workflows/snapshot-slim.yaml"
+      # Docs-only changes do not need a build.
+      - "!**/*.md"
+  pull_request:
+    branches:
+      - main
+    paths: *paths
+
+# Cancel a PR's previous run when it gets a new push. Runs on main are never
+# cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    name: Snapshot - DBDOT slim
+    # The slim manifest has no private Go modules.
+    uses: ./.github/workflows/base-snapshot.yaml
+    with:
+      distro: slim
+      goreleaser_config: manifests/dynatrace-bindplane-otel-collector-slim/.goreleaser.yml
+      goos: '[ "linux", "darwin", "windows" ]'
+      goarch: '[ "amd64", "arm64", "arm", "ppc64", "ppc64le" ]'
+      # Keep in sync with the ignore list of the goreleaser config. Unlike the
+      # full build, slim ships no windows/arm64.
+      exclude: >-
+        [
+          { "GOOS": "darwin", "GOARCH": "arm" },
+          { "GOOS": "darwin", "GOARCH": "ppc64" },
+          { "GOOS": "darwin", "GOARCH": "ppc64le" },
+          { "GOOS": "windows", "GOARCH": "arm" },
+          { "GOOS": "windows", "GOARCH": "arm64" },
+          { "GOOS": "windows", "GOARCH": "ppc64" },
+          { "GOOS": "windows", "GOARCH": "ppc64le" }
+        ]
+    secrets:
+      GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+
+  package-tests:
+    name: Package tests - DBDOT slim
+    needs: snapshot
+    uses: ./.github/workflows/base-package-tests.yaml
+    with:
+      distro: slim
+      types: '[ "apk", "deb", "rpm" ]'

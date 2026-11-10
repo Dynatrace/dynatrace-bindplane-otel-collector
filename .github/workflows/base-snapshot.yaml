@@ -1,0 +1,148 @@
+name: Reusable snapshot workflow
+
+# Builds a goreleaser snapshot of one DBDOT build (selected by `distro`, the
+# Makefile's DISTRO) for every GOOS/GOARCH target, one job per target, and
+# uploads the results. Called once per build by the thin snapshot-<distro>.yaml
+# workflows, which then run base-package-tests.yaml on the uploaded Linux
+# packages. Follows the pattern of the upstream opentelemetry-collector-releases
+# base-ci-goreleaser.yaml (`--snapshot --split` per target).
+#
+# The goreleaser configs use `builder: prebuilt` and build every platform in
+# their before hook. Here the hook is skipped (--skip=before) and its steps are
+# run for the job's target only: `make release-prep-gpg` for the packaged
+# files and `make build-binaries` for the binaries.
+
+on:
+  workflow_call:
+    inputs:
+      distro:
+        description: "Makefile DISTRO to build (full, slim)"
+        required: true
+        type: string
+      goreleaser_config:
+        description: "Path of the goreleaser config of the build"
+        required: true
+        type: string
+      goos:
+        description: "JSON array of GOOS values"
+        required: true
+        type: string
+      goarch:
+        description: "JSON array of GOARCH values"
+        required: true
+        type: string
+      exclude:
+        description: "JSON array of {GOOS, GOARCH} pairs the build does not ship, matching the ignore list of the goreleaser config"
+        required: false
+        type: string
+        default: "[]"
+      runner_os:
+        required: false
+        type: string
+        default: ubuntu-24.04
+      private_go_modules:
+        description: "Set to true when the distro's manifest pulls private Dynatrace Go modules"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      GORELEASER_KEY:
+        required: true
+      PRIVATE_GO_MODULES_APP_PRIVATE_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    # The calling workflow's name prefixes this (e.g. "Snapshot - DBDOT slim / ..."),
+    # so the distro is not repeated here.
+    name: Snapshot (${{ matrix.GOOS }}/${{ matrix.GOARCH }})
+    strategy:
+      fail-fast: false
+      matrix:
+        GOOS: ${{ fromJSON(inputs.goos) }}
+        GOARCH: ${{ fromJSON(inputs.goarch) }}
+        exclude: ${{ fromJSON(inputs.exclude) }}
+    runs-on: ${{ inputs.runner_os }}
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # For goreleaser
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          # The build's modules are resolved from the ocb manifests, so key the
+          # cache on them as well as the repo's go.sum files.
+          cache-dependency-path: |
+            **/go.sum
+            manifests/**/manifest*.yaml
+
+      - name: Grant access to private Dynatrace Go modules
+        if: inputs.private_go_modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+
+      - name: Install ocb
+        run: make install-ocb
+
+      - name: Prepare packaged files
+        run: make release-prep-gpg DISTRO="${DISTRO}" CURR_VERSION="snapshot-${GITHUB_SHA::7}"
+        env:
+          DISTRO: ${{ inputs.distro }}
+
+      - name: Build binaries
+        run: make build-binaries -j2 DISTRO="${DISTRO}" OUTDIR=tmp
+        env:
+          DISTRO: ${{ inputs.distro }}
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+
+      # Snapshot packages are not signed (--skip=sign also skips the nfpm
+      # signatures), but the configs still template SIGNING_KEY_FILE.
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          distribution: goreleaser-pro
+          version: "v2.12.5"
+          args: release --snapshot --clean --split --skip=before,sign,sbom,docker --timeout 30m --config ${{ inputs.goreleaser_config }}
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          SIGNING_KEY_FILE: fake-file
+
+      - name: Show produced artifacts
+        if: always()
+        run: ls -laR dist
+
+      - name: Upload snapshot
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: snapshot-${{ inputs.distro }}-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: dist/*
+          retention-days: 7
+          if-no-files-found: error
+
+      # Consumed by base-package-tests.yaml.
+      - name: Upload Linux packages
+        if: matrix.GOOS == 'linux' && (matrix.GOARCH == 'amd64' || matrix.GOARCH == 'arm64')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-packages-${{ inputs.distro }}-${{ matrix.GOARCH }}
+          path: |
+            dist/**/*.deb
+            dist/**/*.rpm
+            dist/**/*.apk
+          retention-days: 7
+          if-no-files-found: error
