@@ -1,5 +1,11 @@
 version: 2
 
+# Lets `goreleaser release --split` (goreleaser-pro, used by the snapshot
+# workflows) build one GOOS/GOARCH target per job instead of one GOOS. Ignored
+# without --split.
+partial:
+  by: target
+
 project_name: dynatrace-bindplane-otel-collector
 
 before:
