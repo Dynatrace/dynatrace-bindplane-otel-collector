@@ -1,15 +1,13 @@
 name: E2E-Test
 on:
   pull_request:
-  merge_group:
-    types: [checks_requested]
   push:
     branches: [main]
 
 permissions:
   contents: read
 
-# Superseded PR pushes are cancelled. Runs on main (push/merge_group) get a
+# Superseded PR pushes are cancelled. Runs on main (push) get a
 # unique group via run_id so they are never cancelled by each other.
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
