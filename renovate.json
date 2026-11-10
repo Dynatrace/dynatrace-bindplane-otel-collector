@@ -25,7 +25,9 @@
         "open-telemetry/opentelemetry-collector-contrib",
         "/^github\\.com/open-telemetry/opentelemetry-collector/",
         "/^go\\.opentelemetry\\.io//",
-        "github.com/open-telemetry/opamp-go"
+        "github.com/open-telemetry/opamp-go",
+        "/^github\\.com/dynatrace/dynatrace-bindplane-otel-(contrib|collector)//",
+        "/^github\\.com/Dynatrace/dt-otelcol-edge-processing-components//"
       ],
       "description": "OpenTelemetry updates are done manually via make update-otel",
       "enabled": false
@@ -53,6 +55,12 @@
       "rangeStrategy": "bump"
     },
     {
+      "matchDatasources": ["golang-version"],
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false,
+      "description": "Major and minor updates to Golang should be handled manually"
+    },
+    {
       "matchManagers": ["github-actions"],
       "groupName": "github-actions deps"
     },
@@ -64,6 +72,11 @@
         "github.com/goreleaser/goreleaser-pro"
       ],
       "groupName": "GoReleaser Pro"
+    },
+    {
+      "description": "replace directives are deliberate pins/forks",
+      "matchDepTypes": ["replace"],
+      "enabled": false
     }
   ],
   "ocb": {
