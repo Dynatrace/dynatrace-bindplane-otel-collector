@@ -276,8 +276,6 @@ signs:
 # carry the `-slim` suffix (`<version>-slim`, `<version>-slim-<arch>`,
 # `latest-slim`), so the slim build never moves the `latest` tag of the full
 # build.
-# TODO: also push to Docker Hub and AWS ECR (public) once the infrastructure for
-# them exists.
 dockers:
   - id: scratch-amd64
     goos: linux
