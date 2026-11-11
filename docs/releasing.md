@@ -127,14 +127,14 @@ To test the Docker release of the full build, run the `release-containers-test` 
 
 3. The `release-slim` workflow triggers on the tag push and, without user intervention:
   - Checks the tag against the slim manifest
-  - Builds the slim binaries and updater (linux, darwin and windows/amd64) with the slim OpAMP agent identity (`com.dynatrace.bindplane.otel.collector-slim`)
+  - Builds the slim binaries (linux, darwin and windows/amd64; the updater is not packaged for the slim build yet) with the slim OpAMP agent identity (`com.dynatrace.bindplane.otel.collector-slim`)
   - Creates the archives (`dynatrace-bindplane-otel-collector-slim-*`), the `apk`, `deb` and `rpm` packages. The `deb` and `rpm` packages are signed with the GPG key, the `apk` is not signed.
   - Creates a CycloneDX SBOM per collector binary (`cyclonedx-gomod`), like the Dynatrace OTel Collector
   - Creates the checksums file and signs it and the archives keyless with cosign (`*.sigstore.json` bundles)
-  - Builds and pushes the container images for amd64, arm64 and ppc64le with a multi-arch manifest to GHCR (`ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim`), signs them keyless and writes `digests.txt`. Docker Hub and AWS ECR are not published to yet.
+  - Builds and pushes the container images for amd64, arm64 and ppc64le with a multi-arch manifest to GHCR (`ghcr.io/dynatrace/dynatrace-bindplane-otel-collector`, the same repository as the full build), signs them keyless and writes `digests.txt`. The slim images are told apart by the `-slim` tag suffix: `<version>-slim` for the multi-arch manifest, `<version>-slim-<arch>` for the per-architecture images and `latest-slim` as the latest tag of the slim build. Docker Hub and AWS ECR are not published to yet.
   - Attests the checksums and the image digests
   - Publishes the GitHub release as a pre-release and uploads the artifact bundles
 
-There is no Windows MSI and no install script for the slim build, and there are no `latest` image tags: an RC release never moves them. The slim artifacts are not uploaded to GCS yet, because the bucket for them does not exist. The `release-slim` workflow does not authenticate to GCP, and the goreleaser config has no `blobs` section until the bucket exists.
+There is no Windows MSI and no install script for the slim build, and the slim build never moves the `latest` image tag of the full build, it has its own `latest-slim` tag. The slim artifacts are not uploaded to GCS yet, because the bucket for them does not exist. The `release-slim` workflow does not authenticate to GCP, and the goreleaser config has no `blobs` section until the bucket exists.
 
 Verifying the keyless signatures is described in [Verifying Artifact Signatures](./verify-signature.md).
