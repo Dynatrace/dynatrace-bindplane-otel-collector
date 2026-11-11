@@ -17,7 +17,6 @@ RUN mkdir \
 RUN mkdir /licenses
 COPY LICENSE /licenses/dynatrace-bindplane-otel-collector-slim.license
 
-COPY release_deps/plugins /etc/otel/plugins
 COPY config/logging.stdout.yaml /etc/otel/logging.yaml
 COPY release_deps/config.yaml /etc/otel/config.yaml
 
@@ -25,7 +24,7 @@ COPY release_deps/config.yaml /etc/otel/config.yaml
 # will contain only what was copied into it: the collector
 # binary, the passwd/group files, the CA certificates, and the
 # /etc/otel runtime tree (default config, logging config,
-# plugins, storage). This means it does not contain utilities
+# storage). This means it does not contain utilities
 # like ls, cat, or even a shell.
 FROM scratch
 

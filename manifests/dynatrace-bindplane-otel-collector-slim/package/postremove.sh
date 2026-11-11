@@ -67,7 +67,6 @@ remove_file_or_dir() {
 # Only perform cleanup on uninstall, not on upgrade
 if is_uninstall "$1"; then
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/package_statuses.json"
-    remove_file_or_dir "${DBDOT_CONFIG_HOME}/plugins"
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/log"
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/VERSION.txt"
     remove_file_or_dir "${DBDOT_CONFIG_HOME}/updater"
