@@ -22,11 +22,8 @@ jobs:
     uses: ./.github/workflows/base-release.yml
     with:
       product: dynatrace-bindplane-otel-collector-slim
-      manifest: manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
       version-check-mode: core
-      goreleaser-config: manifests/dynatrace-bindplane-otel-collector-slim/.goreleaser.yml
       build-msi: false
-      publish-latest-scripts: false
       cosign-mode: keyless
       containers: true
       sbom: true
