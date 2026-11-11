@@ -6,6 +6,14 @@ version: 2
 partial:
   by: target
 
+# apk-tools 2.x stores package scripts in a ustar archive whose entry names
+# (<pkgname>-<version>.<checksum>.<script>) are capped at 100 characters. With
+# this package name that leaves 14 characters for the version; the default
+# snapshot version ("1.3.1-SNAPSHOT-<commit>") is longer, so the deinstall
+# scripts are truncated and never run on removal. Keep this template short.
+snapshot:
+  version_template: "{{ .Version }}-{{ .ShortCommit }}"
+
 project_name: dynatrace-bindplane-otel-collector-slim
 
 # Releases the slim build: archives, Linux packages, SBOMs, container images,
