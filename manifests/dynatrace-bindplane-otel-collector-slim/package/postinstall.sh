@@ -61,7 +61,7 @@ install() {
         fi
     done
 
-    cp -r --preserve \
+    cp -rp \
       "$stage_dir"/* \
       "${DBDOT_CONFIG_HOME}"
 
