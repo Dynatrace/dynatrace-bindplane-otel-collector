@@ -7,12 +7,13 @@ partial:
   by: target
 
 # apk-tools 2.x stores package scripts in a ustar archive whose entry names
-# (<pkgname>-<version>.<checksum>.<script>) are capped at 100 characters. With
-# this package name that leaves 14 characters for the version; the default
-# snapshot version ("1.3.1-SNAPSHOT-<commit>") is longer, so the deinstall
-# scripts are truncated and never run on removal. Keep this template short.
+# (<pkgname>-<version>.<checksum>.<script>) are cut to 99 characters. With this
+# package name and ".post-deinstall" that leaves 13 characters for the version;
+# the default snapshot version ("1.3.1-SNAPSHOT-<commit>") is longer, so the
+# deinstall scripts are truncated and never run on removal. Keep this short:
+# the commit is cut to 6 characters because git's short hash can grow.
 snapshot:
-  version_template: "{{ .Version }}-{{ .ShortCommit }}"
+  version_template: "{{ .Version }}-{{ slice .FullCommit 0 6 }}"
 
 project_name: dynatrace-bindplane-otel-collector-slim
 
