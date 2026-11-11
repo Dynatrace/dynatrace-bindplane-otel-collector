@@ -18,10 +18,7 @@ jobs:
     uses: ./.github/workflows/base-release.yml
     with:
       product: dynatrace-bindplane-otel-collector
-      manifest: manifests/dynatrace-bindplane-otel-collector/manifest.yaml
       version-check-mode: exact
-      goreleaser-config: manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml
       build-msi: true
       gcs: true
-      publish-latest-scripts: true
     secrets: inherit
