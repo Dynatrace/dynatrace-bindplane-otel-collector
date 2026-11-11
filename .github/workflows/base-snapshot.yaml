@@ -9,8 +9,9 @@ name: Reusable snapshot workflow
 #
 # The goreleaser configs use `builder: prebuilt` and build every platform in
 # their before hook. Here the hook is skipped (--skip=before) and its steps are
-# run for the job's target only: `make release-prep-gpg` for the packaged
-# files and `make build-binaries` for the binaries.
+# run for the job's target only: `make <prepare_target>` for the packaged files
+# and `make <build_target>` for the binaries (release-prep-gpg and
+# build-binaries by default; the AIX build uses its own targets).
 
 on:
   workflow_call:
@@ -36,6 +37,16 @@ on:
         required: false
         type: string
         default: "[]"
+      prepare_target:
+        description: "Make target that prepares the packaged files (the goreleaser before hook's release-prep step)"
+        required: false
+        type: string
+        default: release-prep-gpg
+      build_target:
+        description: "Make target that builds the binaries of the job's GOOS/GOARCH into OUTDIR"
+        required: false
+        type: string
+        default: build-binaries
       runner_os:
         required: false
         type: string
@@ -96,14 +107,16 @@ jobs:
         run: make install-ocb
 
       - name: Prepare packaged files
-        run: make release-prep-gpg DISTRO="${DISTRO}" CURR_VERSION="snapshot-${GITHUB_SHA::7}"
+        run: make "${PREPARE_TARGET}" DISTRO="${DISTRO}" CURR_VERSION="snapshot-${GITHUB_SHA::7}"
         env:
           DISTRO: ${{ inputs.distro }}
+          PREPARE_TARGET: ${{ inputs.prepare_target }}
 
       - name: Build binaries
-        run: make build-binaries -j2 DISTRO="${DISTRO}" OUTDIR=tmp
+        run: make "${BUILD_TARGET}" -j2 DISTRO="${DISTRO}" OUTDIR=tmp
         env:
           DISTRO: ${{ inputs.distro }}
+          BUILD_TARGET: ${{ inputs.build_target }}
           CGO_ENABLED: "0"
           GOOS: ${{ matrix.GOOS }}
           GOARCH: ${{ matrix.GOARCH }}
@@ -128,7 +141,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --snapshot --clean --split --skip=before,sign,sbom,docker --timeout 30m --config ${{ inputs.goreleaser_config }}
+          args: release --snapshot --clean --split --fail-fast --skip=before,sign,sbom,docker --timeout 30m --config ${{ inputs.goreleaser_config }}
         env:
           GOOS: ${{ matrix.GOOS }}
           GOARCH: ${{ matrix.GOARCH }}
