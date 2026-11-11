@@ -224,8 +224,10 @@ container-init:
 	cd ./cmd/container-init/; CGO_ENABLED=0 go build -ldflags "-s -w" -o ../../$(OUTDIR)/container-init_$(GOOS)_$(GOARCH)$(EXT) .
 
 # Builds the updater + agent + container-init for current GOOS/GOARCH pair
+# TODO: the slim build skips the updater until it can handle updates of the slim
+# build, see the commented `updater` build in the slim .goreleaser.yml.
 .PHONY: build-binaries
-build-binaries: agent updater container-init
+build-binaries: agent $(if $(filter slim,$(DISTRO)),,updater) container-init
 
 .PHONY: build-all
 build-all: build-linux build-darwin build-windows
