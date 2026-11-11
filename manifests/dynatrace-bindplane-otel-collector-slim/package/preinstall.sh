@@ -53,14 +53,24 @@ install_user() {
     if getent group "${DBDOT_GROUP}" > /dev/null 2>&1; then
         echo "Group ${DBDOT_GROUP} already exists."
     else
-        groupadd "${DBDOT_GROUP}"
+        if command -v groupadd > /dev/null 2>&1; then
+            groupadd "${DBDOT_GROUP}"
+        else
+            # BusyBox (e.g. Alpine) ships addgroup instead of groupadd.
+            addgroup -S "${DBDOT_GROUP}"
+        fi
     fi
 
     if id "$DBDOT_USER" > /dev/null 2>&1; then
         echo "User ${DBDOT_USER} already exists"
         exit 0
     else
-        useradd --shell /sbin/nologin --system "$DBDOT_USER" -g "${DBDOT_GROUP}"
+        if command -v useradd > /dev/null 2>&1; then
+            useradd --shell /sbin/nologin --system "$DBDOT_USER" -g "${DBDOT_GROUP}"
+        else
+            # BusyBox (e.g. Alpine) ships adduser instead of useradd.
+            adduser -S -D -H -s /sbin/nologin -G "${DBDOT_GROUP}" "$DBDOT_USER"
+        fi
     fi
 }
 

@@ -30,6 +30,8 @@ set -e
 #      If $1 == 0, it's a complete uninstall; if $1 > 0, it's an upgrade
 # DEB: $1 is "remove", "purge", or "upgrade"
 #      If $1 is "remove" or "purge", it's an uninstall; if "upgrade", it's an upgrade
+# APK: runs this script as post-deinstall only on removal (upgrades run the
+#      separate pre/post-upgrade scripts), with $1 set to the removed version
 is_uninstall() {
     # Check for DEB format first (string arguments)
     case "$1" in
@@ -47,6 +49,11 @@ is_uninstall() {
         return 0  # uninstall
     fi
     
+    # APK passes a version string, never a DEB keyword or an RPM count
+    if command -v apk > /dev/null 2>&1; then
+        return 0  # uninstall
+    fi
+
     # Default to upgrade if we can't determine
     return 1  # upgrade
 }
