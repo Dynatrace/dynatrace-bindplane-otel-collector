@@ -40,6 +40,8 @@ on:
   pull_request:
     branches:
       - main
+      # TEMPORARY (ICP-10610): run on the PR stacked on the slim release stack. Remove before merge.
+      - feat/slim-release-workflow
     paths: *paths
 
 # Cancel a PR's previous run when it gets a new push. Runs on main are never
