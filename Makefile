@@ -331,9 +331,9 @@ build-windows-arm64:
 	CGO_ENABLED=0 GOOS=windows GOARCH=arm64 $(MAKE) build-binaries -j2
 
 # Platforms the slim build is released for. Goreleaser's before hook in the slim
-# config calls build-all-slim. Unlike the full build there is no windows/arm64
-# binary: the slim Windows artifact is the amd64 zip only.
-SLIM_RELEASE_PLATFORMS := linux-amd64 linux-arm64 linux-arm linux-ppc64 linux-ppc64le darwin-amd64 darwin-arm64 windows-amd64
+# config calls build-all-slim. Unlike the full build there is no Windows MSI:
+# the slim Windows artifacts are the amd64 and arm64 zips only.
+SLIM_RELEASE_PLATFORMS := linux-amd64 linux-arm64 linux-arm linux-ppc64 linux-ppc64le darwin-amd64 darwin-arm64 windows-amd64 windows-arm64
 
 .PHONY: build-all-slim
 build-all-slim:

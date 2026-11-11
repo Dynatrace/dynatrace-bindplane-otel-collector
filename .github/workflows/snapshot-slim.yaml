@@ -60,15 +60,13 @@ jobs:
       goreleaser_config: manifests/dynatrace-bindplane-otel-collector-slim/.goreleaser.yml
       goos: '[ "linux", "darwin", "windows" ]'
       goarch: '[ "amd64", "arm64", "arm", "ppc64", "ppc64le" ]'
-      # Keep in sync with the ignore list of the goreleaser config. Unlike the
-      # full build, slim ships no windows/arm64.
+      # Keep in sync with the ignore list of the goreleaser config.
       exclude: >-
         [
           { "GOOS": "darwin", "GOARCH": "arm" },
           { "GOOS": "darwin", "GOARCH": "ppc64" },
           { "GOOS": "darwin", "GOARCH": "ppc64le" },
           { "GOOS": "windows", "GOARCH": "arm" },
-          { "GOOS": "windows", "GOARCH": "arm64" },
           { "GOOS": "windows", "GOARCH": "ppc64" },
           { "GOOS": "windows", "GOARCH": "ppc64le" }
         ]
