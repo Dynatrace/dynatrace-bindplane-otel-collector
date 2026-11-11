@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/logging"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/updater"
@@ -32,7 +33,7 @@ func main() {
 	pflag.Parse()
 
 	if *showVersion {
-		fmt.Println("dynatrace-bindplane-otel-collector updater version", version.Version())
+		fmt.Println(distro.Name(), "updater version", version.Version())
 		fmt.Println("commit:", version.GitHash())
 		fmt.Println("built at:", version.Date())
 		return

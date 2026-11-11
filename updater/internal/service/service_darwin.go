@@ -22,13 +22,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/file"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"go.uber.org/zap"
-)
-
-const (
-	darwinServiceFilePath = "/Library/LaunchDaemons/com.dynatrace.bindplane.otel.collector.plist"
 )
 
 // Option is an extra option for creating a Service
@@ -41,11 +38,11 @@ func WithServiceFile(svcFilePath string) Option {
 	}
 }
 
-// NewService returns an instance of the Service interface for managing the dynatrace-bindplane-otel-collector service on the current OS.
+// NewService returns an instance of the Service interface for managing the collector service on the current OS.
 func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	darwinSvc := &darwinService{
-		newServiceFilePath:       filepath.Join(path.ServiceFileDir(installDir), "com.dynatrace.bindplane.otel.collector.plist"),
-		installedServiceFilePath: darwinServiceFilePath,
+		newServiceFilePath:       filepath.Join(path.ServiceFileDir(installDir), distro.LaunchdLabel()+".plist"),
+		installedServiceFilePath: filepath.Join("/Library/LaunchDaemons", distro.LaunchdLabel()+".plist"),
 		installDir:               path.DarwinInstallDir,
 		logger:                   logger.Named("darwin-service"),
 	}

@@ -26,6 +26,7 @@ func TestSRCArgs(t *testing.T) {
 	s := srcService{
 		subsystem:  "dbdot-otel-collector",
 		group:      "dbdotcollector",
+		binary:     "dynatrace-bindplane-otel-collector",
 		installDir: "/opt/dynatrace-bindplane-otel-collector",
 		envFile:    "/etc/dynatrace-bindplane-otel-collector.env",
 	}
