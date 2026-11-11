@@ -8,19 +8,11 @@ on:
   workflow_call:
     inputs:
       product:
-        description: "Product slug used in artifact names (e.g. dynatrace-bindplane-otel-collector)"
-        required: true
-        type: string
-      manifest:
-        description: "ocb manifest whose dist.version the tag is checked against"
+        description: "Product slug used in artifact names, and the name of its folder under manifests/ that holds manifest.yaml and .goreleaser.yml (e.g. dynatrace-bindplane-otel-collector)"
         required: true
         type: string
       version-check-mode:
         description: "How the tag is compared to dist.version: exact or core (see scripts/ci/check-tag-version.sh)"
-        required: true
-        type: string
-      goreleaser-config:
-        description: "Path of the goreleaser config of the build"
         required: true
         type: string
       version:
@@ -39,12 +31,7 @@ on:
         type: boolean
         default: false
       gcs:
-        description: "Authenticate to GCP and install the gcloud SDK, for the goreleaser GCS blob upload and publish-latest-scripts"
-        required: false
-        type: boolean
-        default: false
-      publish-latest-scripts:
-        description: "Upload the install scripts and GPG keys to gs://dbdot-release/latest, requires gcs"
+        description: "Authenticate to GCP and install the gcloud SDK for the goreleaser GCS blob upload, and upload the install scripts and GPG keys to gs://dbdot-release/latest"
         required: false
         type: boolean
         default: false
@@ -65,7 +52,7 @@ jobs:
         run: ./scripts/ci/check-tag-version.sh "$TAG" "$MANIFEST" "$MODE"
         env:
           TAG: ${{ github.ref_name }}
-          MANIFEST: ${{ inputs.manifest }}
+          MANIFEST: manifests/${{ inputs.product }}/manifest.yaml
           MODE: ${{ inputs.version-check-mode }}
 
   build-msi:
@@ -164,7 +151,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/goreleaser
-          key: ${{ runner.os }}-goreleaser-${{ hashFiles(inputs.goreleaser-config, '**/go.sum') }}
+          key: ${{ runner.os }}-goreleaser-${{ hashFiles(format('manifests/{0}/.goreleaser.yml', inputs.product), '**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-goreleaser-
       - name: Sign AMD64 MSI
@@ -217,7 +204,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }} --config ${{ inputs.goreleaser-config }}
+          args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }} --config manifests/${{ inputs.product }}/.goreleaser.yml
         env:
           GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -240,7 +227,7 @@ jobs:
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
       - name: Upload Latest Install Scripts
-        if: ${{ inputs.publish-latest-scripts && !inputs.dry-run }}
+        if: ${{ inputs.gcs && !inputs.dry-run }}
         run: |
           gsutil cp ./scripts/install/install_unix.sh gs://dbdot-release/latest/install_unix.sh
           gsutil cp ./scripts/install/install_macos.sh gs://dbdot-release/latest/install_macos.sh
