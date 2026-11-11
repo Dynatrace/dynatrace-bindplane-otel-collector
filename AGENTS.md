@@ -78,7 +78,7 @@ trailer by default; please disable or strip it before committing.
 The project is structured as an OpenTelemetry Collector distribution with custom components:
 
 - **manifests/dynatrace-bindplane-otel-collector/manifest.yaml** - Canonical source of truth for components and their versions. Drives the `make agent` build.
-- **manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml** - Source of truth for the slim build's components. Selected with `DISTRO=slim`; versions are kept in sync with the full manifest by hand.
+- **manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml** - Source of truth for the slim build's components. Selected with `DISTRO=slim`; component versions are kept in sync with the full manifest by `scripts/update-manifest.sh`, which the `make update-otel`, `make update-contrib` and `make update-modules` targets run on all manifests.
 - **extension/opampconnectionextension/cmd/main/main.go** - Template `main.go` copied over ocb's generated `main.go`; calls into `extension/opampconnectionextension/runtime` for managed/standalone dispatch.
 - **extension/opampconnectionextension/** - The OpAMP connection extension and its full managed-mode runtime cluster (collector lifecycle, OpAMP client, package state, report manager, measurements). Its own Go module; entry point `runtime.Run(Options)`.
 - **pkg/report/** - Report manager for the legacy `report.yaml` snapshot path. Its own Go module; not for direct use. See its README.
