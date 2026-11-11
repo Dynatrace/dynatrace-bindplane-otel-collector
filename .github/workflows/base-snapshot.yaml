@@ -108,6 +108,19 @@ jobs:
           GOOS: ${{ matrix.GOOS }}
           GOARCH: ${{ matrix.GOARCH }}
 
+      # Without this goreleaser takes the latest tag, which can be a Go module
+      # tag such as cmd/container-init/v1.3.1, and its "/" breaks the package
+      # file names. Use the latest release tag (vX.Y.Z) reachable from HEAD.
+      - name: Set snapshot base tag
+        run: |
+          tag="$(git tag --merged HEAD --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)"
+          if [[ -z "$tag" ]]; then
+            echo "no vX.Y.Z tag reachable from HEAD"
+            exit 1
+          fi
+          echo "Snapshot base tag: $tag"
+          echo "GORELEASER_CURRENT_TAG=$tag" >> "$GITHUB_ENV"
+
       # Snapshot packages are not signed (--skip=sign also skips the nfpm
       # signatures), but the configs still template SIGNING_KEY_FILE.
       - name: Run GoReleaser
