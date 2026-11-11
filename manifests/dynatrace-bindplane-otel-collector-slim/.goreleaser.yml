@@ -270,9 +270,12 @@ signs:
       - "${artifact}"
       - "--yes"
 
-# Container images: a scratch image per architecture, pushed to GHCR, plus a
-# multi-arch manifest. Only version tags are pushed: RC releases must never move
-# a `latest` tag.
+# Container images: a scratch image per architecture, pushed to GHCR, plus
+# multi-arch manifests for the version tag and for `latest-slim`. Both builds
+# publish to the same image repository and the tags tell them apart: slim tags
+# carry the `-slim` suffix (`<version>-slim`, `<version>-slim-<arch>`,
+# `latest-slim`), so the slim build never moves the `latest` tag of the full
+# build.
 # TODO: also push to Docker Hub and AWS ECR (public) once the infrastructure for
 # them exists.
 dockers:
@@ -287,7 +290,7 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-amd64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-amd64"
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -313,7 +316,7 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-arm64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-arm64"
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -339,7 +342,7 @@ dockers:
       - collector
       - container-init
     image_templates:
-      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-ppc64le"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-ppc64le"
     dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
     use: buildx
     build_flag_templates:
@@ -356,11 +359,16 @@ dockers:
       - LICENSE
 
 docker_manifests:
-  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}"
+  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim"
     image_templates:
-      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-amd64"
-      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-arm64"
-      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:{{ .Version }}-ppc64le"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-amd64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-arm64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-ppc64le"
+  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:latest-slim"
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-amd64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-arm64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-ppc64le"
 
 # Keyless signing of every image and manifest by digest.
 docker_signs:
