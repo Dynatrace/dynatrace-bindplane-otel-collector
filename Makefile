@@ -331,9 +331,9 @@ build-windows-arm64:
 	CGO_ENABLED=0 GOOS=windows GOARCH=arm64 $(MAKE) build-binaries -j2
 
 # Platforms the slim build is released for. Goreleaser's before hook in the slim
-# config calls build-all-slim. Unlike the full build there is no windows/arm64
-# binary: the slim Windows artifact is the amd64 zip only.
-SLIM_RELEASE_PLATFORMS := linux-amd64 linux-arm64 linux-arm linux-ppc64 linux-ppc64le darwin-amd64 darwin-arm64 windows-amd64
+# config calls build-all-slim. Unlike the full build there is no Windows MSI:
+# the slim Windows artifacts are the amd64 and arm64 zips only.
+SLIM_RELEASE_PLATFORMS := linux-amd64 linux-arm64 linux-arm linux-ppc64 linux-ppc64le darwin-amd64 darwin-arm64 windows-amd64 windows-arm64
 
 .PHONY: build-all-slim
 build-all-slim:
@@ -705,6 +705,14 @@ agent-windows-arm64:
 build-single:
 	$(MAKE)
 	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=sign --clean --skip=validate --snapshot --single-target --config $(GORELEASER_DIR)/.goreleaser.yml
+
+# Installs, checks and uninstalls a Linux package of the selected DISTRO in a
+# podman container (see scripts/package-tests/package-tests.sh). ARCH is the
+# package's architecture, other than the host's it runs through QEMU.
+# Example: make package-test DISTRO=slim ARCH=amd64 PACKAGE_PATH=dist/linux_amd64_v1/<package>.deb
+.PHONY: package-test
+package-test:
+	./scripts/package-tests/package-tests.sh $(PACKAGE_PATH) $(ARCH) $(PRODUCT_NAME)
 
 .PHONY: release-test-single
 release-test-single:

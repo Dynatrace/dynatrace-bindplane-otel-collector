@@ -1,13 +1,28 @@
 version: 2
 
+# Lets `goreleaser release --split` (goreleaser-pro, used by the snapshot
+# workflows) build one GOOS/GOARCH target per job instead of one GOOS. Ignored
+# without --split.
+partial:
+  by: target
+
+# apk-tools 2.x stores package scripts in a ustar archive whose entry names
+# (<pkgname>-<version>.<checksum>.<script>) are cut to 99 characters. With this
+# package name and ".post-deinstall" that leaves 13 characters for the version;
+# the default snapshot version ("1.3.1-SNAPSHOT-<commit>") is longer, so the
+# deinstall scripts are truncated and never run on removal. Keep this short:
+# the commit is cut to 6 characters because git's short hash can grow.
+snapshot:
+  version_template: "{{ .Version }}-{{ slice .FullCommit 0 6 }}"
+
 project_name: dynatrace-bindplane-otel-collector-slim
 
 # Releases the slim build: archives, Linux packages, SBOMs, container images,
 # checksums and their signatures. Mirrors the layout of the OpenTelemetry
 # Collector Releases configs and the Dynatrace OTel Collector config, with two
 # deliberate differences from the full build's .goreleaser.yml:
-#   - no Windows MSI and no install scripts, the Windows artifact is a zip of the
-#     amd64 binary only
+#   - no Windows MSI and no install scripts, the Windows artifacts are zips of
+#     the amd64 and arm64 binaries only
 #   - keyless cosign signing (sigstore bundles) instead of a key file
 before:
   hooks:
@@ -45,8 +60,6 @@ builds:
       - goos: windows
         goarch: arm
       - goos: windows
-        goarch: arm64
-      - goos: windows
         goarch: ppc64
       - goos: windows
         goarch: ppc64le
@@ -74,8 +87,6 @@ builds:
   #       goarch: ppc64le
   #     - goos: windows
   #       goarch: arm
-  #     - goos: windows
-  #       goarch: arm64
   #     - goos: windows
   #       goarch: ppc64
   #     - goos: windows

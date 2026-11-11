@@ -1,0 +1,70 @@
+name: Reusable package tests workflow
+
+# Installs, checks and uninstalls the Linux packages of one DBDOT build that
+# base-snapshot.yaml uploaded, one job per package type and architecture (see
+# scripts/package-tests/package-tests.sh). Follows the pattern of the upstream
+# opentelemetry-collector-releases base-package-tests.yaml; the test itself is
+# ported from the Dynatrace OTel Collector, which also covers arm64.
+
+on:
+  workflow_call:
+    inputs:
+      distro:
+        description: "Makefile DISTRO whose packages are tested (full, slim)"
+        required: true
+        type: string
+      types:
+        description: "JSON array of package types to test (deb, rpm, apk)"
+        required: true
+        type: string
+      arch:
+        description: "JSON array of architectures to test, each needs a linux-packages-<distro>-<arch> artifact"
+        required: false
+        type: string
+        default: '[ "amd64", "arm64" ]'
+
+permissions:
+  contents: read
+
+jobs:
+  package-tests:
+    name: Package tests (${{ matrix.type }}/${{ matrix.arch }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        type: ${{ fromJSON(inputs.types) }}
+        arch: ${{ fromJSON(inputs.arch) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup QEMU
+        if: matrix.arch != 'amd64'
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: ${{ matrix.arch }}
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: linux-packages-${{ inputs.distro }}-${{ matrix.arch }}
+          path: linux-packages
+
+      - name: Test ${{ matrix.type }} package
+        run: |
+          shopt -s globstar nullglob
+          # nfpm file_name_template: <package_name>_v<version>_<os>_<arch>
+          pkgs=(linux-packages/**/*_linux_"${ARCH}"."${TYPE}")
+          if [[ ${#pkgs[@]} -ne 1 ]]; then
+            echo "expected exactly one ${TYPE} package for ${ARCH}, found: ${pkgs[*]}"
+            exit 1
+          fi
+          make package-test DISTRO="${DISTRO}" ARCH="${ARCH}" PACKAGE_PATH="${pkgs[0]}"
+        env:
+          DISTRO: ${{ inputs.distro }}
+          TYPE: ${{ matrix.type }}
+          ARCH: ${{ matrix.arch }}

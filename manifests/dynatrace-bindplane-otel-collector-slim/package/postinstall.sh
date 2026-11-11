@@ -50,8 +50,11 @@ install() {
     # between root and the runtime user.
     chown -R "$DBDOT_USER:$DBDOT_GROUP" "$stage_dir"
 
-    # Ensure updater is owned by root.
-    chown root:root "$stage_dir/updater"
+    # Ensure updater is owned by root. The slim build does not ship the
+    # updater yet (see .goreleaser.yml), so only touch it when present.
+    if [ -f "$stage_dir/updater" ]; then
+        chown root:root "$stage_dir/updater"
+    fi
 
     # Seed default configs only when absent so upgrades/reinstalls preserve
     # user edits. The stage dir is ephemeral, so pruning it here is safe.
@@ -61,7 +64,7 @@ install() {
         fi
     done
 
-    cp -r --preserve \
+    cp -rp \
       "$stage_dir"/* \
       "${DBDOT_CONFIG_HOME}"
 
