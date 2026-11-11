@@ -82,3 +82,18 @@ jobs:
     with:
       distro: slim
       types: '[ "apk", "deb", "rpm" ]'
+
+  # Single stable check for branch protection; the matrix job names change with
+  # the targets.
+  snapshot-success:
+    name: Snapshot Success - DBDOT slim
+    if: always()
+    needs: [snapshot, package-tests]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          case " $RESULTS " in *" failure "*|*" cancelled "*) exit 1;; esac

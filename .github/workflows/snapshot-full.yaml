@@ -80,6 +80,24 @@ jobs:
       GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
       PRIVATE_GO_MODULES_APP_PRIVATE_KEY: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
 
+  # AIX builds from its own manifest and goreleaser config (see
+  # .goreleaser-aix.yml); it ships an archive only, so no package tests.
+  snapshot-aix:
+    name: Snapshot - DBDOT AIX
+    if: github.actor != 'dependabot[bot]'
+    uses: ./.github/workflows/base-snapshot.yaml
+    with:
+      distro: full
+      goreleaser_config: manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml
+      prepare_target: release-prep-aix
+      build_target: build-aix
+      private_go_modules: true
+      goos: '[ "aix" ]'
+      goarch: '[ "ppc64" ]'
+    secrets:
+      GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+      PRIVATE_GO_MODULES_APP_PRIVATE_KEY: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+
   package-tests:
     name: Package tests - DBDOT
     needs: snapshot
@@ -88,3 +106,18 @@ jobs:
       distro: full
       # The full build ships no apk.
       types: '[ "deb", "rpm" ]'
+
+  # Single stable check for branch protection; the matrix job names change with
+  # the targets.
+  snapshot-success:
+    name: Snapshot Success - DBDOT
+    if: always()
+    needs: [snapshot, snapshot-aix, package-tests]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          case " $RESULTS " in *" failure "*|*" cancelled "*) exit 1;; esac
