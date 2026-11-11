@@ -483,10 +483,8 @@ manage_service() {
 }
 
 finish_permissions() {
-  # Goreleaser does not set plugin file permissions, so do them here
-  # We also change the owner of the binary to dynatrace-bindplane-otel-collector-slim
-  chown -R "$DBDOT_USER:$DBDOT_GROUP" ${DBDOT_CONFIG_HOME}/dynatrace-bindplane-otel-collector-slim ${DBDOT_CONFIG_HOME}/plugins/*
-  chmod 0640 ${DBDOT_CONFIG_HOME}/plugins/*
+  # Change the owner of the binary to dynatrace-bindplane-otel-collector-slim
+  chown -R "$DBDOT_USER:$DBDOT_GROUP" ${DBDOT_CONFIG_HOME}/dynatrace-bindplane-otel-collector-slim
 
   # Initialize the log file to ensure it is owned by dynatrace-bindplane-otel-collector-slim.
   # This prevents the service (running as root) from assigning ownership to
