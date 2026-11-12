@@ -19,11 +19,12 @@
 #
 #   exact  the tag without its leading "v" must equal dist.version. Used by the
 #          full build, which is released from plain semver tags (v1.2.3).
-#   core   the tag without its leading "v" and without a trailing "-rc.N" must
-#          equal dist.version. Used by the slim build, which is released from RC
-#          tags (v1.2.3-rc.1): several RCs can share one manifest version.
+#   core   the tag without its leading "slim/v" and without a trailing "-rc.N"
+#          must equal dist.version. Used by the slim build, which is released
+#          from slim RC tags (slim/v1.2.3-rc.1): several RCs can share one
+#          manifest version.
 #
-# Accepted tags are vX.Y.Z and vX.Y.Z-rc.N. Anything else fails.
+# Accepted tags are vX.Y.Z and slim/vX.Y.Z-rc.N. Anything else fails.
 
 set -euo pipefail
 
@@ -36,8 +37,8 @@ tag="$1"
 manifest="$2"
 mode="$3"
 
-if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
-  echo "tag '$tag' is not a valid release tag (expected vX.Y.Z or vX.Y.Z-rc.N)" >&2
+if ! [[ "$tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+|slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+)$ ]]; then
+  echo "tag '$tag' is not a valid release tag (expected vX.Y.Z or slim/vX.Y.Z-rc.N)" >&2
   exit 1
 fi
 
@@ -65,7 +66,8 @@ if [ -z "$manifest_version" ]; then
   exit 2
 fi
 
-tag_version="${tag#v}"
+tag_version="${tag#slim/}"
+tag_version="${tag_version#v}"
 case "$mode" in
   exact) ;;
   core) tag_version="${tag_version%-rc.*}" ;;
