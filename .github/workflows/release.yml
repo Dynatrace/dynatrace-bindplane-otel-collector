@@ -3,7 +3,8 @@ on:
   push:
     tags:
       - "v[0-9]*"
-      # RC tags (vX.Y.Z-rc.N) release the slim build, not this one.
+      # Only plain semver tags release the full build. Slim RC tags
+      # (slim/vX.Y.Z-rc.N) do not match "v[0-9]*" anyway.
       - "!v*-*"
 
 permissions:

@@ -57,11 +57,13 @@ expect() {
 
 expect 0 "exact: matching tag"            v1.2.3        "$tmp/manifest.yaml" exact
 expect 1 "exact: patch mismatch"          v1.2.4        "$tmp/manifest.yaml" exact
-expect 1 "exact: RC tag is not exact"     v1.2.3-rc.1   "$tmp/manifest.yaml" exact
-expect 0 "core: matching RC tag"          v1.2.3-rc.1   "$tmp/manifest.yaml" core
-expect 0 "core: later RC of same version" v1.2.3-rc.12  "$tmp/manifest.yaml" core
-expect 0 "core: plain tag also matches"   v1.2.3        "$tmp/manifest.yaml" core
-expect 1 "core: RC of other version"      v1.2.4-rc.1   "$tmp/manifest.yaml" core
+expect 1 "exact: RC tag is not exact"     slim/v1.2.3-rc.1  "$tmp/manifest.yaml" exact
+expect 0 "core: matching RC tag"          slim/v1.2.3-rc.1  "$tmp/manifest.yaml" core
+expect 0 "core: later RC of same version" slim/v1.2.3-rc.12 "$tmp/manifest.yaml" core
+expect 0 "core: plain tag also matches"   v1.2.3            "$tmp/manifest.yaml" core
+expect 1 "core: RC of other version"      slim/v1.2.4-rc.1  "$tmp/manifest.yaml" core
+expect 1 "invalid tag: RC without prefix" v1.2.3-rc.1       "$tmp/manifest.yaml" core
+expect 1 "invalid tag: prefix without RC" slim/v1.2.3       "$tmp/manifest.yaml" core
 expect 1 "invalid tag: no v prefix"       1.2.3         "$tmp/manifest.yaml" exact
 expect 1 "invalid tag: other suffix"      v1.2.3-beta.1 "$tmp/manifest.yaml" core
 expect 1 "invalid tag: submodule tag"     extension/opampconnectionextension/v1.2.3 "$tmp/manifest.yaml" exact

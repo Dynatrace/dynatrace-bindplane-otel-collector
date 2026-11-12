@@ -68,7 +68,7 @@ PR title: `chore: vX.Y.Z release prep`. Merge it.
    make release version=vX.Y.Z
    ```
 
-   This tags and pushes `vX.Y.Z`, plus `<module dir>/vX.Y.Z` for every in-tree module. Only `vX.Y.Z` triggers the `release` workflow. RC tags (`vX.Y.Z-rc.N`) are accepted by `make release` but only tag the root, since they are reserved for the slim build.
+   This tags and pushes `vX.Y.Z`, plus `<module dir>/vX.Y.Z` for every in-tree module. Only `vX.Y.Z` triggers the `release` workflow. Slim RC tags (`slim/vX.Y.Z-rc.N`) are accepted by `make release` but only tag the root, since they are reserved for the slim build.
 
 2. The `release` workflow runs on the tag. It builds the signed Windows MSI, then goreleaser builds every platform, creates a GitHub pre-release with a changelog from commit titles, attaches the packages, and uploads them to Google Cloud Storage.
 
