@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Collector Version"
+        description: "Collector Version (vX.Y.Z for full, slim/vX.Y.Z-rc.N for slim)"
         required: true
         default: "v0.0.1"
       distro:

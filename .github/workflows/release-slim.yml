@@ -1,11 +1,11 @@
 name: release-slim
 
-# Releases the slim build from an RC tag (vX.Y.Z-rc.N). The release is published
+# Releases the slim build from a slim RC tag (slim/vX.Y.Z-rc.N). The release is published
 # as a prerelease. Plain semver tags are reserved for the full build.
 on:
   push:
     tags:
-      - "v[0-9]*.[0-9]*.[0-9]*-rc.[0-9]*"
+      - "slim/v[0-9]*.[0-9]*.[0-9]*-rc.[0-9]*"
 
 permissions:
   contents: read
