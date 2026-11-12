@@ -1,28 +1,45 @@
 name: Release Test
 
-# Rehearses the release of the full build. Runs the same pipeline as
-# release-full.yml (the reusable base-release.yml) as a dry run: goreleaser skips
-# publishing and nothing is uploaded to a release.
+# Rehearses the release of a build. Runs the same pipeline as the release-full
+# and release-slim workflows (the reusable base-release.yml) as a dry run:
+# goreleaser skips publishing and signing, and nothing is uploaded to a release.
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Collector Version"
+        description: "Collector Version (vX.Y.Z for full, slim/vX.Y.Z-rc.N for slim)"
         required: true
         default: "v0.0.1"
+      distro:
+        description: "Build to rehearse the release for"
+        required: true
+        type: choice
+        options:
+          - full
+          - slim
+        default: full
 
 permissions:
   contents: read
 
 jobs:
   release-test:
+    # Ceiling for the jobs of the reusable workflow, which request what they need.
     permissions:
       contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+      packages: write
     uses: ./.github/workflows/base-release.yml
     with:
-      product: dynatrace-bindplane-otel-collector
-      version-check-mode: exact
+      product: ${{ inputs.distro == 'slim' && 'dynatrace-bindplane-otel-collector-slim' || 'dynatrace-bindplane-otel-collector' }}
+      version-check-mode: ${{ inputs.distro == 'slim' && 'core' || 'exact' }}
       version: ${{ inputs.version }}
       dry-run: true
-      build-msi: true
+      build-msi: ${{ inputs.distro == 'full' }}
+      build-aix: ${{ inputs.distro == 'full' }}
+      cosign-mode: ${{ inputs.distro == 'slim' && 'keyless' || 'key' }}
+      containers: ${{ inputs.distro == 'slim' }}
+      sbom: ${{ inputs.distro == 'slim' }}
     secrets: inherit

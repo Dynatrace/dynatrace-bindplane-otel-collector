@@ -1,0 +1,30 @@
+name: release-slim
+
+# Releases the slim build from a slim RC tag (slim/vX.Y.Z-rc.N). The release is published
+# as a prerelease. Plain semver tags are reserved for the full build.
+on:
+  push:
+    tags:
+      - "slim/v[0-9]*.[0-9]*.[0-9]*-rc.[0-9]*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    # Ceiling for the jobs of the reusable workflow, which request what they need.
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+      packages: write
+    uses: ./.github/workflows/base-release.yml
+    with:
+      product: dynatrace-bindplane-otel-collector-slim
+      version-check-mode: core
+      build-msi: false
+      cosign-mode: keyless
+      containers: true
+      sbom: true
+    secrets: inherit
