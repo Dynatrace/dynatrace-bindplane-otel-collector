@@ -18,18 +18,24 @@ package packaging
 
 // Expected state of a system with the package installed using the default
 // package overrides (DBDOT_USER=dbdot, DBDOT_GROUP=dbdot, DBDOT_UNPRIVILEGED=false,
-// DBDOT_CONFIG_HOME=/opt/dynatrace-bindplane-otel-collector). The values are derived from
-// the nfpm contents in .goreleaser.yml and scripts/package/*.sh.
+// DBDOT_CONFIG_HOME=/opt/dynatrace-bindplane-otel-collector). installExpect holds what
+// changes with DBDOT_UNPRIVILEGED=true. The values are derived from the nfpm
+// contents in .goreleaser.yml and scripts/package/*.sh.
 
 const (
 	installDir  = "/opt/dynatrace-bindplane-otel-collector"
 	stageRoot   = "/usr/share/dynatrace-bindplane-otel-collector"
 	unitPath    = "/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
 	dropInDir   = "/etc/systemd/system/dynatrace-bindplane-otel-collector.service.d"
+	userDropIn  = dropInDir + "/10-package-customizations-username.conf"
 	wantsPath   = "/etc/systemd/system/multi-user.target.wants/dynatrace-bindplane-otel-collector.service"
 	initdPath   = "/etc/init.d/dynatrace-bindplane-otel-collector"
 	runtimeUser = "dbdot"
 	runtimeGrp  = "dbdot"
+
+	// unprivilegedOverride is the package override line that runs the
+	// service as runtimeUser.
+	unprivilegedOverride = "DBDOT_UNPRIVILEGED=true"
 
 	// standaloneLogLine is logged by the collector at startup when no
 	// manager.yaml is present.
@@ -79,19 +85,57 @@ var installSystemFiles = map[string]fileEntry{
 
 // installAbsent are paths that must not exist after install.
 var installAbsent = []string{
-	// Only written when DBDOT_UNPRIVILEGED=true.
-	dropInDir + "/10-package-customizations-username.conf",
 	// The stage directory is removed by postinstall.
 	stageRoot,
 	// systemd hosts get a unit file, not an init script.
 	initdPath,
 }
 
+// installExpect is the expected state after install that depends on
+// DBDOT_UNPRIVILEGED.
+type installExpect struct {
+	// user is the user the service runs as.
+	user string
+	// tree replaces entries of installTree, and omit removes them.
+	tree map[string]fileEntry
+	omit []string
+	// files are expected paths outside installDir, in addition to
+	// installSystemFiles.
+	files map[string]fileEntry
+	// absent are paths that must not exist, in addition to installAbsent.
+	absent []string
+}
+
+// privilegedInstall is the expected state with the default overrides.
+var privilegedInstall = installExpect{
+	user: "root",
+	absent: []string{
+		// Only written when DBDOT_UNPRIVILEGED=true.
+		userDropIn,
+	},
+}
+
+// unprivilegedInstall is the expected state with unprivilegedOverride.
+var unprivilegedInstall = installExpect{
+	user: runtimeUser,
+	tree: map[string]fileEntry{
+		// The runtime user copies the files into installDir, so it owns the
+		// updater too.
+		"updater": {"f", runtimeUser, runtimeGrp, "755"},
+	},
+	// postinstall doesn't change files in installDir as root. The collector
+	// creates its log when it starts.
+	omit: []string{"log/collector.log"},
+	files: map[string]fileEntry{
+		userDropIn: {"f", "root", "root", "644"},
+	},
+}
+
 // installUnitProps are the expected `systemctl show` properties of the unit.
-// ExecStart and Environment are checked separately because they contain
-// more than a single value.
+// User is checked separately because it depends on installExpect. ExecStart
+// and Environment are checked separately because they contain more than a
+// single value.
 var installUnitProps = map[string]string{
-	"User":             "root",
 	"Group":            runtimeGrp,
 	"WorkingDirectory": installDir,
 	"Restart":          "on-failure",
