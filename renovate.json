@@ -1,0 +1,104 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    "schedule:weekly",
+    "customManagers:githubActionsVersions",
+    "customManagers:makefileVersions"
+  ],
+  "labels": ["dependencies"],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "deps",
+  "semanticCommitScope": null,
+  "prConcurrentLimit": 25,
+  "minimumReleaseAge": "3 days",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "timezone": "Europe/Vienna",
+  "rebaseWhen": "behind-base-branch",
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodMassage"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "open-telemetry/opentelemetry-collector-contrib",
+        "/^github\\.com/open-telemetry/opentelemetry-collector/",
+        "/^go\\.opentelemetry\\.io//",
+        "github.com/open-telemetry/opamp-go",
+        "/^github\\.com/dynatrace/dynatrace-bindplane-otel-(contrib|collector)//",
+        "/^github\\.com/Dynatrace/dt-otelcol-edge-processing-components//"
+      ],
+      "description": "OpenTelemetry updates are done manually via make update-otel",
+      "enabled": false
+    },
+    {
+      "matchPackageNames": [
+        "ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen"
+      ],
+      "groupName": "OpenTelemetry Collector - telemetrygen"
+    },
+    {
+      "matchPackageNames": ["github.com/securego/gosec/v2"],
+      "matchFileNames": ["internal/tools/go.mod"],
+      "description": "Keep gosec at v2.18.2",
+      "enabled": false
+    },
+    {
+      "matchFileNames": ["internal/tools/go.mod"],
+      "matchUpdateTypes": ["patch"],
+      "description": "Ignore patch updates for tools",
+      "enabled": false
+    },
+    {
+      "matchDatasources": ["golang-version"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "matchDatasources": ["golang-version"],
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false,
+      "description": "Major and minor updates to Golang should be handled manually"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions deps"
+    },
+    {
+      "matchPackageNames": [
+        "goreleaser-pro",
+        "goreleaser/goreleaser-pro",
+        "github.com/goreleaser/goreleaser-pro/v2",
+        "github.com/goreleaser/goreleaser-pro"
+      ],
+      "groupName": "GoReleaser Pro"
+    },
+    {
+      "description": "replace directives are deliberate pins/forks",
+      "matchDepTypes": ["replace"],
+      "enabled": false
+    }
+  ],
+  "ocb": {
+    "managerFilePatterns": ["/^manifests/.*/manifest(-aix)?\\.yaml$/"]
+  },
+  "kubernetes": {
+    "managerFilePatterns": ["/internal/testbed/integration/.*/testdata/.*\\.ya?ml$/"]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "(^|\\/)Makefile$",
+        "(^|\\/)Makefile.Common$",
+        "(^|\\/)Dockerfile",
+        "(^|\\/).*\\.ya?ml$",
+        "(^|\\/).*\\.toml$",
+        "(^|\\/).*\\.sh$"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)\\s.*(:|=|\\?=|:=|\\+=) ?\\\"?(?<currentValue>.+?)?\\\"?\\s"
+      ]
+    }
+  ]
+}
