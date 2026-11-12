@@ -1,41 +1,86 @@
-name: release
+name: base-release
+
+# Reusable release pipeline shared by the per-build release workflows
+# (release-full.yml, ...) and the release-test rehearsal. Callers must pass
+# `secrets: inherit` and grant `contents: write`, which the release job needs to
+# publish the GitHub release.
 on:
-  push:
-    tags:
-      - "v[0-9]*"
-      # Only plain semver tags release the full build. Slim RC tags
-      # (slim/vX.Y.Z-rc.N) do not match "v[0-9]*" anyway.
-      - "!v*-*"
+  workflow_call:
+    inputs:
+      product:
+        description: "Product slug used in artifact names, and the name of its folder under manifests/ that holds manifest.yaml and .goreleaser.yml (e.g. dynatrace-bindplane-otel-collector)"
+        required: true
+        type: string
+      version-check-mode:
+        description: "How the tag is compared to dist.version: exact or core (see scripts/ci/check-tag-version.sh)"
+        required: true
+        type: string
+      version:
+        description: "Version to release, with the leading v. Defaults to the pushed tag"
+        required: false
+        type: string
+        default: ""
+      dry-run:
+        description: "Rehearse the release: skip the tag check, publishing and validation, and upload the artifact bundles as workflow artifacts instead of to a release"
+        required: false
+        type: boolean
+        default: false
+      build-msi:
+        description: "Build and sign the Windows MSIs, the signed Windows binaries and install script, and verify the signatures after the release"
+        required: false
+        type: boolean
+        default: false
+      gcs:
+        description: "Authenticate to GCP and install the gcloud SDK for the goreleaser GCS blob upload, and upload the install scripts and GPG keys to gs://dbdot-release/latest"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
+  # A rehearsal runs from a branch with an arbitrary version, so there is no tag
+  # to check.
   check-version:
+    if: ${{ !inputs.dry-run }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check tag matches manifest version
-        run: ./scripts/ci/check-tag-version.sh "$TAG" manifests/dynatrace-bindplane-otel-collector/manifest.yaml exact
+        run: ./scripts/ci/check-tag-version.sh "$TAG" "$MANIFEST" "$MODE"
         env:
           TAG: ${{ github.ref_name }}
+          MANIFEST: manifests/${{ inputs.product }}/manifest.yaml
+          MODE: ${{ inputs.version-check-mode }}
 
   build-msi:
+    # check-version is skipped on a dry run, which would skip this job too
+    # without a status function.
+    if: ${{ inputs.build-msi && !(cancelled() || failure()) }}
     needs: [check-version]
     uses: ./.github/workflows/build-signed-windows.yml
     with:
-      version: ${{ github.ref_name }}
+      version: ${{ inputs.version || github.ref_name }}
       sign_install_script: true
     secrets: inherit
 
   release:
     needs: [check-version, build-msi, build-aix]
+    # build-msi and build-aix are optional steps that the caller may have not 
+    # enabled. 
+    # By default a job is skipped when any of its dependencies were skipped, so
+    # a status check function is needed here to let `release` run even when msi
+    # and build-aix were skipped.
+    if: ${{ !(cancelled() || failure()) }}
     permissions:
       contents: write
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - name: Redirect temp directories
         run: |
@@ -49,11 +94,13 @@ jobs:
           # For goreleaser
           fetch-depth: 0
       - name: Authenticate to GCP
+        if: ${{ inputs.gcs }}
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           project_id: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_PROJECT_ID }}
           credentials_json: ${{ secrets.DBDOT_GCS_RELEASE_BUCKET_CREDENTIALS }}
       - name: Install Gcloud SDK
+        if: ${{ inputs.gcs }}
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
@@ -78,10 +125,12 @@ jobs:
         timeout-minutes: 10
         run: bash .github/scripts/retry.sh make install-ocb
       - name: Retrieve Windows AMD64 MSI Installer
+        if: ${{ inputs.build-msi }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-amd64.msi
       - name: Retrieve Windows ARM64 MSI Installer
+        if: ${{ inputs.build-msi }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dynatrace-bindplane-otel-collector-arm64.msi
@@ -102,15 +151,17 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/goreleaser
-          key: ${{ runner.os }}-goreleaser-${{ hashFiles('manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml', '**/go.sum') }}
+          key: ${{ runner.os }}-goreleaser-${{ hashFiles(format('manifests/{0}/.goreleaser.yml', inputs.product), '**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-goreleaser-
       - name: Sign AMD64 MSI
+        if: ${{ inputs.build-msi }}
         run: cosign sign-blob --key=cosign.key --output-signature ./dynatrace-bindplane-otel-collector-amd64.msi.sig ./dynatrace-bindplane-otel-collector-amd64.msi
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
       - name: Sign ARM64 MSI
+        if: ${{ inputs.build-msi }}
         run: cosign sign-blob --key=cosign.key --output-signature ./dynatrace-bindplane-otel-collector-arm64.msi.sig ./dynatrace-bindplane-otel-collector-arm64.msi
         shell: bash
         env:
@@ -120,6 +171,7 @@ jobs:
       # the tracked script from a workflow step fails the release with
       # "git is in a dirty state". The download directory is gitignored.
       - name: Retrieve Signed Windows Install Script
+        if: ${{ inputs.build-msi }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signed-install-script
@@ -127,11 +179,20 @@ jobs:
       # The Windows binaries goreleaser packages must be the signed ones from
       # the build-msi job, not the unsigned copies its before-hook builds here.
       - name: Retrieve Signed Windows Binaries
+        if: ${{ inputs.build-msi }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: signed-windows-*
           merge-multiple: true
           path: signed-windows
+      # Exported here instead of in the goreleaser step's env: the overlay script
+      # treats a set-but-empty SIGNED_WINDOWS_DIR as an error, so for builds
+      # without MSIs the variables must stay unset.
+      - name: Export signed Windows paths
+        if: ${{ inputs.build-msi }}
+        run: |
+          echo "SIGNED_WINDOWS_DIR=signed-windows" >> "$GITHUB_ENV"
+          echo "SIGNED_INSTALL_SCRIPT=signed-install-script/install_windows.ps1" >> "$GITHUB_ENV"
       - name: Write signing key for nFPM
         shell: bash
         run: |
@@ -143,38 +204,64 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --clean --timeout 120m --config manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml
+          args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }} --config manifests/${{ inputs.product }}/.goreleaser.yml
         env:
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          SIGNED_WINDOWS_DIR: signed-windows
-          SIGNED_INSTALL_SCRIPT: signed-install-script/install_windows.ps1
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
           SIGNING_KEY_FILE: ci-signing-key.asc
+
+      - name: Debug list dist/
+        run: ls -laR dist/
+
       # Create artifact bundles (all-platform plus one per OS) and upload to release
       - name: Create artifact archives
-        run: ./scripts/ci/create-artifact-bundles.sh ${{ github.ref_name }}
+        run: ./scripts/ci/create-artifact-bundles.sh ${{ env.VERSION }} ${{ inputs.product }}
       - name: Sign artifact archives
         run: |
-          for bundle in ./dynatrace-bindplane-otel-collector-${{ github.ref_name }}-artifacts*.tar.gz; do
+          for bundle in ./${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz; do
             cosign sign-blob --key=cosign.key --output-signature "$bundle.sig" "$bundle"
           done
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
       - name: Upload Latest Install Scripts
+        if: ${{ inputs.gcs && !inputs.dry-run }}
         run: |
           gsutil cp ./scripts/install/install_unix.sh gs://dbdot-release/latest/install_unix.sh
           gsutil cp ./scripts/install/install_macos.sh gs://dbdot-release/latest/install_macos.sh
           gsutil cp ./scripts/install/install_windows.ps1 gs://dbdot-release/latest/install_windows.ps1
           gsutil cp ./release_deps/gpg-keys.tar.gz gs://dbdot-release/latest/gpg-keys.tar.gz
+
       - name: Upload artifact bundles to release
+        if: ${{ !inputs.dry-run }}
         uses: AButler/upload-release-assets@34491005a5d7ec239a784e460807ce844fde7962 # v4.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          files: "dynatrace-bindplane-otel-collector-${{ github.ref_name }}-artifacts*.tar.gz*"
-          release-tag: ${{ github.ref_name }}
+          files: "${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz*"
+          release-tag: ${{ env.VERSION }}
+
+      # A rehearsal has no release to read the bundles from, so the signature
+      # verification of the verify-windows-release job reads them from here.
+      - name: Check artifact bundles
+        if: ${{ inputs.dry-run }}
+        run: |
+          ls -la ${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz*
+          for dir in bundle-*; do
+            echo "== $dir"
+            ls -la "$dir"
+            du -sh "$dir"
+          done
+
+      - name: Upload artifact bundles as workflow artifacts
+        if: ${{ inputs.dry-run }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: artifact-bundles
+          path: ${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz*
+          retention-days: 1
+
       # TODO(dbdot): the installer testing repo does not exist yet. GITHUB_TOKEN
       # cannot dispatch to another repository; this needs a PAT or GitHub App
       # token once the repo exists.
@@ -190,9 +277,14 @@ jobs:
   # packages and lists their hashes in the main SHA256SUMS.
   build-aix:
     needs: [check-version]
+    # check-version is skipped on a dry run, which would skip this job too
+    # without a status function.
+    if: ${{ !(cancelled() || failure()) }}
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -250,9 +342,9 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --skip=publish --clean
+          args: release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --skip=publish${{ inputs.dry-run && ',validate' || '' }} --clean
         env:
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
@@ -270,15 +362,19 @@ jobs:
   # MSI. Releases publish as a prerelease first, so a failure here blocks
   # promotion instead of arriving after customers have the artifacts.
   verify-windows-release:
+    if: ${{ inputs.build-msi }}
     needs: [release]
     runs-on: windows-2022
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Download Windows Release Artifacts
+        if: ${{ !inputs.dry-run }}
         run: |
           mkdir artifacts
-          gh release download "$env:TAG" `
+          gh release download "$env:VERSION" `
             --repo "$env:GITHUB_REPOSITORY" `
             --dir artifacts `
             --pattern "*-windows-*.zip" `
@@ -286,8 +382,22 @@ jobs:
             --pattern "install_windows.ps1"
         shell: pwsh
         env:
-          TAG: ${{ github.ref_name }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Windows Artifact Bundle
+        if: ${{ inputs.dry-run }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: artifact-bundles
+          path: bundle
+
+      - name: Unpack Windows Artifact Bundle
+        if: ${{ inputs.dry-run }}
+        run: |
+          mkdir artifacts
+          tar -xzvf "bundle/${{ inputs.product }}-$env:VERSION-artifacts-windows.tar.gz" -C artifacts
+        shell: pwsh
+
       - name: Verify Windows Signatures
         run: ./scripts/ci/verify-windows-signatures.ps1 -Root ./artifacts
         shell: pwsh
