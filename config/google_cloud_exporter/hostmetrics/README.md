@@ -19,4 +19,4 @@ Host Metrics does not have setup requirements.
 
 ## Process metrics
 
-The host metrics receiver supports per process cpu, memory, disk, and network metrics. This feature requires elevated privileges. On Linux, you must update the service configuration to run the agent as the root user. See the [installation documentation](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/main/docs/installation-linux.md#configuring-the-agent) for instructions.
+The host metrics receiver supports per process cpu, memory, disk, and network metrics. This feature requires elevated privileges. On Linux, a new install runs the agent as the unprivileged `dbdot` user. To run it as root, set `DBDOT_UNPRIVILEGED=false` before you install the package. See the [package configuration documentation](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/main/docs/installation-linux.md#package-configuration) for instructions.

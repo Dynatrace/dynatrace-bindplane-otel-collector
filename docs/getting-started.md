@@ -42,12 +42,10 @@ Create a service account JSON key and place it on the system that is running the
 
 ### Linux
 
-In this example, the key is placed at `/opt/dynatrace-bindplane-otel-collector/sa.json` and its permissions are restricted to the user running the collector process.
+In this example, the key is placed at `/opt/dynatrace-bindplane-otel-collector/sa.json` and its permissions are restricted to the `dbdot` user, which owns the install directory. Write it as that user, so that root never writes into a directory the `dbdot` user owns:
 
 ```shell
-sudo cp sa.json /opt/dynatrace-bindplane-otel-collector/sa.json
-sudo chown dbdot: /opt/dynatrace-bindplane-otel-collector/sa.json
-sudo chmod 0400 /opt/dynatrace-bindplane-otel-collector/sa.json
+sudo cat sa.json | sudo runuser -u dbdot -- sh -c 'umask 077 && cat > /opt/dynatrace-bindplane-otel-collector/sa.json'
 ```
  
 Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable by creating a systemd override. A systemd override allows users to modify the systemd service configuration without modifying the service directly. This allows package upgrades to happen seamlessly. You can learn more about systemd units and overrides here.

@@ -17,10 +17,11 @@
 package packaging
 
 // Expected state of a system with the package installed using the default
-// package overrides (DBDOT_USER=dbdot, DBDOT_GROUP=dbdot, DBDOT_UNPRIVILEGED=false,
-// DBDOT_CONFIG_HOME=/opt/dynatrace-bindplane-otel-collector). installExpect holds what
-// changes with DBDOT_UNPRIVILEGED=true. The values are derived from the nfpm
-// contents in .goreleaser.yml and scripts/package/*.sh.
+// package overrides (DBDOT_USER=dbdot, DBDOT_GROUP=dbdot,
+// DBDOT_CONFIG_HOME=/opt/dynatrace-bindplane-otel-collector). installExpect
+// holds what changes with DBDOT_UNPRIVILEGED, which defaults to true on a new
+// install and keeps the value of an existing install. The values are derived
+// from the nfpm contents in .goreleaser.yml and scripts/package/*.sh.
 
 const (
 	installDir  = "/opt/dynatrace-bindplane-otel-collector"
@@ -41,6 +42,10 @@ const (
 	// unprivilegedOverride is the package override line that runs the
 	// service as runtimeUser.
 	unprivilegedOverride = "DBDOT_UNPRIVILEGED=true"
+
+	// rootOverride is the package override line that runs the service as
+	// root.
+	rootOverride = "DBDOT_UNPRIVILEGED=false"
 
 	// standaloneLogLine is logged by the collector at startup when no
 	// manager.yaml is present.
@@ -111,7 +116,8 @@ type installExpect struct {
 	absent []string
 }
 
-// privilegedInstall is the expected state with the default overrides.
+// privilegedInstall is the expected state with rootOverride, or after an
+// upgrade of an install that ran as root.
 var privilegedInstall = installExpect{
 	user: "root",
 	absent: []string{
@@ -121,7 +127,8 @@ var privilegedInstall = installExpect{
 	},
 }
 
-// unprivilegedInstall is the expected state with unprivilegedOverride.
+// unprivilegedInstall is the expected state of a new install with the default
+// overrides or unprivilegedOverride.
 var unprivilegedInstall = installExpect{
 	user: runtimeUser,
 	tree: map[string]fileEntry{

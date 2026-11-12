@@ -36,14 +36,16 @@ import (
 // Actions are the scenarios the suite can run. Each one ends with the
 // package being removed, see scenario.uninstall.
 const (
-	actionInstall             = "install"
-	actionUpgrade             = "upgrade"
-	actionInstallUnprivileged = "install_unprivileged"
-	actionRefusePrivileged    = "refuse_privileged"
-	actionReinstall           = "reinstall_unprivileged"
+	actionInstall            = "install"
+	actionUpgrade            = "upgrade"
+	actionInstallRoot        = "install_root"
+	actionRefusePrivileged   = "refuse_privileged"
+	actionReinstall          = "reinstall_unprivileged"
+	actionReinstallLeftovers = "reinstall_leftovers"
+	actionRevertDropIn       = "revert_dropin"
 )
 
-var actions = []string{actionInstall, actionUpgrade, actionInstallUnprivileged, actionRefusePrivileged, actionReinstall}
+var actions = []string{actionInstall, actionUpgrade, actionInstallRoot, actionRefusePrivileged, actionReinstall, actionReinstallLeftovers, actionRevertDropIn}
 
 var (
 	distroFlag = flag.String("distro", "", "comma separated distros to test, from distros_test.go (default all)")
@@ -107,10 +109,10 @@ func TestPackages(t *testing.T) {
 					})
 				}
 			}
-			if runActions[actionInstallUnprivileged] {
-				t.Run(actionInstallUnprivileged, func(t *testing.T) {
+			if runActions[actionInstallRoot] {
+				t.Run(actionInstallRoot, func(t *testing.T) {
 					t.Parallel()
-					s.installUnprivileged(t)
+					s.installRoot(t)
 				})
 			}
 			if runActions[actionRefusePrivileged] {
@@ -123,6 +125,18 @@ func TestPackages(t *testing.T) {
 				t.Run(actionReinstall, func(t *testing.T) {
 					t.Parallel()
 					s.reinstallUnprivileged(t)
+				})
+			}
+			if runActions[actionReinstallLeftovers] {
+				t.Run(actionReinstallLeftovers, func(t *testing.T) {
+					t.Parallel()
+					s.reinstallLeftovers(t)
+				})
+			}
+			if runActions[actionRevertDropIn] {
+				t.Run(actionRevertDropIn, func(t *testing.T) {
+					t.Parallel()
+					s.revertDropIn(t)
 				})
 			}
 		})
