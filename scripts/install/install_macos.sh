@@ -16,14 +16,13 @@
 set -e
 
 # Collector Constants
-SERVICE_NAME="com.dynatrace.bindplane.otel.collector"
 DOWNLOAD_BASE="https://dbdot.bindplane.com"
+
+# The build of DBDOT to install, set with --build. set_build sets the names that depend on it.
+build=full
 
 # Script Constants
 PREREQS="printf sed uname tr find grep"
-TMP_DIR="${TMPDIR:-"/tmp/"}dynatrace-bindplane-otel-collector" # Allow this to be overriden by cannonical TMPDIR env var
-INSTALL_DIR="/opt/dynatrace-bindplane-otel-collector"
-MANAGEMENT_YML_PATH="$INSTALL_DIR/manager.yaml"
 SCRIPT_NAME="$0"
 INDENT_WIDTH='  '
 indent=""
@@ -179,13 +178,19 @@ Usage:
   $(fg_yellow '-r, --uninstall')
       Stops the agent services and uninstalls the agent.
 
+  $(fg_yellow '--build')
+      Defines the build of DBDOT to install or uninstall: 'full' or 'slim'.
+      If not provided, this will default to 'full'.
+      Builds other than 'full' require '--version'.
+      Example: '--build slim -v 1.2.12' will install 1.2.12 of the slim build.
+
   $(fg_yellow '-l, --url')
       Defines the URL that the components will be downloaded from.
       If not provided, this will default to '$DOWNLOAD_BASE'.
       Example: '-l http://my.domain.org/dynatrace-bindplane-otel-collector' will download from there.
 
   $(fg_yellow '-b, --base-url')
-      Defines the base of the download URL as '{base_url}/v{version}/dynatrace-bindplane-otel-collector-v{version}-darwin-{os_arch}.tar.gz'.
+      Defines the base of the download URL as '{base_url}/v{version}/{package_name}-v{version}-darwin-{os_arch}.tar.gz'.
       If not provided, this will default to '$DOWNLOAD_BASE'.
       Example: '-b http://my.domain.org/dynatrace-bindplane-otel-collector/binaries' will be used as the base of the download URL.
    
@@ -278,6 +283,21 @@ succeeded()
 failed()
 {
   error "Failed!"
+}
+
+# set_build sets the names of the selected build. A build's archive, binary and
+# install directory are named after its package, so adding a build is one case line.
+set_build()
+{
+  case "$build" in
+    full) PACKAGE_NAME="dynatrace-bindplane-otel-collector" SERVICE_NAME="com.dynatrace.bindplane.otel.collector" ;;
+    slim) PACKAGE_NAME="dynatrace-bindplane-otel-collector-slim" SERVICE_NAME="com.dynatrace.bindplane.otel.collector-slim" ;;
+    *) error_exit "$LINENO" "Unknown build '$build'. Supported builds: full, slim" ;;
+  esac
+
+  TMP_DIR="${TMPDIR:-"/tmp/"}$PACKAGE_NAME" # Allow this to be overriden by cannonical TMPDIR env var
+  INSTALL_DIR="/opt/$PACKAGE_NAME"
+  MANAGEMENT_YML_PATH="$INSTALL_DIR/manager.yaml"
 }
 
 # This will check all prerequisites before running an installation.
@@ -429,7 +449,7 @@ set_download_urls()
       base_url=$DOWNLOAD_BASE
     fi
 
-    collector_download_url="$base_url/v$version/dynatrace-bindplane-otel-collector-v${version}-darwin-${os_arch}.tar.gz"
+    collector_download_url="$base_url/v$version/${PACKAGE_NAME}-v${version}-darwin-${os_arch}.tar.gz"
   else
     collector_download_url="$url"
   fi
@@ -601,7 +621,7 @@ display_results()
     info "Start Command:      $(fg_cyan "sudo launchctl load /Library/LaunchDaemons/$SERVICE_NAME.plist")$(reset)"
     info "Stop Command:       $(fg_cyan "sudo launchctl unload /Library/LaunchDaemons/$SERVICE_NAME.plist")$(reset)"
     info "Logs Command:       $(fg_cyan "sudo tail -F $INSTALL_DIR/log/collector.log")$(reset)"
-    info "Uninstall Command:  $(fg_cyan "sudo sh -c \"\$(curl -fsSlL ${DOWNLOAD_BASE}/v${version}/install_macos.sh)\" install_macos.sh -r")$(reset)"
+    info "Uninstall Command:  $(fg_cyan "sudo sh -c \"\$(curl -fsSlL ${DOWNLOAD_BASE}/v${version}/install_macos.sh)\" install_macos.sh -r --build ${build}")$(reset)"
     decrease_indent
 
     banner 'Support'
@@ -622,7 +642,7 @@ uninstall()
   banner "Uninstalling DBDOT"
   increase_indent
 
-  if [ ! -f "$INSTALL_DIR/dynatrace-bindplane-otel-collector" ]; then
+  if [ ! -f "$INSTALL_DIR/$PACKAGE_NAME" ]; then
     # If the agent binary is not present, we assume that the agent is not installed
     # In this case, do nothing.
     info "No install detected, skipping..."
@@ -655,7 +675,8 @@ uninstall()
   succeeded
 
   info "Removing any existing log files"
-  rm -f "/var/log/dynatrace_bindplane_otel_collector.err" || error_exit "$LINENO" "Failed to remove /var/log/dynatrace_bindplane_otel_collector.err"
+  err_log="/var/log/$(printf '%s' "$PACKAGE_NAME" | tr - _).err"
+  rm -f "$err_log" || error_exit "$LINENO" "Failed to remove $err_log"
   succeeded
 
   decrease_indent
@@ -680,10 +701,11 @@ main()
           url=$2 ; shift 2 ;;
         -v|--version)
           version=$2 ; shift 2 ;;
+        --build)
+          build=$2 ; shift 2 ;;
         -r|--uninstall)
-          uninstall
-          exit 0
-          ;;
+          # Runs after parsing, so --build may come after it
+          uninstall_requested="true" ; shift 1 ;;
         -h|--help)
           usage
           exit 0
@@ -709,9 +731,22 @@ main()
     done
   fi
 
+  set_build
+
+  if [ "$uninstall_requested" = "true" ]; then
+    uninstall
+    exit 0
+  fi
+
   if [ -z "$version" ] ; then
     # shellcheck disable=SC2153
     version=$COLLECTOR_VERSION
+  fi
+
+  # ponytail: dbdot.bindplane.com/latest reports only the full build; look up other
+  # builds' latest version once the release service serves them
+  if [ -z "$version" ] && [ "$build" != "full" ]; then
+    error_exit "$LINENO" "The $build build requires --version: the latest version lookup supports only the full build"
   fi
 
   if [ -z "$version" ] ; then
