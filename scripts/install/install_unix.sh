@@ -31,11 +31,19 @@ OS_TYPE=$(uname -s)
 : "${DBDOT_USER:=dbdot}"
 : "${DBDOT_GROUP:=dbdot}"
 
-# Whether or not the collector runs as an unprivileged user.
-: "${DBDOT_UNPRIVILEGED:=false}"
+# Whether or not the collector runs as an unprivileged user. When unset, the
+# package runs a new install as DBDOT_USER and keeps the user of an existing
+# install.
 
 # Agent Constants
 PACKAGE_NAME="dynatrace-bindplane-otel-collector"
+# The systemd unit and the User= drop-in the package writes. The unit runs the
+# collector as DBDOT_USER, and root installs add the drop-in. Releases that ran
+# the collector as root by default wrote User=root in the unit, and the drop-in
+# for other users. The package keeps an existing install running as the user
+# in the drop-in when there is one, or else the user in the unit.
+SYSTEMD_UNIT_PATH="/usr/lib/systemd/system/${PACKAGE_NAME}.service"
+SYSTEMD_USER_DROPIN_PATH="/etc/systemd/system/${PACKAGE_NAME}.service.d/10-package-customizations-username.conf"
 DOWNLOAD_BASE="https://dbdot.bindplane.com"
 
 # Determine the service manager for prereqs. AIX always uses SRC, even when a
@@ -910,15 +918,37 @@ resolve_alternate_cmd()
   esac
 }
 
-# This warns when DBDOT_UNPRIVILEGED is true but sudo is missing. The updater
-# needs sudo to stop and start the service, so remote updates would fail.
+# This warns when the collector will run as an unprivileged user but sudo is
+# missing. The updater needs sudo to stop and start the service, so remote
+# updates would fail. When DBDOT_UNPRIVILEGED is unset, the collector runs as
+# DBDOT_USER, unless the package keeps an existing root install running as
+# root.
 unprivileged_check()
 {
-  if [ "$DBDOT_UNPRIVILEGED" != "true" ] || [ "$SVC_PRE" != "systemctl" ]; then
+  if [ "$SVC_PRE" != "systemctl" ]; then
     return 0
   fi
+  case "$DBDOT_UNPRIVILEGED" in
+    true) ;;
+    "")
+      if [ -f "$SYSTEMD_UNIT_PATH" ]; then
+        user_file="$SYSTEMD_UNIT_PATH"
+        if [ -f "$SYSTEMD_USER_DROPIN_PATH" ]; then
+          user_file="$SYSTEMD_USER_DROPIN_PATH"
+        fi
+        installed_user=$(sed -n 's/^[[:space:]]*User=[[:space:]]*//p' "$user_file" | tail -n 1)
+        # systemd runs a service without User= as root.
+        if [ -z "$installed_user" ] || [ "$installed_user" = "root" ]; then
+          return 0
+        fi
+      fi
+      ;;
+    *)
+      return 0
+      ;;
+  esac
 
-  info "DBDOT_UNPRIVILEGED is set to true, checking for sudo..."
+  info "The collector runs as $COLLECTOR_USER, checking for sudo..."
   if ! command -v sudo >/dev/null 2>&1 || ! command -v visudo >/dev/null 2>&1; then
     warn "sudo is not installed. The collector will run, but remote updates will fail until sudo is installed and the collector is reinstalled or upgraded."
   fi
