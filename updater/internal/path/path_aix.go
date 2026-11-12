@@ -15,18 +15,28 @@
 package path
 
 import (
+	"os"
+	"os/exec"
+
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	"go.uber.org/zap"
 )
 
-// AIXInstallDir is the path to the install directory on AIX.
+// AIXInstallDir is the default install directory on AIX.
 var AIXInstallDir = "/opt/" + distro.Name()
 
 // DefaultConfigOverrides is not used on AIX, but is required
 // by InstallDir.
 var DefaultConfigOverrides = []string{}
 
-// InstallDir returns the filepath to the install directory
-func InstallDir(_ *zap.Logger, _ []string) (string, error) {
-	return AIXInstallDir, nil
+// InstallDir returns the filepath to the install directory: the collector home
+// from the SRC environment, then the directory of the program the SRC subsystem
+// runs, then the default.
+func InstallDir(logger *zap.Logger, _ []string) (string, error) {
+	// #nosec G204 -- fixed command, subsystem name stamped at link time
+	out, err := exec.Command("lssrc", "-S", "-s", distro.AIXSubsystem()).Output()
+	if err != nil {
+		logger.Debug("Could not read the SRC subsystem definition", zap.Error(err))
+	}
+	return srcInstallDir(os.Getenv("BINDPLANE_COLLECTOR_HOME"), out, AIXInstallDir), nil
 }
