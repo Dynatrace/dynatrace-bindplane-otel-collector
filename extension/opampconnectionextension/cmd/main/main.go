@@ -37,9 +37,17 @@ import (
 	_ "time/tzdata"
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/runtime"
-	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/spf13/pflag"
+)
+
+// Build-info stamps, set at link time via -ldflags "-X main.version=...".
+// The collector version also reaches components as component.BuildInfo.Version
+// through runtime.Options.Version.
+var (
+	version = "latest"  // Semantic version, or "latest" by default
+	gitHash = "unknown" // Commit hash from which this build was generated
+	date    = "unknown" // Date the build was generated
 )
 
 // Env-var fallbacks for paths (matches legacy cmd/collector behavior).
@@ -61,9 +69,9 @@ func main() {
 	pflag.Parse()
 
 	if *showVersion {
-		fmt.Println("dynatrace-bindplane-otel-collector version", version.Version())
-		fmt.Println("commit:", version.GitHash())
-		fmt.Println("built at:", version.Date())
+		fmt.Println("dynatrace-bindplane-otel-collector version", version)
+		fmt.Println("commit:", gitHash)
+		fmt.Println("built at:", date)
 		return
 	}
 
@@ -74,7 +82,7 @@ func main() {
 
 	runtime.Run(runtime.Options{
 		Factories:                  factories,
-		Version:                    version.Version(),
+		Version:                    version,
 		CollectorConfigPaths:       *collectorConfigPaths,
 		ManagerConfigPath:          *managerConfigPath,
 		LoggingConfigPath:          *loggingConfigPath,
@@ -100,11 +108,11 @@ func reportLegacyOpAMPConnectionNamespace(ac *protobufs.AvailableComponents) {
 		if kv.GetKey() != "code.namespace" {
 			continue
 		}
-		_, version, ok := strings.Cut(kv.GetValue().GetStringValue(), " ")
+		_, moduleVersion, ok := strings.Cut(kv.GetValue().GetStringValue(), " ")
 		if !ok {
 			return
 		}
-		legacy := legacyOpAMPConnectionModule + " " + version
+		legacy := legacyOpAMPConnectionModule + " " + moduleVersion
 		ext.Metadata = append(ext.Metadata, &protobufs.KeyValue{
 			Key:   "code.namespace",
 			Value: &protobufs.AnyValue{Value: &protobufs.AnyValue_StringValue{StringValue: legacy}},
