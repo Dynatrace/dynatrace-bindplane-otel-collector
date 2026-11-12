@@ -192,7 +192,7 @@ func redirectStderr() error {
 		return errors.New("BINDPLANE_COLLECTOR_HOME environment variable not set")
 	}
 
-	path := filepath.Clean(filepath.Join(homeDir, "log", stderrLogName))
+	path := filepath.Clean(stderrFilePath(homeDir))
 
 	// Roll any previous contents to a backup so the file can't accumulate
 	// across service restarts. Must happen before the file is opened below.
