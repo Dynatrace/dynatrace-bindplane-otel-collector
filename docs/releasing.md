@@ -135,6 +135,6 @@ To test the Docker release of the full build, run the `release-containers-test` 
   - Attests the checksums and the image digests
   - Publishes the GitHub release as a pre-release and uploads the artifact bundles. The changelog lists the commits since the previous slim tag. The `slim/` prefix is not part of the version in file names (`dynatrace-bindplane-otel-collector-slim-1.2.3-rc.1-*`).
 
-There is no Windows MSI and no install script for the slim build, and the slim build never moves the `latest` image tag of the full build, it has its own `latest-slim` tag. The slim artifacts are not uploaded to GCS yet, because the bucket for them does not exist. The `release-slim` workflow does not authenticate to GCP, and the goreleaser config has no `blobs` section until the bucket exists.
+There is no Windows MSI and no install script for the slim build, and the slim build never moves the `latest` image tag of the full build, it has its own `latest-slim` tag. The slim artifacts are not uploaded to GCS yet. They will go to the full build's bucket (`dbdot-release`) in a directory of their own. Until then, the `release-slim` workflow does not authenticate to GCP and the goreleaser config has no `blobs` section.
 
 Verifying the keyless signatures is described in [Verifying Artifact Signatures](./verify-signature.md).
