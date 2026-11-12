@@ -2,6 +2,13 @@ version: 2
 
 project_name: dynatrace-bindplane-otel-collector-slim
 
+# The slim build is released from slim RC tags (slim/vX.Y.Z-rc.N). The prefix
+# is stripped from {{ .Version }}, and only slim tags are considered when looking
+# up the previous tag for the changelog.
+# https://goreleaser.com/customization/monorepo/
+monorepo:
+  tag_prefix: slim/
+
 # Releases the slim build: archives, Linux packages, SBOMs, container images,
 # checksums and their signatures. Mirrors the layout of the OpenTelemetry
 # Collector Releases configs and the Dynatrace OTel Collector config, with two
@@ -385,7 +392,7 @@ docker_digest:
 # https://goreleaser.com/customization/release/
 release:
   draft: false
-  # RC tags (vX.Y.Z-rc.N) are published as prereleases.
+  # Slim RC tags (slim/vX.Y.Z-rc.N) are published as prereleases.
   prerelease: auto
 
 # TODO: upload to a GCS bucket once the one for the slim build exists, with a
