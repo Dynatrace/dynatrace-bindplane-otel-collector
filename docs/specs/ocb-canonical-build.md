@@ -113,7 +113,7 @@ ocb's default `main.go`, no overlay. The binary is a vanilla otel-collector with
 
 Done since this spec was written:
 
-- **Goreleaser config.** Both `.goreleaser.yml` and `.goreleaser.arm64.yml` now use `builder: prebuilt` over binaries produced by the ocb-driven `make` targets in a before hook.
+- **Goreleaser config.** Both `manifests/dynatrace-bindplane-otel-collector/.goreleaser.yml` and `manifests/dynatrace-bindplane-otel-collector/.goreleaser.arm64.yml` now use `builder: prebuilt` over binaries produced by the ocb-driven `make` targets in a before hook.
 - **CI workflows in `.github/workflows/`.** Build jobs compile via the manifest (`make install-ocb` + the ocb-driven targets), and `verify-manifest` runs on every PR that touches a manifest, a `go.mod`/`go.sum`, the Makefile, or the v1 entry point.
 - **Build-info ldflags parity.** `AGENT_LDFLAGS` / `UPDATER_LDFLAGS` stamp version, git hash, and build date.
 
