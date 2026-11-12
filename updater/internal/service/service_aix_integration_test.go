@@ -40,7 +40,7 @@ func TestAIXServiceLifecycle(t *testing.T) {
 	require.NoError(t, os.WriteFile(envFile, []byte("BINDPLANE_COLLECTOR_HOME="+installDir+" BINDPLANE_COLLECTOR_STORAGE="+filepath.Join(installDir, "storage")+"\n"), 0600))
 
 	a := aixService{
-		src:    srcService{subsystem: "bp1177test", group: "bp1177tg", installDir: installDir, envFile: envFile},
+		src:    srcService{subsystem: "bp1177test", group: "bp1177tg", binary: "dynatrace-bindplane-otel-collector", installDir: installDir, envFile: envFile},
 		poller: newSRCPoller("bp1177test"),
 		logger: zaptest.NewLogger(t),
 	}

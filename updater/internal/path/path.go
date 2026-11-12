@@ -17,7 +17,13 @@ package path
 
 import (
 	"path/filepath"
+
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 )
+
+// SystemdFilePath is the path for systemd service. Only used on Linux, but
+// defined for every OS because the updater package reads it on all of them.
+var SystemdFilePath = "/usr/lib/systemd/system/" + distro.Name() + ".service"
 
 // TempDir gets the path to the "tmp" dir, used for staging updates & backups
 func TempDir(installDir string) string {

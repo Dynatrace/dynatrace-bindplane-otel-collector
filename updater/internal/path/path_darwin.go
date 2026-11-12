@@ -14,10 +14,13 @@
 
 package path
 
-import "go.uber.org/zap"
+import (
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
+	"go.uber.org/zap"
+)
 
 // DarwinInstallDir is the path to the install directory on Darwin.
-const DarwinInstallDir = "/opt/dynatrace-bindplane-otel-collector"
+var DarwinInstallDir = "/opt/" + distro.Name()
 
 // DefaultConfigOverrides is not used on Darwin, but is required
 // by InstallDir.

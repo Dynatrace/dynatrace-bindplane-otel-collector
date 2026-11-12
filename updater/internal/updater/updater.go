@@ -29,6 +29,7 @@ import (
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/install"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/rollback"
@@ -36,12 +37,6 @@ import (
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/state"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"go.uber.org/zap"
-)
-
-const (
-	// DefaultSystemdUnitFilePath is the default path to the systemd unit file
-	// for the collector service.
-	DefaultSystemdUnitFilePath = "/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
 )
 
 // Updater is a struct that can be used to perform a collector update
@@ -71,14 +66,14 @@ func NewUpdater(logger *zap.Logger, installDir string) (*Updater, error) {
 		rollbacker:               rollback.NewRollbacker(logger, installDir),
 		monitor:                  monitor,
 		logger:                   logger,
-		installedSystemdUnitPath: DefaultSystemdUnitFilePath,
+		installedSystemdUnitPath: path.SystemdFilePath,
 	}, nil
 }
 
 // readGroupFromSystemdFile reads the systemd unit file and extracts the Group value.
 func (u *Updater) readGroupFromSystemdFile() (string, error) {
 	// #nosec G304 - systemdUnitFilePath is not user configurable, and comes
-	// from the constant DefaultSystemdUnitFilePath. Unit tests will override
+	// from path.SystemdFilePath. Unit tests will override
 	// this path to a test file.
 	fileContent, err := os.ReadFile(u.installedSystemdUnitPath)
 	if err != nil {
@@ -98,8 +93,8 @@ func (u *Updater) readGroupFromSystemdFile() (string, error) {
 // generateLinuxServiceFiles writes necessary service files to the install directory
 // to be copied to their final locations by the updater.
 func (u *Updater) generateLinuxServiceFiles() error {
-	systemdServiceFilePath := filepath.Join(u.installDir, "install", "dynatrace-bindplane-otel-collector.service")
-	initServiceFilePath := filepath.Join(u.installDir, "install", "dynatrace-bindplane-otel-collector")
+	systemdServiceFilePath := filepath.Join(u.installDir, "install", distro.Name()+".service")
+	initServiceFilePath := filepath.Join(u.installDir, "install", distro.Name())
 
 	// Install dir needs to be pre-created if it does not exist already.
 	if err := os.MkdirAll(filepath.Dir(systemdServiceFilePath), 0750); err != nil {
@@ -113,41 +108,55 @@ func (u *Updater) generateLinuxServiceFiles() error {
 	}
 
 	// Get the install directory from path package. This will default
-	// to /opt/dynatrace-bindplane-otel-collector unless DBDOT_CONFIG_HOME is set
-	// in a package config file such as /etc/default/dynatrace-bindplane-otel-collector
-	// or /etc/sysconfig/dynatrace-bindplane-otel-collector.
+	// to /opt/<distro name> unless the distro's config home key is set
+	// in a package config file such as /etc/default/<distro name>
+	// or /etc/sysconfig/<distro name>.
 	installDir, err := path.InstallDir(u.logger, path.DefaultConfigOverrides)
 	if err != nil {
 		return fmt.Errorf("read working directory from systemd file %s: %w", u.installedSystemdUnitPath, err)
 	}
 
 	params := map[string]string{
-		"Group":      group,
-		"InstallDir": installDir,
+		"Group":       group,
+		"InstallDir":  installDir,
+		"Name":        distro.Name(),
+		"Description": distro.DisplayName(),
 	}
 
-	// Render the systemd service template with the Group value
-	systemdTemplate, err := template.New("systemdService").Parse(systemdServiceTemplate)
+	systemdServiceContent, err := renderTemplate(systemdServiceTemplate, params)
 	if err != nil {
-		return fmt.Errorf("parse systemd service template: %w", err)
+		return fmt.Errorf("render systemd service template: %w", err)
 	}
 
-	var systemdServiceContent bytes.Buffer
-	if err := systemdTemplate.Execute(&systemdServiceContent, params); err != nil {
-		return fmt.Errorf("execute systemd service template: %w", err)
+	initScriptContent, err := renderTemplate(initScriptTemplate, params)
+	if err != nil {
+		return fmt.Errorf("render init.d script template: %w", err)
 	}
 
 	// #nosec G306 - Systemd service file should have 0640 permissions
-	if err := os.WriteFile(systemdServiceFilePath, systemdServiceContent.Bytes(), 0640); err != nil {
+	if err := os.WriteFile(systemdServiceFilePath, systemdServiceContent, 0640); err != nil {
 		return fmt.Errorf("write systemd service file: %w", err)
 	}
 
 	// #nosec G306 - init.d service file should have 0755 permissions
-	if err := os.WriteFile(initServiceFilePath, []byte(initScriptTemplate), 0755); err != nil {
+	if err := os.WriteFile(initServiceFilePath, initScriptContent, 0755); err != nil {
 		return fmt.Errorf("write init.d script file: %w", err)
 	}
 
 	return nil
+}
+
+// renderTemplate renders a service file template with params.
+func renderTemplate(text string, params map[string]string) ([]byte, error) {
+	tmpl, err := template.New("").Option("missingkey=error").Parse(text)
+	if err != nil {
+		return nil, fmt.Errorf("parse: %w", err)
+	}
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, params); err != nil {
+		return nil, fmt.Errorf("execute: %w", err)
+	}
+	return buf.Bytes(), nil
 }
 
 // Update performs the update of the collector binary

@@ -65,8 +65,11 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 #                      other build dirs: the manifests' local replaces are
 #                      written relative to it (../extension/...).
 #   AGENT_NAME         populates component.BuildInfo and is the OpAMP agent type
-#                      (service.name) Bindplane uses to identify the build.
-#   AGENT_DESCRIPTION  populates component.BuildInfo.
+#                      (service.name) Bindplane uses to identify the build. Also
+#                      the updater's macOS launchd label (<AGENT_NAME>.plist).
+#   AGENT_DESCRIPTION  populates component.BuildInfo. Also the updater's Windows
+#                      product name: must equal "product" in windows/wix.json,
+#                      or Windows updates can't find the install.
 #   AGENT_ARTIFACT     base name of the binary written to $(OUTDIR).
 #   PRODUCT_NAME       product slug (see below).
 #   DISTRO_BUILD_TAGS  extra build tags for the distro, added to AGENT_BUILD_TAGS.
@@ -94,14 +97,22 @@ $(error Unknown DISTRO '$(DISTRO)'. Supported: full, slim)
 endif
 
 # PRODUCT_NAME is the product slug: the OpAMP package key the collector and
-# updater agree on, the User-Agent prefix, and (underscored) the stderr log
-# file name that the installers and support scripts reference. Set per DISTRO
-# above.
+# updater agree on, the User-Agent prefix, (underscored) the stderr log file
+# name that the installers and support scripts reference, and the updater's
+# install dir, binary and service names. Set per DISTRO above.
 STDERR_LOG_NAME = $(subst -,_,$(PRODUCT_NAME)).err
 OPAMP_EXT_MODULE = github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension
 OPAMP_EXT_COLLECTOR_PKG = $(OPAMP_EXT_MODULE)/internal/collector
 OPAMP_EXT_SERVICE_PKG = $(OPAMP_EXT_MODULE)/internal/service
 OPAMP_EXT_PACKAGESTATE_PKG = $(OPAMP_EXT_MODULE)/packagestate
+UPDATER_DISTRO_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro
+
+# Updater values shared by both DBDOT builds. They must match the installers
+# (scripts/package/postinstall.sh, scripts/install/install_unix.sh).
+# ponytail: move into the DISTRO block when a distro needs different values.
+CONFIG_HOME_ENV = DBDOT_CONFIG_HOME
+AIX_SRC_SUBSYSTEM = dbdot-otel-collector
+AIX_SRC_GROUP = dbdotcollector
 
 # AGENT_LDFLAGS stamps version + git hash + build date into the v1 collector
 # binaries (both consume github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version),
@@ -121,11 +132,20 @@ AGENT_BUILD_TAGS = embed_library $(DISTRO_BUILD_TAGS)
 
 # UPDATER_LDFLAGS stamps the same values into the updater binary. The package
 # name must match the collector's or the updater never sees the install finish.
+# The distro values (see updater/internal/distro) must match the packaging, or
+# the updater can't find the install it updates. -X silently ignores a
+# misspelled name, so check `updater --version` after renaming anything here.
 UPDATER_LDFLAGS = -s -w \
 	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.version=$(VERSION) \
 	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.gitHash=$(GIT_HASH) \
 	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.date=$(BUILD_DATE) \
-	-X $(OPAMP_EXT_PACKAGESTATE_PKG).collectorPackageName=$(PRODUCT_NAME)
+	-X $(OPAMP_EXT_PACKAGESTATE_PKG).collectorPackageName=$(PRODUCT_NAME) \
+	-X $(UPDATER_DISTRO_PKG).name=$(PRODUCT_NAME) \
+	-X '$(UPDATER_DISTRO_PKG).displayName=$(AGENT_DESCRIPTION)' \
+	-X $(UPDATER_DISTRO_PKG).launchdLabel=$(AGENT_NAME) \
+	-X $(UPDATER_DISTRO_PKG).configHomeEnv=$(CONFIG_HOME_ENV) \
+	-X $(UPDATER_DISTRO_PKG).aixSubsystem=$(AIX_SRC_SUBSYSTEM) \
+	-X $(UPDATER_DISTRO_PKG).aixGroup=$(AIX_SRC_GROUP)
 
 .PHONY: version
 version:
