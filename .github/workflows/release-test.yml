@@ -163,13 +163,6 @@ jobs:
             du -sh "$dir"
           done
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts.tar.gz
-          path: dynatrace-bindplane-otel-collector-${{ github.event.inputs.version }}-artifacts.tar.gz
-          retention-days: 1
-
       - name: Upload Linux build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -281,22 +274,22 @@ jobs:
           retention-days: 1
 
   # The rehearsal runs goreleaser with --skip=publish, so there is no GitHub
-  # release to read. Verify the artifact bundle the release-test job uploads.
+  # release to read. Verify the Windows bundle the release-test job uploads.
   verify-windows-release:
     needs: [release-test]
     runs-on: windows-2022
     steps:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Download Artifact Bundle
+      - name: Download Windows Artifact Bundle
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: dynatrace-bindplane-otel-collector-${{ inputs.version }}-artifacts.tar.gz
+          name: dynatrace-bindplane-otel-collector-${{ inputs.version }}-artifacts-windows.tar.gz
           path: bundle
-      - name: Unpack Artifact Bundle
+      - name: Unpack Windows Artifact Bundle
         run: |
           mkdir artifacts
-          tar -xzvf "bundle/dynatrace-bindplane-otel-collector-$env:VERSION-artifacts.tar.gz" -C artifacts
+          tar -xzvf "bundle/dynatrace-bindplane-otel-collector-$env:VERSION-artifacts-windows.tar.gz" -C artifacts
         shell: pwsh
         env:
           VERSION: ${{ inputs.version }}
