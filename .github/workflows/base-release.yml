@@ -105,9 +105,19 @@ jobs:
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     env:
-      VERSION: ${{ inputs.version || github.ref_name }}
+      # The release tag. Slim tags carry a "slim/" prefix (slim/vX.Y.Z-rc.N).
+      TAG: ${{ inputs.version || github.ref_name }}
     steps:
+      # The tag without the "slim/" prefix, for file names. goreleaser strips the
+      # prefix from {{ .Version }} through monorepo.tag_prefix the same way.
+      - name: Resolve version
+        id: version
+        run: |
+          echo "VERSION=${TAG#slim/}" >> "$GITHUB_ENV"
+          echo "version=${TAG#slim/}" >> "$GITHUB_OUTPUT"
       - name: Redirect temp directories
         run: |
           echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
@@ -261,7 +271,7 @@ jobs:
           # A rehearsal has no OIDC identity for keyless signing, so it skips signing.
           args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }}${{ inputs.dry-run && inputs.cosign-mode == 'keyless' && ' --skip=sign' || '' }} --config manifests/${{ inputs.product }}/.goreleaser.yml
         env:
-          GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
+          GORELEASER_CURRENT_TAG: ${{ env.TAG }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
@@ -315,7 +325,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           files: "${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz*"
-          release-tag: ${{ env.VERSION }}
+          release-tag: ${{ env.TAG }}
 
       # A rehearsal has no release to read the bundles from, so the signature
       # verification of the verify-windows-release job reads them from here.
@@ -453,7 +463,7 @@ jobs:
       - name: Attest binary artifacts
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
-          subject-checksums: ./subjects/${{ inputs.product }}-${{ inputs.version || github.ref_name }}-SHA256SUMS
+          subject-checksums: ./subjects/${{ inputs.product }}-${{ needs.release.outputs.version }}-SHA256SUMS
       - name: Attest container images
         if: ${{ inputs.containers }}
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
