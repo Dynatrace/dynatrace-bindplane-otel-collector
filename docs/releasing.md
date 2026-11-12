@@ -85,7 +85,7 @@ PR title: `chore: vX.Y.Z release prep`. Merge it.
 
    This tags and pushes `vX.Y.Z`, plus `<module dir>/vX.Y.Z` for every in-tree module. Only `vX.Y.Z` triggers the `release-full` workflow. Slim RC tags (`slim/vX.Y.Z-rc.N`) are accepted by `make release` but only tag the root, since they are reserved for the slim build.
 
-2. The `release-full` workflow (a thin caller of the reusable `base-release` workflow) runs on the tag. It builds the signed Windows MSI, then goreleaser builds every platform, creates a GitHub pre-release with a changelog from commit titles since the previous full release (slim tags are ignored), attaches the packages, and uploads them to Google Cloud Storage.
+2. The `release-full` workflow (a thin caller of the reusable `base-release` workflow) runs on the tag. It builds the signed Windows MSI, then goreleaser builds every platform, creates a GitHub pre-release with a changelog from commit titles since the previous full release (slim tags are ignored), attaches the packages, and uploads them to Google Cloud Storage. Everything is signed keyless with cosign (a `*.sigstore.json` bundle next to each signed file), so no signing key has to be configured, see [Verifying Artifact Signatures](./verify-signature.md).
 
 3. When `release-full` is green, run the `release-containers` workflow on the `vX.Y.Z` tag, not on a branch, and enter the same tag as the version input. It builds the images and pushes them to `ghcr.io/dynatrace/dynatrace-bindplane-otel-collector`.
 
@@ -115,7 +115,7 @@ Then edit the GitHub release, clear the pre-release flag, and set it as the late
 1. Run `make install-tools`
 2. Run `make release-test`, or `make release-test DISTRO=slim` for the slim build. The slim snapshot skips the container images and SBOMs by default because they need docker buildx and cyclonedx-gomod, run `make release-test DISTRO=slim RELEASE_TEST_SKIP=` to include them.
 
-To rehearse a release in GitHub Actions, run the `release-test` workflow and select the `distro`. For slim, enter a `slim/vX.Y.Z-rc.N` version. It calls the same reusable `base-release` workflow as the release workflows with `dry-run` set, so goreleaser skips publishing and nothing is released. The artifact bundles are uploaded as the `artifact-bundles` workflow artifact instead. Slim skips signing in the rehearsal because keyless signing needs the identity of a real release run.
+To rehearse a release in GitHub Actions, run the `release-test` workflow and select the `distro`. For slim, enter a `slim/vX.Y.Z-rc.N` version. It calls the same reusable `base-release` workflow as the release workflows with `dry-run` set, so goreleaser skips publishing and nothing is released. The artifact bundles are uploaded as the `artifact-bundles` workflow artifact instead. The full build is signed keyless in the rehearsal as well, with the identity of the `release-test` workflow, which does not verify against the release identity in [Verifying Artifact Signatures](./verify-signature.md). Slim skips signing in the rehearsal because its container images are signed by digest, which needs them to be pushed.
 
 To test the Docker release of the full build, run the `release-containers-test` workflow with an existing release version. It runs the full build with `--skip=publish`, so nothing is pushed.
 
@@ -137,4 +137,4 @@ To test the Docker release of the full build, run the `release-containers-test` 
 
 There is no Windows MSI and no install script for the slim build, and the slim build never moves the `latest` image tag of the full build, it has its own `latest-slim` tag. The slim artifacts are not uploaded to GCS yet. They will go to the full build's bucket (`dbdot-release`) in a directory of their own. Until then, the `release-slim` workflow does not authenticate to GCP and the goreleaser config has no `blobs` section.
 
-Verifying the keyless signatures is described in [Verifying Artifact Signatures](./verify-signature.md).
+Verifying the signatures is described in [Verifying Artifact Signatures](./verify-signature.md).

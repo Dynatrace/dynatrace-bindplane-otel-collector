@@ -8,6 +8,9 @@ name: base-release
 # `attestations` and `artifact-metadata` write. A caller job's permissions are
 # the ceiling of all jobs in this workflow, so callers grant the union. Each job
 # here only requests what it needs.
+#
+# Everything is signed keyless with cosign: the workflow's OIDC token gets an
+# ephemeral certificate, there is no signing key to store.
 on:
   workflow_call:
     inputs:
@@ -39,11 +42,6 @@ on:
         required: false
         type: boolean
         default: false
-      cosign-mode:
-        description: "key signs with the cosign key file (.sig files), keyless signs with the workflow's OIDC identity (sigstore bundles) and attests the checksums and image digests"
-        required: false
-        type: string
-        default: key
       containers:
         description: "Log in to GHCR, and set up buildx and QEMU so goreleaser can push the container images"
         required: false
@@ -176,22 +174,11 @@ jobs:
         with:
           name: aix-dist
           path: aix-dist
-      - name: Install cosign
-        if: ${{ inputs.cosign-mode == 'key' }}
-        timeout-minutes: 10
-        run: bash .github/scripts/retry.sh go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
       # Keyless signing needs cosign v2+, which creates sigstore bundles.
-      - name: Install cosign (keyless)
-        if: ${{ inputs.cosign-mode == 'keyless' }}
+      - name: Install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         with:
           cosign-release: v3.1.4
-      - name: Build cosign key file
-        if: ${{ inputs.cosign-mode == 'key' }}
-        run: 'echo "$COSIGN_PRIVATE_KEY" >> cosign.key'
-        shell: bash
-        env:
-          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
       - name: Cache Goreleaser Build
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -201,16 +188,12 @@ jobs:
             ${{ runner.os }}-goreleaser-
       - name: Sign AMD64 MSI
         if: ${{ inputs.build-msi }}
-        run: cosign sign-blob --key=cosign.key --output-signature ./dynatrace-bindplane-otel-collector-amd64.msi.sig ./dynatrace-bindplane-otel-collector-amd64.msi
+        run: cosign sign-blob --bundle ./dynatrace-bindplane-otel-collector-amd64.msi.sigstore.json --yes ./dynatrace-bindplane-otel-collector-amd64.msi
         shell: bash
-        env:
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
       - name: Sign ARM64 MSI
         if: ${{ inputs.build-msi }}
-        run: cosign sign-blob --key=cosign.key --output-signature ./dynatrace-bindplane-otel-collector-arm64.msi.sig ./dynatrace-bindplane-otel-collector-arm64.msi
+        run: cosign sign-blob --bundle ./dynatrace-bindplane-otel-collector-arm64.msi.sigstore.json --yes ./dynatrace-bindplane-otel-collector-arm64.msi
         shell: bash
-        env:
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
       # Staged into place by goreleaser's overlay before-hook, not here:
       # goreleaser validates git state before running its hooks, so touching
       # the tracked script from a workflow step fails the release with
@@ -268,20 +251,20 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          # A rehearsal has no OIDC identity for keyless signing, so it skips signing.
-          args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }}${{ inputs.dry-run && inputs.cosign-mode == 'keyless' && ' --skip=sign' || '' }} --config manifests/${{ inputs.product }}/.goreleaser.yml
+          # Container images are signed by digest, which needs them to be pushed, so a
+          # rehearsal of a build with images skips signing.
+          args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }}${{ inputs.dry-run && inputs.containers && ' --skip=sign' || '' }} --config manifests/${{ inputs.product }}/.goreleaser.yml
         env:
           GORELEASER_CURRENT_TAG: ${{ env.TAG }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
           SIGNING_KEY_FILE: ci-signing-key.asc
       - name: Debug list dist/
         run: ls -laR dist/
       # The attest job runs with its own permissions and only needs the lists of
       # checksums and image digests.
       - name: Upload attestation subjects
-        if: ${{ inputs.cosign-mode == 'keyless' && !inputs.dry-run }}
+        if: ${{ !inputs.dry-run }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: attestation-subjects
@@ -296,16 +279,6 @@ jobs:
           # The install scripts and MSIs only exist for builds that ship them.
           BUNDLE_INSTALLERS: ${{ inputs.build-msi }}
       - name: Sign artifact archives
-        if: ${{ inputs.cosign-mode == 'key' }}
-        run: |
-          for bundle in ./${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz; do
-            cosign sign-blob --key=cosign.key --output-signature "$bundle.sig" "$bundle"
-          done
-        shell: bash
-        env:
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PWD }}
-      - name: Sign artifact archives (keyless)
-        if: ${{ inputs.cosign-mode == 'keyless' && !inputs.dry-run }}
         run: |
           for bundle in ./${{ inputs.product }}-${{ env.VERSION }}-artifacts*.tar.gz; do
             cosign sign-blob --bundle "$bundle.sigstore.json" --yes "$bundle"
@@ -365,6 +338,10 @@ jobs:
     # check-version is skipped on a dry run, which would skip this job too
     # without a status function.
     if: ${{ inputs.build-aix && !(cancelled() || failure()) }}
+    # id-token for the keyless cosign signature of the AIX packages.
+    permissions:
+      contents: read
+      id-token: write
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores
@@ -404,13 +381,9 @@ jobs:
         run: bash .github/scripts/retry.sh make install-ocb
 
       - name: Install cosign
-        timeout-minutes: 10
-        run: bash .github/scripts/retry.sh go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
-      - name: Build cosign key file
-        run: 'echo "$COSIGN_PRIVATE_KEY" >> cosign.key'
-        shell: bash
-        env:
-          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: v3.1.4
 
       # The AIX install path verifies a detached GPG signature, so goreleaser
       # signs with gpg as well as cosign.
@@ -432,7 +405,6 @@ jobs:
           GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
           GPG_FINGERPRINT: ${{ env.GPG_FINGERPRINT }}
 
       - name: Upload AIX Packages
@@ -443,10 +415,11 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # Attests the checksums and the image digests of a keyless release. Kept apart
-  # from the release job so that only this job holds the attestation permissions.
+  # Attests the checksums and, for builds that push images, the image digests.
+  # Kept apart from the release job so that only this job holds the attestation
+  # permissions.
   attest:
-    if: ${{ inputs.cosign-mode == 'keyless' && !inputs.dry-run }}
+    if: ${{ !inputs.dry-run }}
     needs: [release]
     runs-on: ubuntu-latest
     permissions:

@@ -24,7 +24,6 @@ jobs:
       product: dynatrace-bindplane-otel-collector-slim
       version-check-mode: core
       build-msi: false
-      cosign-mode: keyless
       containers: true
       sbom: true
     secrets: inherit
