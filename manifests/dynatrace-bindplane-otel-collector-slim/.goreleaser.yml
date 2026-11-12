@@ -395,9 +395,10 @@ release:
   # Slim RC tags (slim/vX.Y.Z-rc.N) are published as prereleases.
   prerelease: auto
 
-# TODO: upload to a GCS bucket once the one for the slim build exists, with a
-# `blobs` section like the full build's. The slim containers are built in the
-# release itself, so nothing downstream needs the binaries from a bucket.
+# TODO: upload to the full build's GCS bucket (dbdot-release), with a `blobs`
+# section like the full build's, in a directory of its own so the two builds do
+# not collide. The slim containers are built in the release itself, so nothing
+# downstream needs the binaries from the bucket.
 
 # https://goreleaser.com/customization/changelog/
 changelog:
