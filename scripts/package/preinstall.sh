@@ -33,6 +33,35 @@ set -e
 # The collectors installation directory
 : "${DBDOT_CONFIG_HOME:=/opt/dynatrace-bindplane-otel-collector}"
 
+# check_user_name fails the install before anything is changed when an
+# unprivileged install's DBDOT_USER can't be used in the sudoers drop-in that
+# postinstall writes. install_sudoers in postinstall.sh runs the same check,
+# so keep the two the same.
+check_user_name() {
+    if [ "$DBDOT_UNPRIVILEGED" != "true" ] || ! command -v systemctl > /dev/null 2>&1; then
+        return
+    fi
+
+    # Only allow plain user names so DBDOT_USER can't be parsed as sudoers syntax
+    # (%group, #uid, +netgroup, lists, whitespace). The characters are listed
+    # explicitly because bracket ranges such as A-Z depend on the locale.
+    case "$DBDOT_USER" in
+        ""|-*|*[!ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-]*)
+            echo "ERROR: DBDOT_USER \"${DBDOT_USER}\" can't be used in a sudoers rule" >&2
+            exit 1
+            ;;
+    esac
+    # sudoers parses an upper case word such as ALL or ADMINS as a reserved word
+    # or an alias, not as a user name.
+    case "$DBDOT_USER" in
+        *[!ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*) ;;
+        [ABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
+            echo "ERROR: DBDOT_USER \"${DBDOT_USER}\" can't be used in a sudoers rule" >&2
+            exit 1
+            ;;
+    esac
+}
+
 # Install creates the user and group for the collector
 # service. This function is idempotent and safe to call
 # multiple times.
@@ -135,5 +164,6 @@ check_runtime_user_change() {
     exit 1
 }
 
+check_user_name
 check_runtime_user_change "$@"
 install
