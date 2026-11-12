@@ -547,7 +547,7 @@ add-license:
 		fi
 
 # update-otel attempts to update otel dependencies in go.mods,
-# and update the otel versions in the docs and the manifest.
+# and update the otel versions in the docs and all manifests.
 # Usage: make update-otel OTEL_VERSION=vx.x.x CONTRIB_VERSION=vx.x.x PDATA_VERSION=vx.x.x-rcx DBDOT_CONTRIB_VERSION=vx.x.x CONTRIB_STABLE_VERSION=vx.x.x
 .PHONY: update-otel
 update-otel:
@@ -559,7 +559,7 @@ update-otel:
 # The modules this seems to effect are plugindocgen and bindplaneextension
 	$(MAKE) tidy
 
-# update-modules updates all submodules, and the manifest's in-tree module lines, to be the new version.
+# update-modules updates all submodules, and the in-tree module lines of all manifests, to be the new version.
 # Usage: make update-modules NEW_VERSION=vx.x.x
 .PHONY: update-modules
 update-modules:
@@ -567,7 +567,7 @@ update-modules:
 	MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 
-# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods, the manifest and the doc links, to the new version.
+# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods, all manifests and the doc links, to the new version.
 # Usage: make update-contrib DBDOT_CONTRIB_VERSION=vx.x.x
 .PHONY: update-contrib
 update-contrib:
@@ -706,22 +706,25 @@ for-all-modules:
 	    $${CMD} ); \
 	done
 
-# Release a new version of the agent. This will also tag all submodules
+# Release a new version of the agent. This will also tag all submodules, except for
+# slim RC versions (slim/vX.Y.Z-rc.N) which only tag the root.
 .PHONY: release
 release:
 	@if [ -z "$(version)" ]; then \
 		echo "version was not set"; \
 		exit 1; \
 	fi
-	@if ! echo "$(version)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$'; then \
-		echo "version $(version) is invalid semver"; \
+	@if ! echo "$(version)" | grep -Eq '^(v[0-9]+\.[0-9]+\.[0-9]+|slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+)$$'; then \
+		echo "version $(version) is invalid semver (expected vX.Y.Z or slim/vX.Y.Z-rc.N)"; \
 		exit 1; \
 	fi
 	# Tag the root and every module, then push only those tags. A checkout of
 	# this fork carries thousands of tags inherited from upstream; `git push
-	# --tags` would push all of them.
+	# --tags` would push all of them. Slim RC versions release the slim build only,
+	# which needs no module tags, so only the root is tagged for them.
 	@set -e; tags="$(version)"; git tag "$(version)"; \
 	for dir in $(ALL_MODULES); do \
+		case "$(version)" in slim/*) break ;; esac; \
 		if [ "$${dir}" = "." ]; then continue; fi; \
 		case " $(UNRELEASED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		tag="$${dir#./}/$(version)"; \

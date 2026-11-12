@@ -240,6 +240,13 @@ blobs:
       - glob: "./scripts/install/install_windows.ps1"
       - glob: "./release_deps/gpg-keys.tar.gz"
 
+# Slim tags (slim/vX.Y.Z-rc.N) belong to the slim build. Skip them when looking
+# up the previous tag, so the changelog covers everything since the last full
+# release.
+git:
+  ignore_tags:
+    - "slim/*"
+
 # https://goreleaser.com/customization/changelog/
 changelog:
   use: github
