@@ -18,6 +18,7 @@ package packaging
 
 import (
 	"maps"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -38,48 +39,14 @@ type scenario struct {
 	image string
 }
 
-// install installs the package on a clean system, starts the service the
-// way install_unix.sh does, checks that making it unprivileged is refused,
-// and then removes the package.
+// install installs the package on a clean system with the default
+// overrides, which run the collector as the runtime user. It starts the
+// service the way install_unix.sh does, checks the sudoers grant the updater
+// uses, installs the package again, and then removes it.
 func (s *scenario) install(t *testing.T) {
 	b := startBox(t, s.env, s.image)
 	pkg := b.copyPackage(s.pkg)
 
-	b.installPackage(s.ops, pkg, false)
-	s.assertInstalled(b, pkg, privilegedInstall, nil, nil)
-
-	// The package configures the service but does not enable or start it.
-	assert.Equal(t, "disabled", b.unitState("is-enabled"), "service should not be enabled by the package")
-	assert.Equal(t, "inactive", b.unitState("is-active"), "service should not be started by the package")
-	b.assertAbsent(wantsPath)
-
-	b.mustRun("systemctl enable --now " + packageName)
-	pid := b.assertServiceRunning(1, "root")
-
-	// Making the existing root install unprivileged is refused. The
-	// collector would run as the runtime user against files root created.
-	b.writeOverride(s.ops, unprivilegedOverride)
-	cmd := s.ops.reinstall(pkg)
-	res := b.run(cmd)
-	t.Logf("$ %s\n%s", cmd, res)
-	require.NotZero(t, res.code, "the install should be refused")
-	assert.Contains(t, res.stdout+res.stderr, "set these values in "+s.ops.overridePath, "refusal message names the override file")
-	assert.Contains(t, res.stdout+res.stderr, "DBDOT_UNPRIVILEGED=false", "refusal message names the value to restore")
-	b.assertAbsent(userDropIn)
-	assert.Equal(t, pid, b.unitProps("MainPID")["MainPID"], "the refused install should not restart the service")
-	b.assertPackageVersion(s.ops, pkg)
-
-	s.uninstall(t, b)
-}
-
-// installUnprivileged installs the package with DBDOT_UNPRIVILEGED=true,
-// starts the service, checks that it runs as the runtime user, and then
-// removes the package.
-func (s *scenario) installUnprivileged(t *testing.T) {
-	b := startBox(t, s.env, s.image)
-	pkg := b.copyPackage(s.pkg)
-
-	b.writeOverride(s.ops, unprivilegedOverride)
 	out := b.installPackage(s.ops, pkg, false)
 	s.assertInstalled(b, pkg, unprivilegedInstall, nil, nil)
 	assert.Equal(t, "[Service]\nUser="+runtimeUser, b.mustRun("cat "+userDropIn), "User= drop-in contents")
@@ -87,6 +54,13 @@ func (s *scenario) installUnprivileged(t *testing.T) {
 	// postinstall warns when sudo won't let the runtime user run the
 	// commands in the sudoers drop-in.
 	assert.NotContains(t, out, "WARNING:", "install output")
+	assert.NotContains(t, out, "NOTE:", "install output")
+	assert.Contains(t, out, `The collector runs as the "`+runtimeUser+`" user.`, "install output")
+
+	// The package configures the service but does not enable or start it.
+	assert.Equal(t, "disabled", b.unitState("is-enabled"), "service should not be enabled by the package")
+	assert.Equal(t, "inactive", b.unitState("is-active"), "service should not be started by the package")
+	b.assertAbsent(wantsPath)
 
 	b.mustRun("systemctl enable --now " + packageName)
 	pid := b.assertServiceRunning(1, runtimeUser)
@@ -103,21 +77,69 @@ func (s *scenario) installUnprivileged(t *testing.T) {
 	assert.Equal(t, "inactive", b.unitState("is-active"), "service should be stopped")
 	starts := b.startupCount()
 	b.mustRun(asRuntimeUser("sudo -n systemctl start " + unit))
-	b.assertServiceRunning(starts+1, runtimeUser)
+	pid = b.assertServiceRunning(starts+1, runtimeUser)
+
+	// Installing it again with the default overrides keeps the runtime user.
+	b.pkgCommand(s.ops.reinstall(pkg))
+	// The running collector created its log.
+	ranLog := func(p string) bool { return p == "log/collector.log" }
+	s.assertInstalled(b, pkg, unprivilegedInstall, nil, ranLog)
+	assert.Equal(t, pid, b.unitProps("MainPID")["MainPID"], "the install should not restart the service")
 
 	s.uninstall(t, b)
 }
 
-// refusePrivileged installs the package with DBDOT_UNPRIVILEGED=true and
-// starts it, then installs it again with the default overrides, which would
-// run the service as root. The runtime user owns installDir and can replace
-// any entry in it with a symbolic link, which a root install would follow,
-// so the package must refuse the install before it changes anything.
+// installRoot installs the package with DBDOT_UNPRIVILEGED=false, starts the
+// service, and checks that it runs as root. It checks that making the install
+// unprivileged is refused, and that installing it again with the default
+// overrides keeps it running as root. Then it removes the package.
+func (s *scenario) installRoot(t *testing.T) {
+	b := startBox(t, s.env, s.image)
+	pkg := b.copyPackage(s.pkg)
+
+	b.writeOverride(s.ops, rootOverride)
+	out := b.installPackage(s.ops, pkg, false)
+	s.assertInstalled(b, pkg, privilegedInstall, nil, nil)
+	assert.NotContains(t, out, "NOTE:", "install output")
+	assert.Contains(t, out, `The collector runs as the "root" user.`, "install output")
+
+	b.mustRun("systemctl enable --now " + packageName)
+	pid := b.assertServiceRunning(1, "root")
+
+	// Making the existing root install unprivileged is refused. The
+	// collector would run as the runtime user against files root created.
+	b.writeOverride(s.ops, unprivilegedOverride)
+	cmd := s.ops.reinstall(pkg)
+	res := b.run(cmd)
+	t.Logf("$ %s\n%s", cmd, res)
+	require.NotZero(t, res.code, "the install should be refused")
+	assert.Contains(t, res.stdout+res.stderr, "set these values in "+s.ops.overridePath, "refusal message names the override file")
+	assert.Contains(t, res.stdout+res.stderr, "DBDOT_UNPRIVILEGED=false", "refusal message names the value to restore")
+	b.assertAbsent(userDropIn, sudoersPath)
+	assert.Equal(t, pid, b.unitProps("MainPID")["MainPID"], "the refused install should not restart the service")
+	b.assertPackageVersion(s.ops, pkg)
+
+	// With the default overrides, the existing root install keeps running
+	// as root, and the package says so.
+	b.writeOverride(s.ops)
+	out = b.pkgCommand(s.ops.reinstall(pkg))
+	s.assertInstalled(b, pkg, privilegedInstall, nil, nil)
+	assert.Contains(t, out, "NOTE: The collector keeps running as root", "install output")
+	assert.Equal(t, pid, b.unitProps("MainPID")["MainPID"], "the install should not restart the service")
+
+	s.uninstall(t, b)
+}
+
+// refusePrivileged installs the package with the default overrides, which
+// run the service as the runtime user, and starts it. Then it installs the
+// package again with DBDOT_UNPRIVILEGED=false, which would run the service as
+// root. The runtime user owns installDir and can replace any entry in it with
+// a symbolic link, which a root install would follow, so the package must
+// refuse the install before it changes anything.
 func (s *scenario) refusePrivileged(t *testing.T) {
 	b := startBox(t, s.env, s.image)
 	pkg := b.copyPackage(s.pkg)
 
-	b.writeOverride(s.ops, unprivilegedOverride)
 	b.installPackage(s.ops, pkg, false)
 	b.mustRun("systemctl enable --now " + packageName)
 	pid := b.assertServiceRunning(1, runtimeUser)
@@ -125,14 +147,14 @@ func (s *scenario) refusePrivileged(t *testing.T) {
 	// A link the runtime user could plant. A root install would touch and
 	// chown the canary through it.
 	const canary = "/etc/pkgtest-canary"
-	logFile := installDir + "/log/collector.log"
+	logPath := installDir + "/log/collector.log"
 	b.mustRun("install -o root -g root -m 0600 /dev/null " + canary +
-		" && ln -sfn " + canary + " " + logFile +
-		" && chown -h " + runtimeUser + ":" + runtimeGrp + " " + logFile)
+		" && ln -sfn " + canary + " " + logPath +
+		" && chown -h " + runtimeUser + ":" + runtimeGrp + " " + logPath)
 	statCanary := "stat -c '%U:%G %a %y' " + canary
 	before := b.mustRun(statCanary)
 
-	b.writeOverride(s.ops)
+	b.writeOverride(s.ops, rootOverride)
 	cmd := s.ops.reinstall(pkg)
 	res := b.run(cmd)
 	t.Logf("$ %s\n%s", cmd, res)
@@ -153,7 +175,7 @@ func (s *scenario) refusePrivileged(t *testing.T) {
 	// Restoring the overrides recovers the install. An unprivileged install
 	// doesn't change files in installDir as root, so it leaves the link and
 	// the canary alone.
-	b.writeOverride(s.ops, unprivilegedOverride)
+	b.writeOverride(s.ops)
 	b.pkgCommand(s.ops.reinstall(pkg))
 	assert.Equal(t, before, b.mustRun(statCanary), "the unprivileged install should not change the canary")
 	link := map[string]fileEntry{"log/collector.log": {"l", runtimeUser, runtimeGrp, "777"}}
@@ -173,6 +195,7 @@ func (s *scenario) reinstallUnprivileged(t *testing.T) {
 	b := startBox(t, s.env, s.image)
 	pkg := b.copyPackage(s.pkg)
 
+	b.writeOverride(s.ops, rootOverride)
 	b.installPackage(s.ops, pkg, false)
 	b.mustRun("systemctl enable --now " + packageName)
 	b.assertServiceRunning(1, "root")
@@ -187,6 +210,74 @@ func (s *scenario) reinstallUnprivileged(t *testing.T) {
 	starts := b.startupCount()
 	b.mustRun("systemctl enable --now " + packageName)
 	b.assertServiceRunning(starts+1, runtimeUser)
+
+	s.uninstall(t, b)
+}
+
+// reinstallLeftovers installs the package as root, starts it, and removes it,
+// which leaves files that root owns in installDir. A new install with the
+// default overrides would run the collector as the runtime user against those
+// files, so the package must refuse it before it changes anything. An install
+// as root is allowed. Then it removes the package.
+func (s *scenario) reinstallLeftovers(t *testing.T) {
+	b := startBox(t, s.env, s.image)
+	pkg := b.copyPackage(s.pkg)
+
+	b.writeOverride(s.ops, rootOverride)
+	b.installPackage(s.ops, pkg, false)
+	b.mustRun("systemctl enable --now " + packageName)
+	b.assertServiceRunning(1, "root")
+	// A file the collector creates while it runs as root.
+	const rootFile = installDir + "/storage/root-owned"
+	b.mustRun("install -o root -g root -m 0600 /dev/null " + rootFile)
+
+	b.removePackage(s.ops)
+	b.assertPresent(rootFile)
+
+	b.writeOverride(s.ops)
+	cmd := s.ops.install(pkg, false)
+	res := b.run(cmd)
+	t.Logf("$ %s\n%s", cmd, res)
+	require.NotZero(t, res.code, "the install should be refused")
+	assert.Contains(t, res.stdout+res.stderr, installDir+" holds files that root owns, such as "+rootFile, "refusal message names the file")
+	assert.Contains(t, res.stdout+res.stderr, "DBDOT_UNPRIVILEGED=false", "refusal message names the override")
+	b.assertAbsent(unitPath, userDropIn, sudoersPath, installDir+"/"+packageName)
+	// dpkg marks the removed package to be installed ("ic") but leaves only
+	// its config files, and rpm doesn't install it.
+	assert.NotContains(t, []string{"ii", "installed"}, b.mustRun(s.ops.packageState), "the refused install should not install the package")
+
+	b.writeOverride(s.ops, rootOverride)
+	b.installPackage(s.ops, pkg, false)
+	s.assertInstalled(b, pkg, privilegedInstall, map[string]fileEntry{"storage/root-owned": {"f", "root", "root", "600"}}, nil)
+
+	s.uninstall(t, b)
+}
+
+// revertDropIn installs the package with the default overrides, starts it,
+// and removes the User= drop-in, as `systemctl revert` does. The runtime user
+// still owns installDir, so a root install would follow its links as root,
+// and the user to run the collector as is unknown. The package must refuse
+// the next install. Then it removes the package.
+func (s *scenario) revertDropIn(t *testing.T) {
+	b := startBox(t, s.env, s.image)
+	pkg := b.copyPackage(s.pkg)
+
+	b.installPackage(s.ops, pkg, false)
+	b.mustRun("systemctl enable --now " + packageName)
+	pid := b.assertServiceRunning(1, runtimeUser)
+
+	b.mustRun("rm " + userDropIn + " && systemctl daemon-reload")
+
+	for _, lines := range [][]string{nil, {rootOverride}} {
+		b.writeOverride(s.ops, lines...)
+		cmd := s.ops.reinstall(pkg)
+		res := b.run(cmd)
+		t.Logf("$ %s\n%s", cmd, res)
+		require.NotZero(t, res.code, "the install with overrides %q should be refused", lines)
+		assert.Contains(t, res.stdout+res.stderr, "The package can't tell which user to run the collector as", "refusal message")
+		assert.Equal(t, pid, b.unitProps("MainPID")["MainPID"], "the refused install should not restart the service")
+		b.assertPackageVersion(s.ops, pkg)
+	}
 
 	s.uninstall(t, b)
 }
@@ -224,16 +315,28 @@ func (s *scenario) upgrade(t *testing.T, from string) {
 	if downgrade {
 		t.Logf("%s is older than %s, installing it as a downgrade", newVersion, oldVersion)
 	}
-	b.installPackage(s.ops, newPkg, downgrade)
+	out := b.installPackage(s.ops, newPkg, downgrade)
 
 	assert.Equal(t, before, b.sha256sums(preserved...), "the upgrade should not modify user files")
+	// Releases up to 1.3 ran the collector as root by default. The upgrade
+	// keeps it running as root, and the package says so. Later releases run
+	// it as the runtime user, and the upgrade keeps that.
+	expect, user := unprivilegedInstall, runtimeUser
+	if ranAsRootByDefault(t, from) {
+		expect, user = privilegedInstall, "root"
+		assert.Contains(t, out, "NOTE: The collector keeps running as root", "upgrade output")
+	} else {
+		assert.NotContains(t, out, "NOTE:", "upgrade output")
+	}
 	userFiles := map[string]fileEntry{
 		"manager.yaml":   {"f", runtimeUser, runtimeGrp, "640"},
 		"storage/marker": {"f", runtimeUser, runtimeGrp, "640"},
 	}
 	// Plugins removed from the new release are not cleaned up on upgrade.
 	oldPlugins := func(p string) bool { return strings.HasPrefix(p, "plugins/") }
-	s.assertInstalled(b, newPkg, privilegedInstall, userFiles, oldPlugins)
+	// The collector that ran as the runtime user created its log.
+	allowExtra := func(p string) bool { return oldPlugins(p) || (user == runtimeUser && p == "log/collector.log") }
+	s.assertInstalled(b, newPkg, expect, userFiles, allowExtra)
 
 	// The package does not restart the service; the old binary keeps
 	// running until it is restarted.
@@ -246,7 +349,7 @@ func (s *scenario) upgrade(t *testing.T, from string) {
 	b.mustRun("rm " + installDir + "/manager.yaml")
 	starts := b.startupCount()
 	b.mustRun("systemctl restart " + packageName)
-	pid := b.assertServiceRunning(starts+1, "root")
+	pid := b.assertServiceRunning(starts+1, user)
 	assert.NotEqual(t, oldPID, pid, "service should have a new process after restart")
 
 	s.uninstall(t, b)
@@ -362,4 +465,17 @@ echo '# edited by the packaging test suite' >> logging.yaml
 `
 	}
 	b.mustRun(script)
+}
+
+// ranAsRootByDefault reports whether release version (x.y.z) ran the
+// collector as root when DBDOT_UNPRIVILEGED was unset. Releases up to 1.3 did.
+func ranAsRootByDefault(t *testing.T, version string) bool {
+	t.Helper()
+	parts := strings.SplitN(version, ".", 3)
+	require.Len(t, parts, 3, "release version %q", version)
+	major, err := strconv.Atoi(parts[0])
+	require.NoError(t, err, "release version %q", version)
+	minor, err := strconv.Atoi(parts[1])
+	require.NoError(t, err, "release version %q", version)
+	return major < 1 || (major == 1 && minor <= 3)
 }

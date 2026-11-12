@@ -30,8 +30,8 @@ umask go-w
 # The collectors installation directory
 : "${DBDOT_CONFIG_HOME:=/opt/dynatrace-bindplane-otel-collector}"
 
-# Whether or not to run the collector as an unprivileged user.
-: "${DBDOT_UNPRIVILEGED:=false}"
+# Whether or not to run the collector as an unprivileged user. When the
+# overrides leave it unset, resolve_unprivileged sets it.
 
 # Configurable runtime user/group
 : "${DBDOT_USER:=dbdot}"
@@ -470,9 +470,16 @@ manage_systemd_service() {
 
   echo "configured systemd service"
 
+  runtime_user="root"
+  if [ "${DBDOT_UNPRIVILEGED}" = "true" ]; then
+    runtime_user="${DBDOT_USER}"
+  fi
+
   cat << EOF
 
 The "dynatrace-bindplane-otel-collector" service has been configured!
+
+The collector runs as the "${runtime_user}" user.
 
 The collector's config file can be found here: 
   ${DBDOT_CONFIG_HOME}/config.yaml
@@ -800,6 +807,132 @@ check_runtime_user_change() {
     exit 1
 }
 
+# resolve_unprivileged sets DBDOT_UNPRIVILEGED when the package overrides
+# leave it unset or set it to something other than true or false. A new
+# install runs the collector as DBDOT_USER. An existing install keeps the user
+# it runs as, so the default never changes it and check_runtime_user_change
+# never refuses it. Without systemd the collector runs as root. It refuses the
+# install when an existing install has no User= drop-in from the package but
+# doesn't run as root, since the user it runs as is then unknown: a unit file
+# or drop-in the package didn't write sets another user, or the updater shows
+# the install was made to run as another user. It decides only from files
+# that root owns, which the runtime user can't create. It prints nothing else;
+# postinstall.sh prints what it decided.
+# preinstall.sh and postinstall.sh run the same check, so keep the two the
+# same.
+# shellcheck disable=SC2034 # postinstall.sh reads kept_root and ignored_value.
+resolve_unprivileged() {
+    unit_file="/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
+    unit_override="/etc/systemd/system/dynatrace-bindplane-otel-collector.service"
+    dropin_dir="/etc/systemd/system/dynatrace-bindplane-otel-collector.service.d"
+    run_dropin_dir="/run/systemd/system/dynatrace-bindplane-otel-collector.service.d"
+    user_dropin="${dropin_dir}/10-package-customizations-username.conf"
+    binary="${DBDOT_CONFIG_HOME}/dynatrace-bindplane-otel-collector"
+    updater="${DBDOT_CONFIG_HOME}/updater"
+
+    # The last user other than root that a unit file or drop-in the package
+    # didn't write runs the service as, for example from `systemctl edit`.
+    other_user="$(cat "$unit_override" "$dropin_dir"/*.conf "$run_dropin_dir"/*.conf 2> /dev/null |
+        sed -n 's/^[[:space:]]*User=[[:space:]]*//p' | grep -v -x -e root -e '' | tail -n 1)" || true
+
+    # How the installed collector runs. Root installs leave the updater a
+    # regular file owned by root, and unprivileged installs leave it owned by
+    # the runtime user. Removing the package deletes the unit and the
+    # collector binary.
+    if ! command -v systemctl > /dev/null 2>&1; then
+        installed_runtime="sysv"
+    elif [ -f "$user_dropin" ]; then
+        installed_runtime="user"
+    elif [ ! -f "$unit_file" ] && [ ! -e "$binary" ] && [ ! -L "$binary" ]; then
+        installed_runtime="none"
+    elif [ -z "$other_user" ] && [ ! -L "$updater" ] && [ -f "$updater" ] && [ "$(stat -c %u "$updater")" = "0" ]; then
+        installed_runtime="root"
+    else
+        installed_runtime="unknown"
+    fi
+
+    if [ "$installed_runtime" = "unknown" ]; then
+        if [ -n "$other_user" ]; then
+            echo "ERROR: The collector service has no ${user_dropin}, but a unit file or drop-in that the package didn't write runs it as \"${other_user}\"." >&2
+        else
+            echo "ERROR: The collector service has no ${user_dropin}, so it runs as root, but ${updater} is missing or not owned by root, so it was installed to run as another user." >&2
+        fi
+        echo "The package can't tell which user to run the collector as. Restore the drop-in and remove other User= settings, or uninstall the package, remove ${DBDOT_CONFIG_HOME}, and install it again, as described at https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/main/docs/installation-linux.md#package-configuration." >&2
+        exit 1
+    fi
+
+    kept_root=false
+    ignored_value=""
+    case "${DBDOT_UNPRIVILEGED:-}" in
+        true)
+            if [ "$installed_runtime" = "sysv" ]; then
+                ignored_value="true"
+                DBDOT_UNPRIVILEGED=false
+            fi
+            ;;
+        false) ;;
+        "")
+            case "$installed_runtime" in
+                sysv)
+                    DBDOT_UNPRIVILEGED=false
+                    ;;
+                root)
+                    DBDOT_UNPRIVILEGED=false
+                    kept_root=true
+                    ;;
+                *)
+                    DBDOT_UNPRIVILEGED=true
+                    ;;
+            esac
+            ;;
+        *)
+            # Released versions ran the collector as root for any value but
+            # true, so an upgrade must keep doing that.
+            ignored_value="$DBDOT_UNPRIVILEGED"
+            DBDOT_UNPRIVILEGED=false
+            ;;
+    esac
+}
+
+# check_leftover_files fails a new unprivileged install before anything is
+# changed when DBDOT_CONFIG_HOME holds files that root owns, such as files in
+# storage/ that a removed root install left behind. The collector runs as
+# DBDOT_USER and can't use them. preinstall.sh and postinstall.sh run the same
+# check, so keep the two the same.
+check_leftover_files() {
+    if [ "$DBDOT_UNPRIVILEGED" != "true" ] || [ "$installed_runtime" != "none" ] || [ ! -d "$DBDOT_CONFIG_HOME" ]; then
+        return 0
+    fi
+
+    # -H looks into DBDOT_CONFIG_HOME when it is a link to a directory. A
+    # file system mounted there has a lost+found that root owns.
+    root_file="$(find -H "$DBDOT_CONFIG_HOME" -mindepth 1 -path "$DBDOT_CONFIG_HOME/lost+found" -prune -o -user 0 -print -quit 2> /dev/null)" || true
+    if [ -z "$root_file" ]; then
+        return 0
+    fi
+
+    echo "ERROR: ${DBDOT_CONFIG_HOME} holds files that root owns, such as ${root_file}, probably from an earlier install that ran the collector as root." >&2
+    echo "The collector runs as ${DBDOT_USER} and can't use them. Back up the files you want to keep, such as manager.yaml, remove ${DBDOT_CONFIG_HOME}, and install the package again." >&2
+    echo "To run the collector as root instead, set DBDOT_UNPRIVILEGED=false in the package override file before you install, as described at https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/main/docs/installation-linux.md#package-configuration." >&2
+    exit 1
+}
+
+# print_runtime_notes says which user the collector runs as when
+# resolve_unprivileged chose it or ignored DBDOT_UNPRIVILEGED. It writes to
+# stderr, which install_unix.sh shows.
+print_runtime_notes() {
+    if [ "$kept_root" = "true" ]; then
+        echo "NOTE: The collector keeps running as root, because this install already ran it as root. New installs run it as ${DBDOT_USER}. To run it as ${DBDOT_USER}, see https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/main/docs/installation-linux.md#changing-the-runtime-user." >&2
+    fi
+    if [ -n "$ignored_value" ]; then
+        if [ "$installed_runtime" = "sysv" ]; then
+            echo "WARNING: DBDOT_UNPRIVILEGED is \"${ignored_value}\", but running the collector as another user requires systemd. The collector runs as root." >&2
+        else
+            echo "WARNING: DBDOT_UNPRIVILEGED is \"${ignored_value}\", not true or false. The collector runs as root." >&2
+        fi
+    fi
+}
+
 # dpkg runs the installed package's postinst with abort-upgrade, abort-remove
 # or abort-deconfigure when the new package's preinst or the prerm failed,
 # for example when check_runtime_user_change refused the upgrade. The
@@ -812,7 +945,10 @@ case "$1" in
         ;;
 esac
 
+resolve_unprivileged
 check_runtime_user_change "$@"
+check_leftover_files
+print_runtime_notes
 install
 install_service
 finish_permissions
