@@ -28,10 +28,15 @@ const (
 	unitPath    = "/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
 	dropInDir   = "/etc/systemd/system/dynatrace-bindplane-otel-collector.service.d"
 	userDropIn  = dropInDir + "/10-package-customizations-username.conf"
+	sudoersPath = "/etc/sudoers.d/dynatrace-bindplane-otel-collector"
 	wantsPath   = "/etc/systemd/system/multi-user.target.wants/dynatrace-bindplane-otel-collector.service"
 	initdPath   = "/etc/init.d/dynatrace-bindplane-otel-collector"
 	runtimeUser = "dbdot"
 	runtimeGrp  = "dbdot"
+
+	// servicePath is the PATH the unit gives the collector, and the updater
+	// it starts.
+	servicePath = "/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 
 	// unprivilegedOverride is the package override line that runs the
 	// service as runtimeUser.
@@ -112,6 +117,7 @@ var privilegedInstall = installExpect{
 	absent: []string{
 		// Only written when DBDOT_UNPRIVILEGED=true.
 		userDropIn,
+		sudoersPath,
 	},
 }
 
@@ -127,7 +133,8 @@ var unprivilegedInstall = installExpect{
 	// creates its log when it starts.
 	omit: []string{"log/collector.log"},
 	files: map[string]fileEntry{
-		userDropIn: {"f", "root", "root", "644"},
+		userDropIn:  {"f", "root", "root", "644"},
+		sudoersPath: {"f", "root", "root", "440"},
 	},
 }
 
@@ -170,6 +177,7 @@ var uninstallShared = uninstallExpect{
 	},
 	absent: []string{
 		dropInDir,
+		sudoersPath,
 		installDir + "/dynatrace-bindplane-otel-collector",
 		installDir + "/updater",
 		installDir + "/VERSION.txt",
