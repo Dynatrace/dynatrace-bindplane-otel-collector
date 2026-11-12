@@ -138,7 +138,7 @@ jobs:
           SIGNED_INSTALL_SCRIPT: signed-install-script/install_windows.ps1
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
           SIGNING_KEY_FILE: ci-signing-key.asc
-      # Create artifact bundles (all-platform plus one per OS) and upload to release
+      # Create artifact bundles (one per OS) and upload to release
       - name: Create artifact archives
         run: ./scripts/ci/create-artifact-bundles.sh ${{ github.ref_name }}
       - name: Sign artifact archives

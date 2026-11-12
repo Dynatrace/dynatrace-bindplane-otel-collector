@@ -16,14 +16,12 @@
 # Bundles the release artifacts into tarballs that get attached to the release.
 #
 # Produces, in the current directory:
-#   dynatrace-bindplane-otel-collector-<version>-artifacts.tar.gz          every artifact
 #   dynatrace-bindplane-otel-collector-<version>-artifacts-linux.tar.gz    Linux only
 #   dynatrace-bindplane-otel-collector-<version>-artifacts-darwin.tar.gz   macOS only
 #   dynatrace-bindplane-otel-collector-<version>-artifacts-windows.tar.gz  Windows only
 #   dynatrace-bindplane-otel-collector-<version>-artifacts-aix.tar.gz      AIX only
 #
-# The all-platform bundle is kept until consumers have moved to the
-# per-platform bundles. Bindplane merges per-platform bundles uploaded for the
+# Bindplane merges per-platform bundles uploaded for the
 # same version, so each bundle is self-contained: it carries every artifact for
 # its platforms, the full SHA256SUMS file, and gpg-keys.tar.gz. Verify a
 # per-platform bundle's contents with `sha256sum -c --ignore-missing`.
