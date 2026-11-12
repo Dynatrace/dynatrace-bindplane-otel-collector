@@ -19,12 +19,11 @@ package service
 import (
 	"errors"
 	"os"
-	"path/filepath"
 
 	"golang.org/x/sys/unix"
 )
 
-// RedirectDiscardedStderr sends stderr to $BINDPLANE_COLLECTOR_HOME/log/dynatrace_bindplane_otel_collector.err
+// RedirectDiscardedStderr sends stderr to $BINDPLANE_COLLECTOR_HOME/log/<stderrLogName>
 // when the service manager discards it. AIX SRC leaves stderr on /dev/console
 // and FreeBSD's daemon(8) on /dev/null. SRC's own mkssys -e is no substitute:
 // SRC truncates that file on every start, including the restart after a crash.
@@ -36,7 +35,7 @@ func RedirectDiscardedStderr() error {
 	if home == "" {
 		return errors.New("BINDPLANE_COLLECTOR_HOME is empty")
 	}
-	return redirectStderrToFile(filepath.Join(home, "log", "dynatrace_bindplane_otel_collector.err"), unix.Dup2)
+	return redirectStderrToFile(stderrFilePath(home), unix.Dup2)
 }
 
 // stderrDiscarded reports whether stderr is /dev/console or /dev/null, where
