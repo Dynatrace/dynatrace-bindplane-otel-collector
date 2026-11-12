@@ -119,6 +119,38 @@ To change them:
 3. Change the values in the package override file.
 4. Install the package again.
 
+### Remote updates as a non-root user
+
+When `DBDOT_UNPRIVILEGED` is `true`, the collector's updater runs as
+`DBDOT_USER`. It needs root only to stop and start the collector service while
+it replaces the collector's files. The package installs a sudoers drop-in at
+`/etc/sudoers.d/dynatrace-bindplane-otel-collector` that lets `DBDOT_USER` run
+exactly these two commands, and nothing else:
+
+```
+systemctl start dynatrace-bindplane-otel-collector.service
+systemctl stop dynatrace-bindplane-otel-collector.service
+```
+
+The updater never changes the systemd unit file when it runs as a non-root
+user. Package installs and upgrades still update it.
+
+Remote updates as a non-root user require:
+
+- `sudo`, including `visudo`. If it is missing when the package is installed,
+  the package prints a warning and remote updates fail. Install `sudo`, then
+  install or upgrade the package again.
+- `/etc/sudoers` must read `/etc/sudoers.d` (the `@includedir /etc/sudoers.d`
+  line, present by default on most distributions).
+- No `NoNewPrivileges=yes`, or other systemd settings that turn on
+  `no_new_privs` for a non-root service (such as `RestrictSUIDSGID=yes`,
+  `ProtectKernelTunables=yes` or `SystemCallFilter=`), in drop-ins for the
+  collector service. They stop `sudo` from working inside the service.
+
+Don't run `systemctl revert dynatrace-bindplane-otel-collector`. It removes the
+package's `User=` drop-in along with your own, and the collector then starts as
+root. To undo your own changes, remove only your drop-in file.
+
 ## Restarting the Agent
 On systemd systems, the agent may be restarted with the following command:
 ```sh
