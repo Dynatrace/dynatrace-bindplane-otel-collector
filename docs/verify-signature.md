@@ -31,7 +31,7 @@ Verify an artifact, or the checksums file that lists all of them:
 ```bash
 cosign verify-blob \
   --bundle <ARTIFACT>.sigstore.json \
-  --certificate-identity-regexp '^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' \
+  --certificate-identity-regexp '^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   <ARTIFACT>
 ```
@@ -42,9 +42,9 @@ Verify a container image by its digest:
 
 ```bash
 cosign verify \
-  --certificate-identity-regexp '^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' \
+  --certificate-identity-regexp '^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-slim:<VERSION>
+  ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:<VERSION>-slim
 ```
 
 The checksums and the image digests are also attested, which can be checked with the GitHub CLI:

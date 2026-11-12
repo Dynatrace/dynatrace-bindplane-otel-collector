@@ -67,7 +67,7 @@ trailer by default; please disable or strip it before committing.
 - `make check-license` - Check license headers
 
 ### Release Commands
-- `make release version=vX.X.X` - Create and push release tags (`vX.X.X` releases the full build, `vX.X.X-rc.N` releases the slim build and only tags the root)
+- `make release version=vX.X.X` - Create and push release tags (`vX.X.X` releases the full build, `slim/vX.X.X-rc.N` releases the slim build and only tags the root)
 - `make release-test` - Test release process locally (`DISTRO=slim` for the slim build)
 - `make release-prep` - Prepare release dependencies (follows `DISTRO`)
 
@@ -109,7 +109,7 @@ The project uses a Makefile-based build system with:
 - There's no top-level `go.mod`. ocb generates a per-build `go.mod` inside `./build/` (`./build-slim/` for `DISTRO=slim`).
 - Multi-platform cross-compilation support
 - Separate binaries for collector and updater
-- Goreleaser for automated releases. Each build has its goreleaser config next to its manifest (`manifests/<build>/.goreleaser*.yml`). `release-full.yml` (plain semver tags) and `release-slim.yml` (RC tags) are thin callers of the reusable `base-release.yml`, see `docs/releasing.md`
+- Goreleaser for automated releases. Each build has its goreleaser config next to its manifest (`manifests/<build>/.goreleaser*.yml`). `release-full.yml` (plain semver tags) and `release-slim.yml` (`slim/vX.Y.Z-rc.N` tags) are thin callers of the reusable `base-release.yml`, see `docs/releasing.md`
 - License scanning and security checks
 
 ## Testing Strategy
