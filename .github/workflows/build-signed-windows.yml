@@ -105,8 +105,12 @@ jobs:
         shell: bash
         env:
           VERSION: ${{ inputs.version }}
+      # Without VERSION the Makefile derives it from git tags, and this shallow
+      # checkout has none on a branch run, so the binaries get -SNAPSHOT-<sha>.
       - name: Build Windows Binaries
         run: make build-windows-${{ matrix.arch }}
+        env:
+          VERSION: ${{ inputs.version }}
       # Sign the executables themselves, before they are packaged. Signing only
       # the MSI leaves these unsigned inside both the MSI and the release zip,
       # and the console upgrade path downloads the zip and never touches the

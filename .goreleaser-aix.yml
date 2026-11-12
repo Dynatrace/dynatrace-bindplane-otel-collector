@@ -10,7 +10,7 @@ project_name: dynatrace-bindplane-otel-collector
 before:
   hooks:
     - make release-prep-aix CURR_VERSION={{ .Version }}
-    - make build-aix OUTDIR="tmp"
+    - make build-aix OUTDIR="tmp" VERSION=v{{ .Version }}
 
 after:
   hooks:
