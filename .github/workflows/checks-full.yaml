@@ -13,8 +13,6 @@ on:
       - "manifests/dynatrace-bindplane-otel-collector/**"
       - "extension/**"
       - "pkg/**"
-      - "**/go.mod"
-      - "**/go.sum"
       - "Makefile"
       - "scripts/check-version-consistency.sh"
       - "scripts/check-aix-manifest.sh"

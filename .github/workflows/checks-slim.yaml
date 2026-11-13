@@ -13,8 +13,6 @@ on:
       - "manifests/dynatrace-bindplane-otel-collector-slim/**"
       - "extension/**"
       - "pkg/**"
-      - "**/go.mod"
-      - "**/go.sum"
       - "Makefile"
       - "scripts/check-version-consistency.sh"
       - ".github/workflows/base-checks.yaml"
