@@ -21,6 +21,7 @@
 #   core v0.x, core v1+, contrib v0.x, contrib v1+
 # v1+ modules have graduated and are versioned separately from the v0.x ones.
 # Only the component sections are checked; replaces: and dist: are not components.
+# Versions pinned through replaces: are therefore not checked here.
 #
 # Usage: check-version-consistency.sh [manifest...]
 # Without arguments, every manifests/*/manifest*.yaml is checked.
@@ -46,7 +47,9 @@ components() {
 		awk -v file="$f" '
 			/^[a-z_]+:/ { s = $1 }
 			s ~ /^(extensions|exporters|processors|receivers|connectors|providers):$/ && $1 == "-" && $2 == "gomod:" {
-				mod = $3; ver = $4
+				line = $0; gsub(/"/, "", line); split(line, f, " ")
+				mod = f[3]; ver = f[4]
+				if (ver == "" || ver == "#") { print "missing version: " file ": " mod > "/dev/stderr"; exit 2 }
 				if (mod ~ /^go\.opentelemetry\.io\/collector\//) ns = "core"
 				else if (mod ~ /^github\.com\/open-telemetry\/opentelemetry-collector-contrib\//) ns = "contrib"
 				else next
@@ -57,16 +60,19 @@ components() {
 }
 
 tmp=$(mktemp)
-trap 'rm -f "$tmp"' EXIT
+raw=$(mktemp)
+trap 'rm -f "$tmp" "$raw"' EXIT
 
-components "$@" | while read -r group ver file mod; do
+# Not piped, so set -e stops the script when awk fails on a missing version.
+components "$@" > "$raw"
+while read -r group ver file mod; do
 	case "$EXEMPT" in
 		*"
 $mod
 "*) continue ;;
 	esac
 	echo "$group $ver $file $mod"
-done > "$tmp"
+done < "$raw" > "$tmp"
 
 failed=0
 for group in $(awk '{ print $1 }' "$tmp" | sort -u); do

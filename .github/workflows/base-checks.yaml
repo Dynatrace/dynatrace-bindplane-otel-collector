@@ -70,7 +70,9 @@ jobs:
     needs: optimize_ci
     if: ${{ needs.optimize_ci.outputs.skip != 'true' }}
     runs-on: ${{ inputs.runner_os }}
-    timeout-minutes: 30
+    # Full runs verify-manifest plus three AIX checks, each regenerating and
+    # compiling the distro; it takes over 20 minutes on ubuntu-24.04.
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
