@@ -259,6 +259,12 @@ verify-manifest-aix:
 check-aix-manifest:
 	./scripts/check-aix-manifest.sh
 
+# Checks that the OpenTelemetry core and contrib components in all manifests
+# share one version per group (v0.x and graduated v1+ separately).
+.PHONY: check-version-consistency
+check-version-consistency:
+	./scripts/check-version-consistency.sh
+
 # Checks the AIX feature gate skip list against the gates the AIX components register:
 # every hardcoded gate is registered or skipped, and no skipped gate is registered.
 .PHONY: check-aix-feature-gates
