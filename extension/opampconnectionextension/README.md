@@ -37,7 +37,7 @@ What another distro does to run under Bindplane management with this module.
    | `buildName` | `internal/collector` | `otelcol` | `BuildInfo.Command`. **This is the agent type.** Bindplane classifies every connecting agent by this value (OpAMP `service.name`), so each distinct `buildName` is a distinct agent type on the server. Choose it deliberately and keep it distinct from the product slug. Reverse-DNS is the convention. |
    | `buildDescription` | `internal/collector` | `OpenTelemetry Collector` | `BuildInfo.Description`. |
    | `collectorPackageName` | `packagestate` | `otelcol` | Product slug. The key under which the collector's own package is tracked in `package_statuses.json` and offered in `PackagesAvailable`, and the User-Agent prefix. **Must be stamped identically into the updater binary**, or updates never complete. |
-   | `stderrLogName` | `internal/service` | `otelcol.err` | File name for stderr capture: `/var/log/<name>` under launchd on macOS, `$BINDPLANE_COLLECTOR_HOME/log/<name>` on Windows. Must match what your installer and support-bundle scripts reference. |
+   | `stderrLogName` | `internal/service` | `otelcol.err` | File name for stderr capture: `/var/log/<name>` under launchd on macOS, `$BINDPLANE_COLLECTOR_HOME/log/<name>` on Windows and AIX. Must match what your installer and support-bundle scripts reference. |
 
    Version is not a `-X` var here. It arrives through `runtime.Options.Version`
    from your `main.go`, however you stamp it, and feeds `BuildInfo.Version`,
