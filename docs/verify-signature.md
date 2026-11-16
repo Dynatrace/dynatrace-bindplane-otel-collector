@@ -11,7 +11,7 @@ This needs cosign v2 or later, see the [cosign releases page](https://github.com
 ```bash
 cosign verify-blob \
   --bundle <ARTIFACT>.sigstore.json \
-  --certificate-identity https://github.com/dynatrace/dynatrace-bindplane-otel-collector/.github/workflows/base-release.yml@refs/tags/<TAG> \
+  --certificate-identity https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/.github/workflows/base-release.yml@refs/tags/<TAG> \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   <ARTIFACT>
 ```
@@ -22,8 +22,8 @@ To accept any release of one build instead of a single tag, match the identity w
 
 | Build | Regular expression |
 |---|---|
-| full | `^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$` |
-| slim | `^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$` |
+| full | `^https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$` |
+| slim | `^https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$` |
 
 ### Example
 
