@@ -68,6 +68,7 @@ perf-test/
 
 # Local planning docs
 **/MULTI_COLLECTOR_PLAN.md
+/plans/
 
 # JetBrains IDE files
 .idea/
