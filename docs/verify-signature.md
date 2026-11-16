@@ -37,6 +37,24 @@ cosign verify-blob \
   dynatrace-bindplane-otel-collector-v1.2.0-linux-amd64.tar.gz
 ```
 
+### Artifacts from a release-test run
+
+A rehearsal with the `release-test` workflow is signed with the identity of the branch the workflow ran on, not of a tag. Only the full build is signed in a rehearsal.
+
+```
+https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/.github/workflows/base-release.yml@refs/heads/<BRANCH>
+```
+
+For example, for a run on `feat/some-branch`:
+
+```bash
+cosign verify-blob \
+  --bundle <ARTIFACT>.sigstore.json \
+  --certificate-identity https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/.github/workflows/base-release.yml@refs/heads/feat/some-branch \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  <ARTIFACT>
+```
+
 ## Container images
 
 The container images of the slim build are signed by digest as well. Verify one with:
