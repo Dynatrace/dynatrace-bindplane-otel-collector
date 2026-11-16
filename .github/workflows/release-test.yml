@@ -21,7 +21,6 @@ jobs:
     uses: ./.github/workflows/base-release.yml
     with:
       product: dynatrace-bindplane-otel-collector
-      version-check-mode: exact
       version: ${{ inputs.version }}
       dry-run: true
       build-msi: true

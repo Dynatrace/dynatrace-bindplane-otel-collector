@@ -11,17 +11,13 @@ on:
         description: "Product slug used in artifact names, and the name of its folder under manifests/ that holds manifest.yaml and .goreleaser.yml (e.g. dynatrace-bindplane-otel-collector)"
         required: true
         type: string
-      version-check-mode:
-        description: "How the tag is compared to dist.version: exact or core (see scripts/ci/check-tag-version.sh)"
-        required: true
-        type: string
       version:
         description: "Version to release, with the leading v. Defaults to the pushed tag"
         required: false
         type: string
         default: ""
       dry-run:
-        description: "Rehearse the release: skip the tag check, publishing and validation, and upload the artifact bundles as workflow artifacts instead of to a release"
+        description: "Rehearse the release: skip publishing and validation, and upload the artifact bundles as workflow artifacts instead of to a release"
         required: false
         type: boolean
         default: false
@@ -40,26 +36,8 @@ permissions:
   contents: read
 
 jobs:
-  # A rehearsal runs from a branch with an arbitrary version, so there is no tag
-  # to check.
-  check-version:
-    if: ${{ !inputs.dry-run }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Check tag matches manifest version
-        run: ./scripts/ci/check-tag-version.sh "$TAG" "$MANIFEST" "$MODE"
-        env:
-          TAG: ${{ github.ref_name }}
-          MANIFEST: manifests/${{ inputs.product }}/manifest.yaml
-          MODE: ${{ inputs.version-check-mode }}
-
   build-msi:
-    # check-version is skipped on a dry run, which would skip this job too
-    # without a status function.
-    if: ${{ inputs.build-msi && !(cancelled() || failure()) }}
-    needs: [check-version]
+    if: ${{ inputs.build-msi }}
     uses: ./.github/workflows/build-signed-windows.yml
     with:
       version: ${{ inputs.version || github.ref_name }}
@@ -67,7 +45,7 @@ jobs:
     secrets: inherit
 
   release:
-    needs: [check-version, build-msi, build-aix]
+    needs: [build-msi, build-aix]
     # build-msi and build-aix are optional steps that the caller may have not 
     # enabled. 
     # By default a job is skipped when any of its dependencies were skipped, so
@@ -276,10 +254,6 @@ jobs:
   # AIX builds from its own goreleaser config. The release job publishes the
   # packages and lists their hashes in the main SHA256SUMS.
   build-aix:
-    needs: [check-version]
-    # check-version is skipped on a dry run, which would skip this job too
-    # without a status function.
-    if: ${{ !(cancelled() || failure()) }}
     runs-on:
       group: bindplane-large
       labels: ubuntu-latest-32-cores

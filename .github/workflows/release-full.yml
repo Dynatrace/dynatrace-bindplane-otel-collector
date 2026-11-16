@@ -18,7 +18,6 @@ jobs:
     uses: ./.github/workflows/base-release.yml
     with:
       product: dynatrace-bindplane-otel-collector
-      version-check-mode: exact
       build-msi: true
       gcs: true
     secrets: inherit
