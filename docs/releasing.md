@@ -56,8 +56,6 @@ make update-modules NEW_VERSION=$NEXT
 
 This also updates the in-tree module line in the full and slim manifests.
 
-Also set `dist.version` in `manifests/dynatrace-bindplane-otel-collector/manifest.yaml` to the release version without the leading `v` (`1.110.1` for `v1.110.1`). `update-modules` does not change it. The `release` workflow fails if the tag does not match `dist.version` exactly.
-
 PR title: `chore: vX.Y.Z release prep`. Merge it.
 
 ## 4. Tag and release
@@ -87,7 +85,7 @@ Then edit the GitHub release, clear the pre-release flag, and set it as the late
 - [ ] Every component bump is on DBDOT's current OTel
 - [ ] Component bump PR merged (if any)
 - [ ] Security alerts resolved
-- [ ] `chore: vX.Y.Z release prep` merged, with `dist.version` set to the release version
+- [ ] `chore: vX.Y.Z release prep` merged
 - [ ] `make release version=vX.Y.Z` run from up-to-date `main`
 - [ ] `release` workflow green
 - [ ] `release-containers` run on the tag and green
