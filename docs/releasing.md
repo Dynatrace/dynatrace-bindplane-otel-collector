@@ -11,8 +11,6 @@ Releases are managed through GitHub releases. This repository releases two build
 
 Both workflows are thin callers of the reusable `base-release` workflow. Each build has its own goreleaser configuration next to its manifest.
 
-Before tagging, set `dist.version` in the manifest of the build you are releasing to the version without the leading `v`. The first job of the release workflow compares the tag with it and fails on a mismatch: a full tag (`v1.2.3`) must equal `dist.version`, a slim RC tag (`slim/v1.2.3-rc.1`) must equal it once `slim/v` and `-rc.N` are removed, so several RCs can share one manifest version. The checks live in `scripts/ci/check-tag-version.sh`.
-
 # Patch releases
 
 A patch release ships fixes on the OTel version DBDOT is already on. It does not change the OTel version.
@@ -119,12 +117,11 @@ To test the Docker release of the full build, run the `release-containers-test` 
 
 # Slim releases
 
-1. Set `dist.version` in the slim manifest to the version the RC is for, without `-rc.N`. The component versions follow the full manifest: `make update-otel`, `make update-contrib` and `make update-modules` bump both manifests. Only components you change by hand in the full manifest need the same change in the slim one.
+1. Check that the slim manifest is up to date. Its component versions follow the full manifest: `make update-otel`, `make update-contrib` and `make update-modules` bump both manifests. Only components you change by hand in the full manifest need the same change in the slim one.
 
 2. Run `make release version=slim/vX.Y.Z-rc.N`. Only the root tag is created and pushed, slim RC versions do not tag the Go modules.
 
 3. The `release-slim` workflow triggers on the tag push and, without user intervention:
-  - Checks the tag against the slim manifest
   - Builds the slim binaries (linux, darwin and windows/amd64; the updater is not packaged for the slim build yet) with the slim OpAMP agent identity (`com.dynatrace.bindplane.otel.collector-slim`)
   - Creates the archives (`dynatrace-bindplane-otel-collector-slim-*`), the `apk`, `deb` and `rpm` packages. The `deb` and `rpm` packages are signed with the GPG key, the `apk` is not signed.
   - Creates a CycloneDX SBOM per collector binary (`cyclonedx-gomod`), like the Dynatrace OTel Collector
