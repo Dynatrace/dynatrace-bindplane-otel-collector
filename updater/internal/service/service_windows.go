@@ -28,13 +28,12 @@ import (
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/path"
 	"github.com/kballard/go-shellquote"
 )
 
 const (
-	defaultServiceName = "dynatrace-bindplane-otel-collector"
-
 	// defaultRecoveryDelay is the duration in which to wait between service restarts due to failures
 	defaultRecoveryDelay = 5 * time.Second
 	// defaultResetPeriod is the time in which to reset the service failure count to zero
@@ -51,11 +50,11 @@ func WithServiceFile(svcFilePath string) Option {
 	}
 }
 
-// NewService returns an instance of the Service interface for managing the dynatrace-bindplane-otel-collector service on the current OS.
+// NewService returns an instance of the Service interface for managing the collector service on the current OS.
 func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	winSvc := &windowsService{
 		newServiceFilePath: filepath.Join(path.ServiceFileDir(installDir), "windows_service.json"),
-		serviceName:        defaultServiceName,
+		serviceName:        distro.Name(),
 		productName:        path.ProductName,
 		installDir:         installDir,
 		logger:             logger.Named("windows-service"),

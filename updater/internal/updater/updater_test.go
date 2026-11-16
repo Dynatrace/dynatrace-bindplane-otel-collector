@@ -25,6 +25,7 @@ import (
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/packagestate"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/action"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	install_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/install/mocks"
 	rollback_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/rollback/mocks"
 	service_mocks "github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/service/mocks"
@@ -77,7 +78,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		svc.On("Stop").Times(1).Return(nil)
@@ -109,7 +110,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		svc.On("Stop").Times(1).Return(errors.New("insufficient permissions"))
@@ -133,7 +134,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -163,7 +164,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -193,7 +194,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -224,7 +225,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -255,7 +256,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -287,7 +288,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		err := errors.New("insufficient permissions")
@@ -319,7 +320,7 @@ func TestUpdaterUpdate(t *testing.T) {
 			rollbacker:               rollbacker,
 			monitor:                  monitor,
 			logger:                   zaptest.NewLogger(t),
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		svc.On("Stop").Times(1).Return(nil)
@@ -347,7 +348,7 @@ func TestGenerateLinuxServiceFiles(t *testing.T) {
 		u := &Updater{
 			installDir:               installDir,
 			logger:                   logger,
-			installedSystemdUnitPath: filepath.Join("testdata", "dynatrace-bindplane-otel-collector.service.golden"),
+			installedSystemdUnitPath: filepath.Join("testdata", "otelcol.service.golden"),
 		}
 
 		// Cleanup the directory after test
@@ -357,11 +358,12 @@ func TestGenerateLinuxServiceFiles(t *testing.T) {
 		require.NoError(t, err)
 
 		// Compare the generated files with golden files
-		compareFiles(t, filepath.Join(installDir, "install", "dynatrace-bindplane-otel-collector.service"), u.installedSystemdUnitPath)
+		compareFiles(t, filepath.Join(installDir, "install", distro.Name()+".service"), u.installedSystemdUnitPath)
+		compareFiles(t, filepath.Join(installDir, "install", distro.Name()), filepath.Join("testdata", "otelcol.golden"))
 
 		// Check file permissions
-		checkFilePermissions(t, filepath.Join(installDir, "install", "dynatrace-bindplane-otel-collector.service"), 0640)
-		checkFilePermissions(t, filepath.Join(installDir, "install", "dynatrace-bindplane-otel-collector"), 0755)
+		checkFilePermissions(t, filepath.Join(installDir, "install", distro.Name()+".service"), 0640)
+		checkFilePermissions(t, filepath.Join(installDir, "install", distro.Name()), 0755)
 	})
 }
 
@@ -389,7 +391,7 @@ func checkFilePermissions(t *testing.T, filePath string, expectedPerm os.FileMod
 func TestReadGroupFromSystemdFile(t *testing.T) {
 	t.Run("Extract Group from systemd unit file", func(t *testing.T) {
 		u := &Updater{
-			installedSystemdUnitPath: "testdata/dynatrace-bindplane-otel-collector.service.golden",
+			installedSystemdUnitPath: "testdata/otelcol.service.golden",
 		}
 
 		group, err := u.readGroupFromSystemdFile()

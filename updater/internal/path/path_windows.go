@@ -17,6 +17,7 @@ package path
 import (
 	"fmt"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	"go.uber.org/zap"
 	"golang.org/x/sys/windows/registry"
 )
@@ -24,7 +25,7 @@ import (
 // ProductName is the product name the MSI installer registers on Windows. It must match
 // the "product" field in windows/wix.json byte-for-byte, since it names the registry keys
 // the updater reads and the service entry it manages.
-const ProductName = "Dynatrace Bindplane Distribution of OpenTelemetry Collector"
+var ProductName = distro.DisplayName()
 
 // DefaultConfigOverrides is not used on Windows, but is required
 // by InstallDir.

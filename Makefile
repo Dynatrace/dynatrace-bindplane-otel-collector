@@ -4,6 +4,12 @@ ALLDOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
 # Exclude the ocb-generated ./build/ and ./build-slim/ trees — they are
 # throwaway modules, not part of the repo.
 ALL_MODULES := $(shell find . -type f -name "go.mod" -not -path "./build/*" -not -path "./build-slim/*" -exec dirname {} \; | sort )
+# End-to-end test modules. They need a built collector binary (and, for some
+# suites, Docker or a kind cluster), so the unit-test targets skip them. They are
+# run by .github/workflows/e2e.yaml.
+E2E_MODULES := ./internal/testbed/integration
+# Internal-only modules that are never published, so `make release` doesn't tag them.
+UNRELEASED_MODULES := ./internal/testbed/integration ./internal/testcommon
 ALL_MDATAGEN_MODULES := $(shell find . -type f -name "metadata.yaml" -exec dirname {} \; | sort )
 
 # All source code files
@@ -59,11 +65,23 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 #                      other build dirs: the manifests' local replaces are
 #                      written relative to it (../extension/...).
 #   AGENT_NAME         populates component.BuildInfo and is the OpAMP agent type
-#                      (service.name) Bindplane uses to identify the build.
-#   AGENT_DESCRIPTION  populates component.BuildInfo.
+#                      (service.name) Bindplane uses to identify the build. Also
+#                      the updater's macOS launchd label (<AGENT_NAME>.plist).
+#   AGENT_DESCRIPTION  populates component.BuildInfo. Also the updater's Windows
+#                      product name: must equal "product" in windows/wix.json,
+#                      or Windows updates can't find the install.
 #   AGENT_ARTIFACT     base name of the binary written to $(OUTDIR).
 #   PRODUCT_NAME       product slug (see below).
+#   PLIST_SRC          launchd plist packaged into the macOS archives.
 #   DISTRO_BUILD_TAGS  extra build tags for the distro, added to AGENT_BUILD_TAGS.
+#   GORELEASER_DIR     directory holding the goreleaser configs of the build.
+#                      Goreleaser still runs from the repository root; only the
+#                      config files live there.
+#   RELEASE_TEST_SKIP  extra goreleaser --skip steps of the local `release-test`
+#                      snapshot. The slim build skips the container images and
+#                      SBOMs by default, they need docker buildx and
+#                      cyclonedx-gomod. Run
+#                      `make release-test DISTRO=slim RELEASE_TEST_SKIP=` for all.
 DISTRO ?= full
 ifeq ($(DISTRO),full)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
@@ -72,7 +90,10 @@ AGENT_NAME = com.dynatrace.bindplane.otel.collector
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector
 AGENT_ARTIFACT = collector
 PRODUCT_NAME = dynatrace-bindplane-otel-collector
+PLIST_SRC = service/com.dynatrace.bindplane.otel.collector.plist
 DISTRO_BUILD_TAGS =
+GORELEASER_DIR = manifests/dynatrace-bindplane-otel-collector
+RELEASE_TEST_SKIP ?=
 else ifeq ($(DISTRO),slim)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
 BUILD_DIR ?= ./build-slim
@@ -80,22 +101,33 @@ AGENT_NAME = com.dynatrace.bindplane.otel.collector-slim
 AGENT_DESCRIPTION = Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
 AGENT_ARTIFACT = collector-slim
 PRODUCT_NAME = dynatrace-bindplane-otel-collector-slim
+PLIST_SRC = manifests/dynatrace-bindplane-otel-collector-slim/service/com.dynatrace.bindplane.otel.collector-slim.plist
 # Selects the slim feature gate skip list (see
 # extension/opampconnectionextension/internal/collector/featuregates_slim.go).
 DISTRO_BUILD_TAGS = dbdot_slim
+GORELEASER_DIR = manifests/dynatrace-bindplane-otel-collector-slim
+RELEASE_TEST_SKIP ?= docker,sbom
 else
 $(error Unknown DISTRO '$(DISTRO)'. Supported: full, slim)
 endif
 
 # PRODUCT_NAME is the product slug: the OpAMP package key the collector and
-# updater agree on, the User-Agent prefix, and (underscored) the stderr log
-# file name that the installers and support scripts reference. Set per DISTRO
-# above.
+# updater agree on, the User-Agent prefix, (underscored) the stderr log file
+# name that the installers and support scripts reference, and the updater's
+# install dir, binary and service names. Set per DISTRO above.
 STDERR_LOG_NAME = $(subst -,_,$(PRODUCT_NAME)).err
 OPAMP_EXT_MODULE = github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension
 OPAMP_EXT_COLLECTOR_PKG = $(OPAMP_EXT_MODULE)/internal/collector
 OPAMP_EXT_SERVICE_PKG = $(OPAMP_EXT_MODULE)/internal/service
 OPAMP_EXT_PACKAGESTATE_PKG = $(OPAMP_EXT_MODULE)/packagestate
+UPDATER_DISTRO_PKG = github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro
+
+# Updater values shared by both DBDOT builds. They must match the installers
+# (scripts/package/postinstall.sh, scripts/install/install_unix.sh).
+# ponytail: move into the DISTRO block when a distro needs different values.
+CONFIG_HOME_ENV = DBDOT_CONFIG_HOME
+AIX_SRC_SUBSYSTEM = dbdot-otel-collector
+AIX_SRC_GROUP = dbdotcollector
 
 # AGENT_LDFLAGS stamps version + git hash + build date into the v1 collector
 # binaries (both consume github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version),
@@ -115,11 +147,20 @@ AGENT_BUILD_TAGS = embed_library $(DISTRO_BUILD_TAGS)
 
 # UPDATER_LDFLAGS stamps the same values into the updater binary. The package
 # name must match the collector's or the updater never sees the install finish.
+# The distro values (see updater/internal/distro) must match the packaging, or
+# the updater can't find the install it updates. -X silently ignores a
+# misspelled name, so check `updater --version` after renaming anything here.
 UPDATER_LDFLAGS = -s -w \
 	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.version=$(VERSION) \
 	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.gitHash=$(GIT_HASH) \
 	-X github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/version.date=$(BUILD_DATE) \
-	-X $(OPAMP_EXT_PACKAGESTATE_PKG).collectorPackageName=$(PRODUCT_NAME)
+	-X $(OPAMP_EXT_PACKAGESTATE_PKG).collectorPackageName=$(PRODUCT_NAME) \
+	-X $(UPDATER_DISTRO_PKG).name=$(PRODUCT_NAME) \
+	-X '$(UPDATER_DISTRO_PKG).displayName=$(AGENT_DESCRIPTION)' \
+	-X $(UPDATER_DISTRO_PKG).launchdLabel=$(AGENT_NAME) \
+	-X $(UPDATER_DISTRO_PKG).configHomeEnv=$(CONFIG_HOME_ENV) \
+	-X $(UPDATER_DISTRO_PKG).aixSubsystem=$(AIX_SRC_SUBSYSTEM) \
+	-X $(UPDATER_DISTRO_PKG).aixGroup=$(AIX_SRC_GROUP)
 
 .PHONY: version
 version:
@@ -189,6 +230,9 @@ agent:
 	cd $(BUILD_DIR) && go mod tidy
 	cd $(BUILD_DIR) && CGO_ENABLED=0 go build -tags "$(AGENT_BUILD_TAGS)" -ldflags "$(AGENT_LDFLAGS)" -o ../$(OUTDIR)/$(AGENT_ARTIFACT)_$(GOOS)_$(GOARCH)$(EXT) .
 
+.PHONY: collector
+collector: agent
+
 # Builds just the updater for current GOOS/GOARCH pair
 .PHONY: updater
 updater:
@@ -200,13 +244,15 @@ container-init:
 	cd ./cmd/container-init/; CGO_ENABLED=0 go build -ldflags "-s -w" -o ../../$(OUTDIR)/container-init_$(GOOS)_$(GOARCH)$(EXT) .
 
 # Builds the updater + agent + container-init for current GOOS/GOARCH pair
+# TODO: the slim build skips the updater until it can handle updates of the slim
+# build, see the commented `updater` build in the slim .goreleaser.yml.
 .PHONY: build-binaries
-build-binaries: agent updater container-init
+build-binaries: agent $(if $(filter slim,$(DISTRO)),,updater) container-init
 
 .PHONY: build-all
 build-all: build-linux build-darwin build-windows
 
-# AIX builds from its own manifest and ships through .goreleaser-aix.yml, so the
+# AIX builds from its own manifest and ships through manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml, so the
 # main goreleaser before-hook builds every other platform with this target.
 .PHONY: build-all-non-aix
 build-all-non-aix: build-all
@@ -304,6 +350,15 @@ build-windows-amd64:
 build-windows-arm64:
 	CGO_ENABLED=0 GOOS=windows GOARCH=arm64 $(MAKE) build-binaries -j2
 
+# Platforms the slim build is released for. Goreleaser's before hook in the slim
+# config calls build-all-slim. Unlike the full build there is no windows/arm64
+# binary: the slim Windows artifact is the amd64 zip only.
+SLIM_RELEASE_PLATFORMS := linux-amd64 linux-arm64 linux-arm linux-ppc64 linux-ppc64le darwin-amd64 darwin-arm64 windows-amd64
+
+.PHONY: build-all-slim
+build-all-slim:
+	$(MAKE) DISTRO=slim $(addprefix build-,$(SLIM_RELEASE_PLATFORMS))
+
 # tool-related commands
 .PHONY: install-tools
 install-tools:
@@ -312,9 +367,6 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && go install github.com/mgechev/revive
 	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/collector/cmd/mdatagen
 	cd $(TOOLS_MOD_DIR) && go install github.com/securego/gosec/v2/cmd/gosec
-# update cosign in release.yml when updating this version
-# update cosign in docs/verify-signature.md when updating this version
-	go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
 	cd $(TOOLS_MOD_DIR) && go install github.com/uw-labs/lichen
 	cd $(TOOLS_MOD_DIR) && go install github.com/vektra/mockery/v2
 	cd $(TOOLS_MOD_DIR) && go install golang.org/x/tools/cmd/goimports
@@ -328,7 +380,6 @@ install-tools-ci:
 	@command -v revive > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install github.com/mgechev/revive)
 	@command -v mdatagen > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/collector/cmd/mdatagen)
 	@command -v gosec > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install github.com/securego/gosec/v2/cmd/gosec)
-	@command -v cosign > /dev/null 2>&1 || go install github.com/sigstore/cosign/cmd/cosign@v1.13.1
 	@command -v lichen > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install github.com/uw-labs/lichen)
 	@command -v mockery > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install github.com/vektra/mockery/v2)
 	@command -v goimports > /dev/null 2>&1 || (cd $(TOOLS_MOD_DIR) && go install golang.org/x/tools/cmd/goimports)
@@ -346,6 +397,7 @@ misspell:
 misspell-fix:
 	misspell -w $(ALLDOC)
 
+# TEMPORARY: E2E_UNADAPTED_MODULES are skipped until their go.mod matches the repo Go version.
 .PHONY: test
 test:
 	@if [ -n "$$(go list ./... 2>/dev/null)" ]; then \
@@ -354,6 +406,8 @@ test:
 	fi
 	@set -e; for dir in $(ALL_MODULES); do \
 		if [ "$${dir}" = "." ]; then continue; fi; \
+		case " $(E2E_MODULES) " in *" $${dir} "*) continue ;; esac; \
+		case " $(E2E_UNADAPTED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		(cd "$${dir}" && \
 			echo "running tests in $${dir}" && \
 			gotestsum --rerun-fails --packages="./..." -- -race) || exit 1; \
@@ -361,12 +415,42 @@ test:
 
 .PHONY: test-no-race
 test-no-race:
-	$(MAKE) for-all CMD="gotestsum --rerun-fails --packages="./..." "
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="gotestsum --rerun-fails --packages="./..." "
 
 .PHONY: test-with-cover
 test-with-cover:
-	$(MAKE) for-all CMD="go test -coverprofile=cover.out ./..."
-	$(MAKE) for-all CMD="go tool cover -html=cover.out -o cover.html"
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go test -coverprofile=cover.out ./..."
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go tool cover -html=cover.out -o cover.html"
+
+# Fetches the config examples the e2e tests run against from the
+# dynatrace-otel-collector repo. DTOC_REF defaults to main; set it to a commit
+# SHA or tag to pin the examples, e.g. if they drift from the tests copied into
+# internal/testbed.
+DTOC_REPO ?= https://github.com/Dynatrace/dynatrace-otel-collector.git
+DTOC_REF ?= main
+E2E_CONFIG_EXAMPLES_DIR := internal/testbed/config_examples
+
+.PHONY: e2e-config-examples
+e2e-config-examples:
+	@set -e; tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
+	git -C "$$tmp" init -q; \
+	git -C "$$tmp" remote add origin "$(DTOC_REPO)"; \
+	git -C "$$tmp" sparse-checkout set config_examples; \
+	git -C "$$tmp" fetch -q --depth 1 --filter=blob:none origin "$(DTOC_REF)"; \
+	git -C "$$tmp" checkout -q FETCH_HEAD; \
+	rm -rf $(E2E_CONFIG_EXAMPLES_DIR); \
+	cp -R "$$tmp/config_examples" $(E2E_CONFIG_EXAMPLES_DIR); \
+	echo "Fetched config_examples from $(DTOC_REPO) at $(DTOC_REF) into $(E2E_CONFIG_EXAMPLES_DIR)"
+
+# Builds the e2e container images from the linux binaries in dist/ (run
+# `GOOS=linux GOARCH=<arch> make agent` first). The tests expect these tags.
+E2E_IMAGE_ARCH ?= $(shell go env GOARCH)
+.PHONY: e2e-images
+e2e-images:
+	docker build --platform linux/$(E2E_IMAGE_ARCH) --build-arg TARGETARCH=$(E2E_IMAGE_ARCH) \
+		-t dynatrace-bindplane-otel-collector:e2e-test -f internal/testbed/docker/Dockerfile ./dist
+	docker build --platform linux/$(E2E_IMAGE_ARCH) --build-arg TARGETARCH=$(E2E_IMAGE_ARCH) \
+		-t dynatrace-bindplane-otel-collector-journald:e2e-test -f internal/testbed/docker/Dockerfile-journald ./dist
 
 .PHONY: test-updater-integration
 test-updater-integration:
@@ -375,7 +459,7 @@ test-updater-integration:
 
 .PHONY: bench
 bench:
-	$(MAKE) for-all CMD="go test -benchmem -run=^$$ -bench ^* ./..."
+	$(MAKE) for-all SKIP_MODULES="$(E2E_MODULES)" CMD="go test -benchmem -run=^$$ -bench ^* ./..."
 
 .PHONY: check-fmt
 check-fmt:
@@ -501,7 +585,7 @@ add-license:
 		fi
 
 # update-otel attempts to update otel dependencies in go.mods,
-# and update the otel versions in the docs and the manifest.
+# and update the otel versions in the docs and all manifests.
 # Usage: make update-otel OTEL_VERSION=vx.x.x CONTRIB_VERSION=vx.x.x PDATA_VERSION=vx.x.x-rcx DBDOT_CONTRIB_VERSION=vx.x.x CONTRIB_STABLE_VERSION=vx.x.x
 .PHONY: update-otel
 update-otel:
@@ -513,7 +597,7 @@ update-otel:
 # The modules this seems to effect are plugindocgen and bindplaneextension
 	$(MAKE) tidy
 
-# update-modules updates all submodules, and the manifest's in-tree module lines, to be the new version.
+# update-modules updates all submodules, and the in-tree module lines of all manifests, to be the new version.
 # Usage: make update-modules NEW_VERSION=vx.x.x
 .PHONY: update-modules
 update-modules:
@@ -521,7 +605,7 @@ update-modules:
 	MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 
-# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods, the manifest and the doc links, to the new version.
+# update-contrib updates all bindplane-otel-contrib dependencies, in go.mods, all manifests and the doc links, to the new version.
 # Usage: make update-contrib DBDOT_CONTRIB_VERSION=vx.x.x
 .PHONY: update-contrib
 update-contrib:
@@ -530,7 +614,9 @@ update-contrib:
 	sed -i '' -E 's#(dynatrace-bindplane-otel-contrib/(blob|tree)/)[^/]*#\1$(DBDOT_CONTRIB_VERSION)#g' docs/*.md
 	$(MAKE) tidy
 
-# Downloads and setups dependencies that are packaged with binary
+# Downloads and setups dependencies that are packaged with binary. The launchd
+# plist follows the selected DISTRO. The Windows service definition is only
+# needed by the full build's MSI and archives.
 .PHONY: release-prep
 release-prep:
 	@rm -rf release_deps
@@ -540,8 +626,8 @@ release-prep:
 	@cp -r ./plugins release_deps/
 	@cp config/example.yaml release_deps/config.yaml
 	@cp config/logging.yaml release_deps/logging.yaml
-	@cp service/com.dynatrace.bindplane.otel.collector.plist release_deps/com.dynatrace.bindplane.otel.collector.plist
-	@jq ".files[] | select(.service != null)" windows/wix.json >> release_deps/windows_service.json
+	@cp $(PLIST_SRC) release_deps/$(notdir $(PLIST_SRC))
+	@if [ "$(DISTRO)" = "full" ]; then jq ".files[] | select(.service != null)" windows/wix.json >> release_deps/windows_service.json; fi
 
 # Downloads and sets up the dependencies packaged with the AIX binaries
 .PHONY: release-prep-aix
@@ -570,18 +656,21 @@ release-prep-gpg:
 # Build and sign, skip release and ignore dirty git tree
 .PHONY: release-test
 release-test:
-# If there are no MSIs in the root dir, we'll create dummy ones so that goreleaser can complete successfully
-	if [ ! -e "./dynatrace-bindplane-otel-collector-amd64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-amd64.msi; fi
-	if [ ! -e "./dynatrace-bindplane-otel-collector-arm64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-arm64.msi; fi
-# The main release lists the AIX package in its SHA256SUMS, so AIX builds first
-	$(MAKE) release-test-aix
-	rm -rf aix-dist && mkdir aix-dist && cp dist/*.tar.gz aix-dist/
-	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
+# The full build also publishes the MSIs. If there are none in the root dir, we'll create dummy ones so that goreleaser can complete successfully
+	@if [ "$(DISTRO)" = "full" ]; then \
+		if [ ! -e "./dynatrace-bindplane-otel-collector-amd64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-amd64.msi; fi; \
+		if [ ! -e "./dynatrace-bindplane-otel-collector-arm64.msi" ]; then touch ./dynatrace-bindplane-otel-collector-arm64.msi; fi; \
+	fi
+# The full release lists the AIX package in its SHA256SUMS, so AIX builds first. The slim build has no AIX package.
+	@if [ "$(DISTRO)" = "full" ]; then \
+		$(MAKE) release-test-aix && rm -rf aix-dist && mkdir aix-dist && cp dist/*.tar.gz aix-dist/; \
+	fi
+	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign $(if $(RELEASE_TEST_SKIP),--skip=$(RELEASE_TEST_SKIP)) --clean --snapshot --config $(GORELEASER_DIR)/.goreleaser.yml
 
 # Build AIX, skip release and signing, and ignore a dirty git tree
 .PHONY: release-test-aix
 release-test-aix:
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --config .goreleaser-aix.yml --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
 
 .PHONY: release-containers-test
 release-containers-test:
@@ -590,7 +679,7 @@ release-containers-test:
 	mv ./dist/collector_linux_amd64 ./tmp/collector_linux_amd64
 	mv ./dist/collector_linux_arm64 ./tmp/collector_linux_arm64
 	mv ./dist/collector_linux_ppc64le ./tmp/collector_linux_ppc64le
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot --config .goreleaser-docker.yml
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot --config $(GORELEASER_DIR)/.goreleaser-docker.yml
 
 .PHONY: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le
 agent-linux-amd64:
@@ -631,11 +720,11 @@ agent-windows-arm64:
 
 build-single:
 	$(MAKE)
-	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=sign --clean --skip=validate --snapshot --single-target
+	SIGNING_KEY_FILE="fake-file" GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=sign --clean --skip=validate --snapshot --single-target --config $(GORELEASER_DIR)/.goreleaser.yml
 
 .PHONY: release-test-single
 release-test-single:
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release -f .goreleaser.arm64.yml --timeout $(GORELEASER_TIMEOUT) --skip=publish --clean --skip=validate --snapshot
+	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release -f $(GORELEASER_DIR)/.goreleaser.arm64.yml --timeout $(GORELEASER_TIMEOUT) --skip=publish --clean --skip=validate --snapshot
 
 .PHONY: for-all
 for-all:
@@ -645,6 +734,7 @@ for-all:
 	fi
 	@set -e; for dir in $(ALL_MODULES); do \
 	  if [ "$${dir}" = "." ]; then continue; fi; \
+	  case " $${SKIP_MODULES} " in *" $${dir} "*) continue ;; esac; \
 	  (cd "$${dir}" && \
 	    echo "running $${CMD} in $${dir}" && \
 	    $${CMD} ); \
@@ -659,23 +749,27 @@ for-all-modules:
 	    $${CMD} ); \
 	done
 
-# Release a new version of the agent. This will also tag all submodules
+# Release a new version of the agent. This will also tag all submodules, except for
+# slim RC versions (slim/vX.Y.Z-rc.N) which only tag the root.
 .PHONY: release
 release:
 	@if [ -z "$(version)" ]; then \
 		echo "version was not set"; \
 		exit 1; \
 	fi
-	@if ! echo "$(version)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$'; then \
-		echo "version $(version) is invalid semver"; \
+	@if ! echo "$(version)" | grep -Eq '^(v[0-9]+\.[0-9]+\.[0-9]+|slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+)$$'; then \
+		echo "version $(version) is invalid semver (expected vX.Y.Z or slim/vX.Y.Z-rc.N)"; \
 		exit 1; \
 	fi
 	# Tag the root and every module, then push only those tags. A checkout of
 	# this fork carries thousands of tags inherited from upstream; `git push
-	# --tags` would push all of them.
+	# --tags` would push all of them. Slim RC versions release the slim build only,
+	# which needs no module tags, so only the root is tagged for them.
 	@set -e; tags="$(version)"; git tag "$(version)"; \
 	for dir in $(ALL_MODULES); do \
+		case "$(version)" in slim/*) break ;; esac; \
 		if [ "$${dir}" = "." ]; then continue; fi; \
+		case " $(UNRELEASED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		tag="$${dir#./}/$(version)"; \
 		git tag "$${tag}"; \
 		tags="$${tags} $${tag}"; \

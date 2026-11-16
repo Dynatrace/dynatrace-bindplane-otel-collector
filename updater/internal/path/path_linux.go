@@ -22,29 +22,25 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	"go.uber.org/zap"
 )
 
 // DefaultLinuxInstallDir is the install directory of the collector on linux.
-const DefaultLinuxInstallDir = "/opt/dynatrace-bindplane-otel-collector"
-
-// SystemdFilePath is the path for systemd service
-const SystemdFilePath = "/usr/lib/systemd/system/dynatrace-bindplane-otel-collector.service"
+var DefaultLinuxInstallDir = "/opt/" + distro.Name()
 
 // SysVFilePath is the path for sysv service
-const SysVFilePath = "/etc/init.d/dynatrace-bindplane-otel-collector"
+var SysVFilePath = "/etc/init.d/" + distro.Name()
 
 // DefaultConfigOverrides is a list of config files that can be used to override
 // package installation behavior. The updater needs to respect these config
-// options, such as DBDOT_CONFIG_HOME
+// options, such as the install dir override key (distro.ConfigHomeEnv).
 var DefaultConfigOverrides = []string{
-	"/etc/default/dynatrace-bindplane-otel-collector",
-	"/etc/sysconfig/dynatrace-bindplane-otel-collector",
+	"/etc/default/" + distro.Name(),
+	"/etc/sysconfig/" + distro.Name(),
 }
 
-const (
-	configHomeOverrideKey = "DBDOT_CONFIG_HOME"
-)
+var configHomeOverrideKey = distro.ConfigHomeEnv()
 
 // InstallDir returns the filepath to the install directory
 func InstallDir(logger *zap.Logger, configOverrides []string) (string, error) {

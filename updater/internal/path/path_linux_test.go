@@ -15,6 +15,8 @@
 package path
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,6 +24,9 @@ import (
 )
 
 func TestInstallDir(t *testing.T) {
+	customIni := filepath.Join(t.TempDir(), "custom_install_dir.ini")
+	require.NoError(t, os.WriteFile(customIni, []byte(configHomeOverrideKey+"=/opt/custom\n"), 0600))
+
 	tests := []struct {
 		name            string
 		configOverrides []string
@@ -31,21 +36,21 @@ func TestInstallDir(t *testing.T) {
 		{
 			name:            "default install dir when no config files exist",
 			configOverrides: []string{"nonexistent1.conf", "nonexistent2.conf"},
-			expectedDir:     "/opt/dynatrace-bindplane-otel-collector",
+			expectedDir:     DefaultLinuxInstallDir,
 		},
 		{
 			name:            "custom install dir",
-			configOverrides: []string{"testdata/custom_install_dir.ini"},
+			configOverrides: []string{customIni},
 			expectedDir:     "/opt/custom",
 		},
 		{
 			name:            "multi config - one missing",
-			configOverrides: []string{"nonexist.ini", "testdata/custom_install_dir.ini"},
+			configOverrides: []string{"nonexist.ini", customIni},
 			expectedDir:     "/opt/custom",
 		},
 		{
 			name:            "multi config - two missing",
-			configOverrides: []string{"testdata/custom_install_dir.ini", "nonexist.ini"},
+			configOverrides: []string{customIni, "nonexist.ini"},
 			expectedDir:     "/opt/custom",
 		},
 	}

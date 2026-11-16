@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetrygen-deployment
+  namespace: e2ek8scombined
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemetrygen-deployment
+  template:
+    metadata:
+      annotations:
+        workload: deployment
+        metadata.dynatrace.com: >
+          {
+            "dt.cost.costcenter":"costcenter_test",
+            "dt.cost.product":"costprdct_test",
+            "dt.security_context":"secctxt_test",
+            "k8s.namespace.annotation.myAnnotationKey":"custom_test"
+          }
+      labels:
+        app: telemetrygen-deployment
+    spec:
+      containers:
+        - command:
+            - /telemetrygen
+            - traces
+            - --otlp-insecure
+            - --otlp-endpoint=otelcolsvc:4317
+            - --duration=36000s
+            - --rate=1
+            - --otlp-attributes=service.name="test-traces-deployment"
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.164.1@sha256:bba458985f6ae55acc720096e9ba3e81c573135f833dec9f722c18fca54bd799
+          imagePullPolicy: IfNotPresent
+          name: telemetrygen

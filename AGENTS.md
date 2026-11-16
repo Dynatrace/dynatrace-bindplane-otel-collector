@@ -67,9 +67,9 @@ trailer by default; please disable or strip it before committing.
 - `make check-license` - Check license headers
 
 ### Release Commands
-- `make release version=vX.X.X` - Create and push release tags
-- `make release-test` - Test release process locally
-- `make release-prep` - Prepare release dependencies
+- `make release version=vX.X.X` - Create and push release tags (`vX.X.X` releases the full build, `slim/vX.X.X-rc.N` releases the slim build and only tags the root)
+- `make release-test` - Test release process locally (`DISTRO=slim` for the slim build)
+- `make release-prep` - Prepare release dependencies (follows `DISTRO`)
 
 ## Project Architecture
 
@@ -78,7 +78,7 @@ trailer by default; please disable or strip it before committing.
 The project is structured as an OpenTelemetry Collector distribution with custom components:
 
 - **manifests/dynatrace-bindplane-otel-collector/manifest.yaml** - Canonical source of truth for components and their versions. Drives the `make agent` build.
-- **manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml** - Source of truth for the slim build's components. Selected with `DISTRO=slim`; versions are kept in sync with the full manifest by hand.
+- **manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml** - Source of truth for the slim build's components. Selected with `DISTRO=slim`; component versions are kept in sync with the full manifest by `scripts/update-manifest.sh`, which the `make update-otel`, `make update-contrib` and `make update-modules` targets run on all manifests.
 - **extension/opampconnectionextension/cmd/main/main.go** - Template `main.go` copied over ocb's generated `main.go`; calls into `extension/opampconnectionextension/runtime` for managed/standalone dispatch.
 - **extension/opampconnectionextension/** - The OpAMP connection extension and its full managed-mode runtime cluster (collector lifecycle, OpAMP client, package state, report manager, measurements). Its own Go module; entry point `runtime.Run(Options)`.
 - **pkg/report/** - Report manager for the legacy `report.yaml` snapshot path. Its own Go module; not for direct use. See its README.
@@ -109,7 +109,7 @@ The project uses a Makefile-based build system with:
 - There's no top-level `go.mod`. ocb generates a per-build `go.mod` inside `./build/` (`./build-slim/` for `DISTRO=slim`).
 - Multi-platform cross-compilation support
 - Separate binaries for collector and updater
-- Goreleaser for automated releases
+- Goreleaser for automated releases. Each build has its goreleaser config next to its manifest (`manifests/<build>/.goreleaser*.yml`). `release-full.yml` (plain semver tags) and `release-slim.yml` (`slim/vX.Y.Z-rc.N` tags) are thin callers of the reusable `base-release.yml`, see `docs/releasing.md`
 - License scanning and security checks
 
 ## Testing Strategy

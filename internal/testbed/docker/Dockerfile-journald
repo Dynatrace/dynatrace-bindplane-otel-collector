@@ -1,0 +1,32 @@
+# Copyright Dynatrace LLC
+# SPDX-License-Identifier: Apache-2.0
+
+# Image for the e2e tests that need journalctl (journald receiver). The build
+# context is ./dist, which holds the collector_linux_<arch> binaries written by
+# `make agent`.
+FROM ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c
+
+ARG TARGETARCH
+
+# Install systemd for journalctl (required by journaldreceiver)
+RUN apt-get update && \
+    apt-get install -y systemd && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Verify journalctl is available at build time
+RUN journalctl --version
+
+# The collector writes ./logging.yaml if it can't find one. Ship one that logs
+# to stdout instead.
+RUN mkdir /etc/otel && printf 'output: stdout\nlevel: info\n' > /etc/otel/logging.yaml
+
+COPY --chmod=755 collector_linux_${TARGETARCH} /dynatrace-bindplane-otel-collector
+
+# /etc/otel/manager.yaml does not exist, so the collector runs standalone
+# instead of connecting to Bindplane.
+ENV LOGGING_YAML_PATH=/etc/otel/logging.yaml
+ENV MANAGER_YAML_PATH=/etc/otel/manager.yaml
+
+ENTRYPOINT ["/dynatrace-bindplane-otel-collector"]
+CMD ["--config=/conf/config.yaml"]

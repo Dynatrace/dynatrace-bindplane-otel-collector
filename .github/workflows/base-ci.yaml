@@ -1,0 +1,154 @@
+name: Reusable CI workflow
+
+# Builds one DBDOT distro (selected by `distro`, the Makefile's DISTRO) for
+# the given GOOS/GOARCH pairs and smoke-tests the result. Called once per
+# distro by the thin ci-<distro>.yaml workflows, following the pattern of the
+# upstream opentelemetry-collector-releases base-ci-goreleaser.yaml. Unit
+# tests are not distro-specific and stay in tests.yml.
+#
+# The build uses `make agent` rather than goreleaser: the goreleaser configs
+# in this repo use `builder: prebuilt` and only package binaries `make`
+# already built, so `make agent` is the build step goreleaser would run.
+
+on:
+  workflow_call:
+    inputs:
+      distro:
+        description: "Makefile DISTRO to build (full, slim)"
+        required: true
+        type: string
+      goos:
+        description: "JSON array of GOOS values"
+        required: false
+        type: string
+        default: '[ "linux" ]'
+      goarch:
+        description: "JSON array of GOARCH values"
+        required: false
+        type: string
+        default: '[ "amd64" ]'
+      runner_os:
+        required: false
+        type: string
+        default: ubuntu-24.04
+      private_go_modules:
+        description: "Set to true when the distro's manifest pulls private Dynatrace Go modules"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_GO_MODULES_APP_PRIVATE_KEY:
+        required: false
+      GRAPHITE_CI_OPTIMIZER_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  # CI optimization: skip redundant CI runs for stacked PRs.
+  # Graphite stacks: https://graphite.com/docs/stacking-and-ci
+  # GitHub native stacks: https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/optimizing-ci-for-stacked-pull-requests
+  optimize_ci:
+    runs-on: ${{ inputs.runner_os }}
+    continue-on-error: true
+    outputs:
+      skip: ${{ steps.graphite_check.outputs.skip == 'true' || steps.github_check.outputs.skip == 'true' }}
+    steps:
+      - name: Graphite CI optimization
+        id: graphite_check
+        continue-on-error: true
+        uses: withgraphite/graphite-ci-action@402a89bc8aa6db18ae1f9c61953d001d5f9d828f # v0.0.11 tag (no formal releases)
+        with:
+          graphite_token: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
+      - name: GitHub stacked PR optimization
+        id: github_check
+        if: github.event_name == 'pull_request'
+        env:
+          STACK_BASE: ${{ github.event.pull_request.stack.base.ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [[ -n "$STACK_BASE" && "$BASE_REF" != "$STACK_BASE" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    # The calling workflow's name prefixes this (e.g. "CI - DBDOT slim / ..."),
+    # so the distro is not repeated here.
+    name: Build (${{ matrix.GOOS }}/${{ matrix.GOARCH }})
+    strategy:
+      fail-fast: false
+      matrix:
+        GOOS: ${{ fromJSON(inputs.goos) }}
+        GOARCH: ${{ fromJSON(inputs.goarch) }}
+    needs: optimize_ci
+    if: ${{ needs.optimize_ci.outputs.skip != 'true' }}
+    runs-on: ${{ inputs.runner_os }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          # The build's modules are resolved from the ocb manifests, so key the
+          # cache on them as well as the repo's go.sum files.
+          cache-dependency-path: |
+            **/go.sum
+            manifests/**/manifest*.yaml
+
+      - name: Grant access to private Dynatrace Go modules
+        if: inputs.private_go_modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+
+      - name: Install ocb
+        run: make install-ocb
+
+      - name: Build
+        run: make agent DISTRO="${DISTRO}" GOOS="${GOOS}" GOARCH="${GOARCH}"
+        env:
+          DISTRO: ${{ inputs.distro }}
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+
+      # Starts the built collector in standalone mode with a minimal pipeline
+      # for a few seconds. Fails if it exits early or never logs that it is
+      # ready. Catches binaries that compile but fail at startup (e.g. a
+      # feature gate the distro does not register). Only the runner's own
+      # platform can be started.
+      - name: Smoke test
+        if: matrix.GOOS == 'linux' && matrix.GOARCH == 'amd64'
+        run: |
+          shopt -s nullglob
+          bins=(dist/collector*_linux_amd64)
+          if [[ ${#bins[@]} -ne 1 ]]; then
+            echo "expected exactly one collector binary in dist/, found: ${bins[*]}"
+            exit 1
+          fi
+          bin="${bins[0]}"
+          log="${RUNNER_TEMP}/smoke.log"
+          "$bin" --version
+          # No manager.yaml at --manager, so the collector runs standalone.
+          # timeout exits with 124 when it had to stop the still-running
+          # collector, which is the expected outcome.
+          rc=0
+          timeout 10 "$bin" --config config/example.yaml \
+            --logging config/logging.stdout.yaml \
+            --manager "${RUNNER_TEMP}/manager.yaml" > "$log" 2>&1 || rc=$?
+          cat "$log"
+          if [[ $rc -ne 124 ]]; then
+            echo "collector exited during startup (exit code $rc)"
+            exit 1
+          fi
+          if ! grep -q "Everything is ready" "$log"; then
+            echo "collector did not report that it is ready"
+            exit 1
+          fi
+

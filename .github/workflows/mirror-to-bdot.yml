@@ -49,10 +49,13 @@ jobs:
           - [ ] **If this is a serious security bug or patch**, also mirror it onto the \`release/v2.0.0\` branch. Skip this step otherwise.
 
           _Opened automatically when the source PR merged. Add the \`dbdot-only\` label to a PR to suppress this._
+
+          <!-- dbdot-mirror-author: ${PR_AUTHOR} -->
           EOF
           )"
 
           gh issue create \
             --repo observIQ/bindplane-otel-collector \
             --title "Mirror from DBDOT: ${PR_TITLE} (#${PR_NUMBER})" \
-            --body "${body}"
+            --body "${body}" \
+            --label dbdot-mirror-issue

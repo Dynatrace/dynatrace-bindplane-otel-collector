@@ -1,0 +1,16 @@
+exporters:
+  load_balancing/traces:
+    protocol:
+      otlp:
+        tls:
+          insecure: true
+  load_balancing/logs:
+    protocol:
+      otlp:
+        tls:
+          insecure: true
+  load_balancing/metrics:
+    protocol:
+      otlp:
+        tls:
+          insecure: true

@@ -14,10 +14,13 @@
 
 package path
 
-import "go.uber.org/zap"
+import (
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
+	"go.uber.org/zap"
+)
 
 // AIXInstallDir is the path to the install directory on AIX.
-const AIXInstallDir = "/opt/dynatrace-bindplane-otel-collector"
+var AIXInstallDir = "/opt/" + distro.Name()
 
 // DefaultConfigOverrides is not used on AIX, but is required
 // by InstallDir.

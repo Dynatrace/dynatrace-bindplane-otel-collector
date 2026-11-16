@@ -1,0 +1,5 @@
+exporters:
+  otlp_http:
+    endpoint: "%s"
+    tls:
+      insecure: true

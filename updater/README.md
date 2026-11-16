@@ -4,6 +4,8 @@ The updater is a separate binary that runs as a separate process to update agent
 
 Because the updater interacts with the service manager, and may edit privileged files, it needs elevated privileges to run (root on Linux + macOS, administrative privileges on Windows).
 
+The updater is not tied to one distribution. Install paths, service names and the product name are stamped at build time with `-X` linker flags; see [`internal/distro`](internal/distro/distro.go) for the values and `UPDATER_LDFLAGS` in the root `Makefile` for how DBDOT sets them. An unstamped build uses `otelcol` placeholders and can't update a real install.
+
 ## Updating Overview
 
 1. The agent receives PackagesAvailable message.

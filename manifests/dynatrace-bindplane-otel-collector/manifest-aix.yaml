@@ -36,6 +36,7 @@ exporters:
   - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.164.0
   - gomod: go.opentelemetry.io/collector/exporter/otlphttpexporter v0.164.0
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.164.1
+  - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/opampexporter v1.3.0
 
 processors:
   - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.164.0
@@ -132,4 +133,4 @@ replaces:
   - github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/jmxreceiver v0.0.0-20261102211310-a87cc5aaaf37
 
   # AIX host metrics come from the Bindplane gopsutil fork, which is maintained permanently.
-  - github.com/shirou/gopsutil/v4 => github.com/observIQ/gopsutil/v4 d1842df9a81a02f760157eb891e40ad7f2c03d64
+  - github.com/shirou/gopsutil/v4 => github.com/observIQ/gopsutil/v4 e2df4e3a6834128af75def2c9b66737e59c4b974

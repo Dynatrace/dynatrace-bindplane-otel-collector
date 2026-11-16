@@ -1,0 +1,46 @@
+# Alpine is used to stage everything the scratch image needs:
+# /etc/passwd and /etc/group for the otel user, CA certificates
+# for TLS connections to common destinations (Google APIs,
+# Dynatrace, etc), and the /etc/otel runtime tree.
+FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS stage
+
+RUN addgroup -S -g 10005 otel && adduser -S -u 10005 -G otel otel
+
+RUN apk update && apk add --no-cache 'ca-certificates>=20261020-r0'
+
+RUN mkdir \
+    /etc/otel \
+    /etc/otel/storage \
+    && chown -R otel:otel /etc/otel \
+    && chmod 0750 /etc/otel/storage
+
+RUN mkdir /licenses
+COPY LICENSE /licenses/dynatrace-bindplane-otel-collector-slim.license
+
+COPY config/logging.stdout.yaml /etc/otel/logging.yaml
+COPY release_deps/config.yaml /etc/otel/config.yaml
+
+# Scratch images contain nothing by default. The built image
+# will contain only what was copied into it: the collector
+# binary, the passwd/group files, the CA certificates, and the
+# /etc/otel runtime tree (default config, logging config,
+# storage). This means it does not contain utilities
+# like ls, cat, or even a shell.
+FROM scratch
+
+COPY --from=stage /etc/passwd /etc/passwd
+COPY --from=stage /etc/group /etc/group
+COPY --from=stage /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=stage --chown=otel:otel /licenses /licenses
+COPY --from=stage --chown=otel:otel /etc/otel /etc/otel
+COPY --from=stage --chown=otel:otel /etc/otel/storage /etc/otel/storage
+
+COPY dynatrace-bindplane-otel-collector-slim /collector/dynatrace-bindplane-otel-collector-slim
+COPY container-init /collector/container-init
+
+ENV BINDPLANE_COLLECTOR_HOME=/etc/otel
+ENV BINDPLANE_COLLECTOR_STORAGE=/etc/otel/storage
+
+USER otel
+WORKDIR /etc/otel
+ENTRYPOINT ["/collector/dynatrace-bindplane-otel-collector-slim"]

@@ -35,6 +35,7 @@ const (
 type srcService struct {
 	subsystem  string
 	group      string
+	binary     string
 	installDir string
 	envFile    string
 }
@@ -46,7 +47,7 @@ func (s srcService) mkssysArgs() []string {
 	return []string{
 		"-s", s.subsystem,
 		"-G", s.group,
-		"-p", path.Join(dir, "dynatrace-bindplane-otel-collector"),
+		"-p", path.Join(dir, s.binary),
 		"-u", "0",
 		"-S", "-n", "15", "-f", "9", "-R",
 		"-a", fmt.Sprintf("--config %s --manager %s --logging %s",

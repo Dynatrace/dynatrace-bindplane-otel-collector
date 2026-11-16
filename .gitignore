@@ -7,8 +7,7 @@ local
 .vscode
 .vagrant
 dist
-cosign.*
-*.msi.sig
+*.msi.sigstore.json
 gpg.*
 *.msi
 *.exe
@@ -68,6 +67,7 @@ perf-test/
 
 # Local planning docs
 **/MULTI_COLLECTOR_PLAN.md
+/plans/
 
 # JetBrains IDE files
 .idea/
@@ -81,3 +81,6 @@ ocsf_schema.json
 # Claude Code per-user local settings
 .claude/settings.local.json
 cmd/container-init/container-init
+
+# Fetched by `make e2e-config-examples` from dynatrace-otel-collector.
+/internal/testbed/config_examples/

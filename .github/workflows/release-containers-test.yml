@@ -49,7 +49,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/goreleaser
-          key: ${{ runner.os }}-goreleaser-${{ hashFiles('.goreleaser-docker.yml', '**/go.sum') }}
+          key: ${{ runner.os }}-goreleaser-${{ hashFiles('manifests/dynatrace-bindplane-otel-collector/.goreleaser-docker.yml', '**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-goreleaser-
       - name: Run GoReleaser
@@ -57,7 +57,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "v2.12.5"
-          args: release --skip=publish --skip=validate --clean --config .goreleaser-docker.yml
+          args: release --skip=publish --skip=validate --clean --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-docker.yml
         env:
           GORELEASER_CURRENT_TAG: ${{ github.event.inputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

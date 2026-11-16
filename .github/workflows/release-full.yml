@@ -1,0 +1,29 @@
+name: release-full
+
+# Releases the full build from a plain semver tag. Slim RC tags
+# (slim/vX.Y.Z-rc.N) are reserved for the slim build.
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+      - "!v*-*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    # Ceiling for the jobs of the reusable workflow, which request what they need.
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+      packages: write
+    uses: ./.github/workflows/base-release.yml
+    with:
+      product: dynatrace-bindplane-otel-collector
+      build-msi: true
+      build-aix: true
+      gcs: true
+    secrets: inherit

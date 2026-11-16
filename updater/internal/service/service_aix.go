@@ -20,13 +20,8 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/updater/internal/distro"
 	"go.uber.org/zap"
-)
-
-const (
-	aixSubsystem = "dbdot-otel-collector"
-	aixGroup     = "dbdotcollector"
-	aixEnvFile   = "/etc/dynatrace-bindplane-otel-collector.env"
 )
 
 // Option is an extra option for creating a Service
@@ -37,11 +32,17 @@ func WithServiceFile(_ string) Option {
 	return func(_ *aixService) {}
 }
 
-// NewService returns an instance of the Service interface for managing the dynatrace-bindplane-otel-collector service on the current OS.
+// NewService returns an instance of the Service interface for managing the collector service on the current OS.
 func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 	aixSvc := &aixService{
-		src:    srcService{subsystem: aixSubsystem, group: aixGroup, installDir: installDir, envFile: aixEnvFile},
-		poller: newSRCPoller(aixSubsystem),
+		src: srcService{
+			subsystem:  distro.AIXSubsystem(),
+			group:      distro.AIXGroup(),
+			binary:     distro.Name(),
+			installDir: installDir,
+			envFile:    "/etc/" + distro.Name() + ".env",
+		},
+		poller: newSRCPoller(distro.AIXSubsystem()),
 		logger: logger.Named("aix-service"),
 	}
 
@@ -56,7 +57,7 @@ func NewService(logger *zap.Logger, installDir string, opts ...Option) Service {
 func newSRCPoller(subsystem string) srcPoller {
 	return srcPoller{
 		lssrc: func() ([]byte, error) {
-			//#nosec G204 -- subsystem is a constant
+			//#nosec G204 -- subsystem is stamped at build time
 			return exec.Command("lssrc", "-s", subsystem).Output()
 		},
 		now:   time.Now,

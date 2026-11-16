@@ -1,0 +1,418 @@
+version: 2
+
+project_name: dynatrace-bindplane-otel-collector-slim
+
+# The slim build is released from slim RC tags (slim/vX.Y.Z-rc.N). The prefix
+# is stripped from {{ .Version }}, and only slim tags are considered when looking
+# up the previous tag for the changelog.
+# https://goreleaser.com/customization/monorepo/
+monorepo:
+  tag_prefix: slim/
+
+# Releases the slim build: archives, Linux packages, SBOMs, container images,
+# checksums and their signatures. Mirrors the layout of the OpenTelemetry
+# Collector Releases configs and the Dynatrace OTel Collector config, with two
+# deliberate differences from the full build's .goreleaser.yml:
+#   - no Windows MSI and no install scripts, the Windows artifact is a zip of the
+#     amd64 binary only
+#   - keyless cosign signing (sigstore bundles) instead of a key file
+before:
+  hooks:
+    - make release-prep-gpg DISTRO=slim CURR_VERSION={{ .Version }}
+    # Build collector + updater binaries via ocb-driven `make`. Goreleaser picks
+    # them up below via `builder: prebuilt`.
+    - make build-all-slim OUTDIR="tmp"
+
+after:
+  hooks:
+    - cmd: rm -rf tmp
+
+# `ldflags`, `tags`, and `main` are not set here: the Make targets own them
+# (`AGENT_LDFLAGS` / `UPDATER_LDFLAGS` with DISTRO=slim, which stamp the slim
+# OpAMP agent identity). Goreleaser only packages the pre-built binaries.
+builds:
+  - id: collector
+    builder: prebuilt
+    binary: dynatrace-bindplane-otel-collector-slim
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - ppc64
+      - ppc64le
+    ignore:
+      - goos: darwin
+        goarch: ppc64
+      - goos: darwin
+        goarch: ppc64le
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: ppc64
+      - goos: windows
+        goarch: ppc64le
+    prebuilt:
+      path: tmp/collector-slim_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+  # TODO: re-enable the updater once it can handle updates of the slim build.
+  # It is hardcoded for the full build for now, so it is not packaged.
+  # - id: updater
+  #   builder: prebuilt
+  #   binary: updater
+  #   goos:
+  #     - linux
+  #     - darwin
+  #     - windows
+  #   goarch:
+  #     - amd64
+  #     - arm64
+  #     - arm
+  #     - ppc64
+  #     - ppc64le
+  #   ignore:
+  #     - goos: darwin
+  #       goarch: ppc64
+  #     - goos: darwin
+  #       goarch: ppc64le
+  #     - goos: windows
+  #       goarch: arm
+  #     - goos: windows
+  #       goarch: arm64
+  #     - goos: windows
+  #       goarch: ppc64
+  #     - goos: windows
+  #       goarch: ppc64le
+  #   prebuilt:
+  #     path: tmp/updater_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+  # Built by goreleaser itself, only the container images use it.
+  - id: container-init
+    dir: cmd/container-init
+    binary: container-init
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - ppc64le
+
+# https://goreleaser.com/customization/archive/
+archives:
+  - ids:
+      - collector
+      # TODO: re-enable the updater, see the commented `updater` build.
+      # - updater
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    files:
+      - LICENSE
+      - src: release_deps/config.yaml
+        dst: "."
+        strip_parent: true
+      - src: release_deps/logging.yaml
+        dst: "."
+        strip_parent: true
+      - src: release_deps/VERSION.txt
+        dst: "."
+        strip_parent: true
+      - src: release_deps/com.dynatrace.bindplane.otel.collector-slim.plist
+        dst: "install"
+        strip_parent: true
+      - src: release_deps/gpg-keys.tar.gz
+        dst: "."
+        strip_parent: true
+
+# Linux packages. Only deb and rpm are signed, with the same GPG key as the full
+# build. The apk is shipped unsigned, like the Dynatrace OTel Collector's.
+nfpms:
+  - id: collector
+    ids:
+      - collector
+      # TODO: re-enable the updater, see the commented `updater` build.
+      # - updater
+    file_name_template: "{{ .PackageName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    package_name: dynatrace-bindplane-otel-collector-slim
+    vendor: Dynatrace LLC
+    maintainer: Dynatrace LLC <support@bindplane.com>
+    description: Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
+    homepage: https://github.com/dynatrace/dynatrace-bindplane-otel-collector
+    license: Apache 2.0
+    formats:
+      - apk
+      - deb
+      - rpm
+    bindir: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim
+    deb:
+      signature:
+        key_file: "{{ .Env.SIGNING_KEY_FILE }}"
+    rpm:
+      signature:
+        key_file: "{{ .Env.SIGNING_KEY_FILE }}"
+    contents:
+      - dst: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim
+        type: dir
+        file_info:
+          mode: 0750
+          owner: root
+          group: root
+      - src: release_deps/config.yaml
+        dst: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim/config.yaml
+        file_info:
+          mode: 0640
+          owner: root
+          group: root
+      - src: release_deps/logging.yaml
+        dst: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim/logging.yaml
+        file_info:
+          mode: 0640
+          owner: root
+          group: root
+      - src: LICENSE
+        dst: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim/LICENSE
+        file_info:
+          mode: 0644
+          owner: root
+          group: root
+      - src: release_deps/VERSION.txt
+        dst: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim/VERSION.txt
+        file_info:
+          mode: 0644
+          owner: root
+          group: root
+      # Storage dir is used by stateful receivers, such as file_log receiver. It allows
+      # receivers to track their progress and buffer data.
+      - dst: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim/storage
+        type: dir
+        file_info:
+          mode: 0750
+          owner: root
+          group: root
+      - dst: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim/log
+        type: dir
+        file_info:
+          mode: 0750
+          owner: root
+          group: root
+    scripts:
+      preinstall: ./manifests/dynatrace-bindplane-otel-collector-slim/package/preinstall.sh
+      postinstall: ./manifests/dynatrace-bindplane-otel-collector-slim/package/postinstall.sh
+      preremove: ./manifests/dynatrace-bindplane-otel-collector-slim/package/preremove.sh
+      postremove: ./manifests/dynatrace-bindplane-otel-collector-slim/package/postremove.sh
+
+# https://goreleaser.com/customization/sbom/
+# One CycloneDX SBOM per collector binary, like the Dynatrace OTel Collector. The
+# binaries are prebuilt, so cyclonedx-gomod analyzes the module ocb generated for
+# them. The command runs in dist/, hence the relative module path.
+sboms:
+  - id: collector
+    ids:
+      - collector
+    cmd: cyclonedx-gomod
+    args:
+      [
+        "app",
+        "-licenses",
+        "-assert-licenses",
+        "-std",
+        "-json",
+        "-main",
+        "./",
+        "-output",
+        "$document",
+        "../build-slim/",
+      ]
+    artifacts: binary
+    env:
+      - GOARCH={{ .Arch }}
+      - GOOS={{ .Os }}
+    documents:
+      - >-
+        {{ .ProjectName }}_
+        {{- .Version }}_
+        {{- title .Os }}_
+        {{- if eq .Arch "amd64" }}x86_64
+        {{- else if eq .Arch "386" }}i386
+        {{- else }}{{ .Arch }}{{ end }}
+        {{- if .Arm }}v{{ .Arm }}{{ end }}-sbom.cdx.json
+
+# https://goreleaser.com/customization/checksum/
+checksum:
+  name_template: "{{ .ProjectName }}-v{{ .Version }}-SHA256SUMS"
+  algorithm: sha256
+
+# https://goreleaser.com/customization/sign/
+# Keyless signing: cosign gets an ephemeral certificate from Fulcio using the
+# workflow's OIDC token and writes everything needed to verify into one sigstore
+# bundle per artifact.
+signs:
+  - id: checksum
+    cmd: cosign
+    signature: "${artifact}.sigstore.json"
+    artifacts: checksum
+    output: true
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
+  - id: archives
+    cmd: cosign
+    signature: "${artifact}.sigstore.json"
+    artifacts: archive
+    output: true
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
+
+# Container images: a scratch image per architecture, pushed to GHCR, plus
+# multi-arch manifests for the version tag and for `latest-slim`. Both builds
+# publish to the same image repository and the tags tell them apart: slim tags
+# carry the `-slim` suffix (`<version>-slim`, `<version>-slim-<arch>`,
+# `latest-slim`), so the slim build never moves the `latest` tag of the full
+# build.
+dockers:
+  - id: scratch-amd64
+    goos: linux
+    goarch: amd64
+    retry:
+      attempts: 10
+      delay: 30s
+      max_delay: 1m
+    ids:
+      - collector
+      - container-init
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-amd64"
+    dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
+    use: buildx
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--platform=linux/amd64"
+    extra_files:
+      - release_deps/config.yaml
+      - config/logging.stdout.yaml
+      - LICENSE
+  - id: scratch-arm64
+    goos: linux
+    goarch: arm64
+    retry:
+      attempts: 10
+      delay: 30s
+      max_delay: 1m
+    ids:
+      - collector
+      - container-init
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-arm64"
+    dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
+    use: buildx
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--platform=linux/arm64"
+    extra_files:
+      - release_deps/config.yaml
+      - config/logging.stdout.yaml
+      - LICENSE
+  - id: scratch-ppc64le
+    goos: linux
+    goarch: ppc64le
+    retry:
+      attempts: 10
+      delay: 30s
+      max_delay: 1m
+    ids:
+      - collector
+      - container-init
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-ppc64le"
+    dockerfile: ./manifests/dynatrace-bindplane-otel-collector-slim/Dockerfile.scratch
+    use: buildx
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--platform=linux/ppc64le"
+    extra_files:
+      - release_deps/config.yaml
+      - config/logging.stdout.yaml
+      - LICENSE
+
+docker_manifests:
+  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim"
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-amd64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-arm64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-ppc64le"
+  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:latest-slim"
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-amd64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-arm64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-slim-ppc64le"
+
+# Keyless signing of every image and manifest by digest.
+docker_signs:
+  - cmd: cosign
+    artifacts: all
+    output: true
+    args:
+      - sign
+      - "${artifact}@${digest}"
+      - "--yes"
+
+# Digests of all pushed images and manifests, attested by the release workflow.
+docker_digest:
+  name_template: "digests.txt"
+
+# https://goreleaser.com/customization/release/
+release:
+  draft: false
+  # Slim RC tags (slim/vX.Y.Z-rc.N) are published as prereleases.
+  prerelease: auto
+
+# TODO: upload to the full build's GCS bucket (dbdot-release), with a `blobs`
+# section like the full build's, in a directory of its own so the two builds do
+# not collide. The slim containers are built in the release itself, so nothing
+# downstream needs the binaries from the bucket.
+
+# https://goreleaser.com/customization/changelog/
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug Fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 10
+    - title: "Dependencies"
+      regexp: "^.*deps[(\\w)]*:+.*$"
+      order: 30
+    - title: Other
+      order: 999
