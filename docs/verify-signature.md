@@ -32,7 +32,7 @@ Verify an agent archive of a full release:
 ```bash
 cosign verify-blob \
   --bundle dynatrace-bindplane-otel-collector-v1.2.0-linux-amd64.tar.gz.sigstore.json \
-  --certificate-identity https://github.com/dynatrace/dynatrace-bindplane-otel-collector/.github/workflows/base-release.yml@refs/tags/v1.2.0 \
+  --certificate-identity https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/.github/workflows/base-release.yml@refs/tags/v1.2.0 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   dynatrace-bindplane-otel-collector-v1.2.0-linux-amd64.tar.gz
 ```
