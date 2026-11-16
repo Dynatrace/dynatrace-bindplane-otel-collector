@@ -43,7 +43,7 @@ The container images of the slim build are signed by digest as well. Verify one 
 
 ```bash
 cosign verify \
-  --certificate-identity-regexp '^https://github.com/dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' \
+  --certificate-identity-regexp '^https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/slim/v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:<VERSION>-slim
 ```
