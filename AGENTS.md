@@ -36,6 +36,7 @@ trailer by default; please disable or strip it before committing.
 ### Build Commands
 - `make agent` - Build the collector via the OTel Collector Builder, using the manifest of the selected `DISTRO` (default `full`: `manifests/dynatrace-bindplane-otel-collector/manifest.yaml`; `DISTRO=slim`: `manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml`) as the source of truth for components. The slim build outputs `dist/collector-slim_<os>_<arch>`, generates sources in `./build-slim/` and has its own OpAMP agent name (`com.dynatrace.bindplane.otel.collector-slim`). Overwrites the ocb-generated `main.go` with `extension/opampconnectionextension/cmd/main/main.go` so the managed/standalone runtime is wired in. Requires `builder` (`make install-ocb`; version pinned via `OCB_VERSION` in the Makefile).
 - `make verify-manifest` - CI gate: regenerates sources from the manifest of the selected `DISTRO` and compiles them. Fails if the manifest references unresolvable modules or has version drift. Cheap to run on every PR.
+- `make verify-go-runtime` - CI gate: compares the Go runtime fingerprint (toolchain, generated main module `go` version, `DefaultGODEBUG`) of the binary built by `make verify-manifest` with `go-runtime-baseline.txt`. When it fails, follow "Changing the Go version" in `docs/development.md`; `make update-go-runtime-baseline` rewrites the baseline.
 - `make check-slim-feature-gates` - Checks the slim build's feature gate skip list (`featuregates_slimlist.go`) against the gates the slim components register. Run it after changing the slim component list.
 - `make agent-clean` - Wipe the ocb-generated tree of the selected `DISTRO` (`./build/` for `full`, `./build-slim/` for `slim`).
 - `make updater` - Build just the updater binary for current OS/architecture
@@ -105,7 +106,7 @@ Custom components (receivers, processors, exporters, extensions) live in the ext
 
 The project uses a Makefile-based build system with:
 - **`make agent` runs ocb** against the manifest of the selected `DISTRO` (default `full`: `manifests/dynatrace-bindplane-otel-collector/manifest.yaml`), overlays `extension/opampconnectionextension/cmd/main/main.go`, and compiles. Build tags: `bindplane embed_library` (see `AGENT_BUILD_TAGS` in the Makefile; `bindplane` enables Bindplane registry wiring in `topologyprocessor` and `throughputmeasurementprocessor`).
-- `make verify-manifest` is the CI gate for manifest correctness — regenerate sources + compile to `/dev/null`.
+- `make verify-manifest` is the CI gate for manifest correctness — regenerate sources + compile. The binary is kept in the build directory as `verify-collector` for `make verify-go-runtime`.
 - There's no top-level `go.mod`. ocb generates a per-build `go.mod` inside `./build/` (`./build-slim/` for `DISTRO=slim`).
 - Multi-platform cross-compilation support
 - Separate binaries for collector and updater

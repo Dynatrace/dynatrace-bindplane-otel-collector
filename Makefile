@@ -213,7 +213,37 @@ verify-manifest:
 	cd $(BUILD_DIR) && go mod tidy
 	# Compile with the same build tags as the release build ($(AGENT_BUILD_TAGS))
 	# so the gate exercises exactly what `make agent` ships.
-	cd $(BUILD_DIR) && CGO_ENABLED=0 go build -tags "$(AGENT_BUILD_TAGS)" -o /dev/null .
+	# The binary is kept for verify-go-runtime, which inspects it. BUILD_DIR is gitignored.
+	cd $(BUILD_DIR) && CGO_ENABLED=0 go build -tags "$(AGENT_BUILD_TAGS)" -o $(VERIFY_BINARY) .
+
+# verify-go-runtime is a CI gate: fail if the Go runtime fingerprint of the
+# collector (toolchain, main module go version, DefaultGODEBUG) differs from the
+# committed baseline. Reuses the binary built by verify-manifest, and inspects
+# whatever verify-manifest built last.
+GO_RUNTIME_BASELINE ?= go-runtime-baseline.txt
+VERIFY_BINARY = verify-collector
+.PHONY: verify-go-runtime
+verify-go-runtime:
+	@if [ ! -f "$(BUILD_DIR)/$(VERIFY_BINARY)" ]; then \
+		echo "$(BUILD_DIR)/$(VERIFY_BINARY) not found. Run: make verify-manifest"; \
+		exit 1; \
+	fi
+	@scripts/go-runtime-fingerprint.sh $(BUILD_DIR)/$(VERIFY_BINARY) $(BUILD_DIR) > $(BUILD_DIR)/go-runtime.txt
+	@if ! diff -u $(GO_RUNTIME_BASELINE) $(BUILD_DIR)/go-runtime.txt; then \
+		echo ""; \
+		echo "The Go runtime fingerprint of the collector changed (diff above: - baseline, + current)."; \
+		echo "Why it matters: Go gates runtime default changes (GOMAXPROCS, TLS, ...) on these values, so this changes how the shipped binary behaves."; \
+		echo "What to do: follow 'Changing the Go version' in docs/development.md."; \
+		echo "To accept after review: make update-go-runtime-baseline, and commit $(GO_RUNTIME_BASELINE)."; \
+		exit 1; \
+	fi
+	@echo "Go runtime fingerprint matches $(GO_RUNTIME_BASELINE)"
+
+# Rewrites the baseline from the binary built by verify-manifest.
+.PHONY: update-go-runtime-baseline
+update-go-runtime-baseline:
+	@test -f $(BUILD_DIR)/$(VERIFY_BINARY) || { echo "Run: make verify-manifest"; exit 1; }
+	scripts/go-runtime-fingerprint.sh $(BUILD_DIR)/$(VERIFY_BINARY) $(BUILD_DIR) > $(GO_RUNTIME_BASELINE)
 
 # Builds the collector of the selected DISTRO for the current GOOS/GOARCH pair
 # using ocb.

@@ -1,0 +1,4 @@
+toolchain: go1.26
+main module go: 1.26
+DefaultGODEBUG:
+  none
