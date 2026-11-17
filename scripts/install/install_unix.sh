@@ -18,22 +18,11 @@ set -e
 # Cache OS type to avoid repeated subshell forks
 OS_TYPE=$(uname -s)
 
-# Reads optional package overrides. Users should deploy the override
-# file before installing DBDOT for the first time. The override should
-# not be modified unless uninstalling and re-installing.
-[ -f /etc/default/dynatrace-bindplane-otel-collector ] && . /etc/default/dynatrace-bindplane-otel-collector
-[ -f /etc/sysconfig/dynatrace-bindplane-otel-collector ] && . /etc/sysconfig/dynatrace-bindplane-otel-collector
-
-# The collectors installation directory
-: "${DBDOT_CONFIG_HOME:=/opt/dynatrace-bindplane-otel-collector}"
-
-# Allow configurable runtime user/group (used for permissions and manager.yaml)
-: "${DBDOT_USER:=dbdot}"
-: "${DBDOT_GROUP:=dbdot}"
-
 # Agent Constants
-PACKAGE_NAME="dynatrace-bindplane-otel-collector"
 DOWNLOAD_BASE="https://dbdot.bindplane.com"
+
+# The build of DBDOT to install, set with --build. set_build sets the names that depend on it.
+build=full
 
 # Determine the service manager for prereqs. AIX always uses SRC, even when a
 # systemctl or service command is also on PATH.
@@ -46,8 +35,6 @@ elif command -v service > /dev/null 2>&1; then
 fi
 
 # Script Constants
-COLLECTOR_USER="${DBDOT_USER}"
-COLLECTOR_GROUP="${DBDOT_GROUP}"
 TMP_DIR=${TMPDIR:-"/tmp"} # Allow this to be overriden by cannonical TMPDIR env var
 
 # Remove the user install_aix created if the install fails, so a re-run creates it again.
@@ -58,7 +45,6 @@ remove_created_aix_user() {
   if [ "$created_aix_user" = true ]; then rmuser -p "$COLLECTOR_USER" > /dev/null 2>&1; fi
 }
 trap remove_created_aix_user EXIT
-MANAGEMENT_YML_PATH="${DBDOT_CONFIG_HOME}/manager.yaml"
 PREREQS="curl printf $SVC_PRE sed uname cut"
 if [ "$OS_TYPE" = "AIX" ]; then
   # AIX has no curl without the Toolbox, so base Perl can download instead. It installs from a tar.gz.
@@ -243,6 +229,12 @@ Usage:
   $(fg_yellow '-r, --uninstall')
       Stops the agent services and uninstalls the agent.
 
+  $(fg_yellow '--build')
+      Defines the build of DBDOT to install or uninstall: 'full' or 'slim'.
+      If not provided, this will default to 'full'.
+      Builds other than 'full' require '--version'.
+      Example: '--build slim -v 1.2.12' will install 1.2.12 of the slim build.
+
   $(fg_yellow '-l, --url')
       Defines the URL that the components will be downloaded from.
       If not provided, this will default to '$DOWNLOAD_BASE'.
@@ -397,6 +389,42 @@ succeeded()
 failed()
 {
   error "Failed!"
+}
+
+# set_build sets the names of the selected build. A build's package, service,
+# binary, install directory and override file are all named after its package,
+# so adding a build is one case line.
+set_build()
+{
+  case "$build" in
+    full) PACKAGE_NAME="dynatrace-bindplane-otel-collector" ;;
+    slim) PACKAGE_NAME="dynatrace-bindplane-otel-collector-slim" ;;
+    *) error_exit "$LINENO" "Unknown build '$build'. Supported builds: full, slim" ;;
+  esac
+
+  # ponytail: only the full build has an AIX package (and the updater the AIX SRC names must match)
+  if [ "$OS_TYPE" = "AIX" ] && [ "$build" != "full" ]; then
+    error_exit "$LINENO" "Only the full build is available on AIX"
+  fi
+
+  # Reads optional package overrides. Users should deploy the override
+  # file before installing DBDOT for the first time. The override should
+  # not be modified unless uninstalling and re-installing.
+  # shellcheck source=/dev/null
+  if [ -f "/etc/default/$PACKAGE_NAME" ]; then . "/etc/default/$PACKAGE_NAME"; fi
+  # shellcheck source=/dev/null
+  if [ -f "/etc/sysconfig/$PACKAGE_NAME" ]; then . "/etc/sysconfig/$PACKAGE_NAME"; fi
+
+  # The collectors installation directory
+  : "${DBDOT_CONFIG_HOME:=/opt/$PACKAGE_NAME}"
+
+  # Allow configurable runtime user/group (used for permissions and manager.yaml)
+  : "${DBDOT_USER:=dbdot}"
+  : "${DBDOT_GROUP:=dbdot}"
+
+  COLLECTOR_USER="${DBDOT_USER}"
+  COLLECTOR_GROUP="${DBDOT_GROUP}"
+  MANAGEMENT_YML_PATH="${DBDOT_CONFIG_HOME}/manager.yaml"
 }
 
 # This will set all installation variables
@@ -1133,16 +1161,16 @@ install_package()
   fi
 
   if [ "$SVC_PRE" = "systemctl" ]; then
-    if [ "$(systemctl is-enabled dynatrace-bindplane-otel-collector)" = "enabled" ]; then
+    if [ "$(systemctl is-enabled "$PACKAGE_NAME")" = "enabled" ]; then
       # The unit is already enabled; It may be running, too, if this was an upgrade.
       # We'll want to restart, which will start it if it wasn't running already,
       # and restart in the case that this was an upgrade on a running agent.
       info "Restarting service..."
-      systemctl restart dynatrace-bindplane-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
+      systemctl restart "$PACKAGE_NAME" > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
       succeeded
     else
       info "Enabling service..."
-      systemctl enable --now dynatrace-bindplane-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
+      systemctl enable --now "$PACKAGE_NAME" > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
       succeeded
     fi
   elif [ "$SVC_PRE" = "mkssys" ]; then
@@ -1175,18 +1203,18 @@ install_package()
         ;;
     esac
   else
-    case "$(service dynatrace-bindplane-otel-collector status)" in
+    case "$(service "$PACKAGE_NAME" status)" in
       *running*)
         # The service is running.
         # We'll want to restart.
         info "Restarting service..."
-        service dynatrace-bindplane-otel-collector restart > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
+        service "$PACKAGE_NAME" restart > /dev/null 2>&1 || error_exit "$LINENO" "Failed to restart service"
         succeeded
         ;;
       *)
         info "Enabling and starting service..."
-        chkconfig dynatrace-bindplane-otel-collector on > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
-        service dynatrace-bindplane-otel-collector start > /dev/null 2>&1 || error_exit "$LINENO" "Failed to start service"
+        chkconfig "$PACKAGE_NAME" on > /dev/null 2>&1 || error_exit "$LINENO" "Failed to enable service"
+        service "$PACKAGE_NAME" start > /dev/null 2>&1 || error_exit "$LINENO" "Failed to start service"
         succeeded
         ;;
     esac
@@ -2040,20 +2068,20 @@ display_results()
     info "Agent Home:         $(fg_cyan "${DBDOT_CONFIG_HOME}")$(reset)"
     info "Agent Config:       $(fg_cyan "${DBDOT_CONFIG_HOME}/config.yaml")$(reset)"
     if [ "$SVC_PRE" = "systemctl" ]; then
-      info "Start Command:      $(fg_cyan "sudo systemctl start dynatrace-bindplane-otel-collector")$(reset)"
-      info "Stop Command:       $(fg_cyan "sudo systemctl stop dynatrace-bindplane-otel-collector")$(reset)"
-      info "Status Command:     $(fg_cyan "sudo systemctl status dynatrace-bindplane-otel-collector")$(reset)"
+      info "Start Command:      $(fg_cyan "sudo systemctl start $PACKAGE_NAME")$(reset)"
+      info "Stop Command:       $(fg_cyan "sudo systemctl stop $PACKAGE_NAME")$(reset)"
+      info "Status Command:     $(fg_cyan "sudo systemctl status $PACKAGE_NAME")$(reset)"
     elif [ "$SVC_PRE" = "mkssys" ]; then
       info "Start Command:      $(fg_cyan "sudo startsrc -g $AIX_SRC_GROUP -e \"\$(cat $AIX_ENV_FILE)\"")$(reset)"
       info "Stop Command:       $(fg_cyan "sudo stopsrc -g $AIX_SRC_GROUP")$(reset)"
       info "Status Command:     $(fg_cyan "sudo lssrc -s $AIX_SRC_SUBSYSTEM")$(reset)"
     else
-      info "Start Command:      $(fg_cyan "sudo service dynatrace-bindplane-otel-collector start")$(reset)"
-      info "Stop Command:       $(fg_cyan "sudo service dynatrace-bindplane-otel-collector stop")$(reset)"
-      info "Status Command:     $(fg_cyan "sudo service dynatrace-bindplane-otel-collector status")$(reset)"
+      info "Start Command:      $(fg_cyan "sudo service $PACKAGE_NAME start")$(reset)"
+      info "Stop Command:       $(fg_cyan "sudo service $PACKAGE_NAME stop")$(reset)"
+      info "Status Command:     $(fg_cyan "sudo service $PACKAGE_NAME status")$(reset)"
     fi
     info "Logs Command:       $(fg_cyan "sudo tail $(tail_follow_flag) ${DBDOT_CONFIG_HOME}/log/collector.log")$(reset)"
-    info "Uninstall Command:  $(fg_cyan "sudo sh -c \"\$(curl -fsSlL ${DOWNLOAD_BASE}/v${version}/install_unix.sh)\" install_unix.sh -r")$(reset)"
+    info "Uninstall Command:  $(fg_cyan "sudo sh -c \"\$(curl -fsSlL ${DOWNLOAD_BASE}/v${version}/install_unix.sh)\" install_unix.sh -r --build ${build}")$(reset)"
     decrease_indent
 
     banner 'Support'
@@ -2075,7 +2103,7 @@ uninstall_package()
 {
   case "$package_type" in
     deb)
-      dpkg -r "dynatrace-bindplane-otel-collector" > /dev/null 2>&1
+      dpkg -r "$PACKAGE_NAME" > /dev/null 2>&1
       ;;
     mkssys)
       rm -rf "$DBDOT_CONFIG_HOME"
@@ -2083,7 +2111,7 @@ uninstall_package()
       rm -f "$AIX_ENV_FILE" "$AIX_ENV_FILE".*.bak
       ;;
     rpm)
-      rpm -e "dynatrace-bindplane-otel-collector" > /dev/null 2>&1
+      rpm -e "$PACKAGE_NAME" > /dev/null 2>&1
       ;;
     *)
       error "Unrecognized package type"
@@ -2105,11 +2133,11 @@ uninstall()
 
   if [ "$SVC_PRE" = "systemctl" ]; then
     info "Stopping service..."
-    systemctl stop dynatrace-bindplane-otel-collector > /dev/null || error_exit "$LINENO" "Failed to stop service"
+    systemctl stop "$PACKAGE_NAME" > /dev/null || error_exit "$LINENO" "Failed to stop service"
     succeeded
 
     info "Disabling service..."
-    systemctl disable dynatrace-bindplane-otel-collector > /dev/null 2>&1 || error_exit "$LINENO" "Failed to disable service"
+    systemctl disable "$PACKAGE_NAME" > /dev/null 2>&1 || error_exit "$LINENO" "Failed to disable service"
     succeeded
   elif [ "$SVC_PRE" = "mkssys" ]; then
     info "Stopping service..."
@@ -2131,12 +2159,12 @@ uninstall()
     succeeded
   else
     info "Stopping service..."
-    service dynatrace-bindplane-otel-collector stop
+    service "$PACKAGE_NAME" stop
     succeeded
 
     info "Disabling service..."
-    chkconfig dynatrace-bindplane-otel-collector on
-    # rm -f /etc/init.d/dynatrace-bindplane-otel-collector
+    chkconfig "$PACKAGE_NAME" on
+    # rm -f /etc/init.d/$PACKAGE_NAME
     succeeded
   fi
 
@@ -2154,12 +2182,7 @@ uninstall()
 
 main()
 {
-  # We do these checks before we process arguments, because
-  # some of these options bail early, and we'd like to be sure that those commands
-  # (e.g. uninstall) can run
-
   bindplane_banner
-  check_prereqs
 
   if [ $# -ge 1 ]; then
     while [ -n "$1" ]; do
@@ -2198,10 +2221,11 @@ main()
           # Accepted for commands written for the BDOT script; verification is always required here
           warn "'--require-gpg-check' is no longer valid and is ignored. Package signature verification is always required."
           shift 1 ;;
+        --build)
+          build=$2 ; shift 2 ;;
         -r|--uninstall)
-          uninstall
-          exit 0
-          ;;
+          # Runs after parsing, so --build may come after it
+          uninstall_requested="true" ; shift 1 ;;
         -h|--help)
           usage
           exit 0
@@ -2217,9 +2241,25 @@ main()
     done
   fi
 
+  # The prereqs need the build's names (user_check reads the user its override file may set),
+  # and uninstall needs the prereqs.
+  set_build
+  check_prereqs
+
+  if [ "$uninstall_requested" = "true" ]; then
+    uninstall
+    exit 0
+  fi
+
   if [ -z "$version" ] ; then
     # shellcheck disable=SC2153
     version=$COLLECTOR_VERSION
+  fi
+
+  # ponytail: dbdot.bindplane.com/latest reports only the full build; look up other
+  # builds' latest version once the release service serves them
+  if [ -z "$version" ] && [ "$build" != "full" ]; then
+    error_exit "$LINENO" "The $build build requires --version: the latest version lookup supports only the full build"
   fi
 
   if [ -z "$version" ] ; then

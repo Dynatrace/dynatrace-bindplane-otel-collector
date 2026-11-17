@@ -42,7 +42,7 @@ run_case() {
   for t in mkgroup mkuser rmuser useradd userdel chuser; do printf '#!/bin/sh\necho "%s $*" >> "%s"\n' "$t" "$log" > "$bin/$t"; done
   for t in $stubs; do chmod +x "$bin/$t"; done
   PATH="$bin" "$bin/sh" -c ". '$WORK/lib.sh'
-    COLLECTOR_USER=dbdot; COLLECTOR_GROUP=dbdot; package_out_file_path=$WORK/pkg.tar.gz
+    set_build; COLLECTOR_USER=dbdot; COLLECTOR_GROUP=dbdot; package_out_file_path=$WORK/pkg.tar.gz
     install_aix; $after" > "$WORK/out-$name" 2>&1
   ok=true
   for e in "$@"; do
