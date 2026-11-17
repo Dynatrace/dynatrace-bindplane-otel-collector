@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/detect-changes.yaml
 
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [detect-changes]
     if: needs.detect-changes.outputs.skip != 'true'
     steps:
@@ -106,7 +106,7 @@ jobs:
 
   slim-smoke-test:
     name: Smoke test slim build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [detect-changes]
     if: needs.detect-changes.outputs.skip != 'true'
     steps:
@@ -141,7 +141,7 @@ jobs:
         usecase:
           - k8scombined
           - prometheus-large-scale
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: build
     steps:
       - name: Check out code
@@ -174,7 +174,7 @@ jobs:
           - k8sselfmonitoring
           - kubeletstats
           - loadbalancing
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: build
     steps:
       - name: Check out code
@@ -209,7 +209,7 @@ jobs:
           - statsd
           - self-monitoring
           - zipkin
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: build
     steps:
       - name: Check out code
@@ -239,7 +239,7 @@ jobs:
 
   hostmetrics-e2e-test:
     name: Test Hostmetrics configuration
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: build
     steps:
       - name: Check out code
@@ -270,7 +270,7 @@ jobs:
 
   resource-detection-e2e-test:
     name: Test resource detection
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: build
     steps:
       - name: Check out code
@@ -305,7 +305,7 @@ jobs:
     name: E2E Success
     if: always()
     needs: [detect-changes, build, slim-smoke-test, k8s-multinode-matrix, k8s-e2e-test-matrix, e2e-test-matrix, hostmetrics-e2e-test, resource-detection-e2e-test]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Check results
         env:
