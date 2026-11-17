@@ -1,8 +1,8 @@
 name: Reusable package tests workflow
 
-# Installs, checks and uninstalls the Linux packages of one DBDOT build that
-# base-snapshot.yaml uploaded, one job per package type and architecture (see
-# scripts/package-tests/package-tests.sh). Follows the pattern of the upstream
+# Installs, upgrades from the previous release, checks and uninstalls the Linux
+# packages of one DBDOT build that base-snapshot.yaml uploaded, one job per
+# package type and architecture (see scripts/package-tests/package-tests.sh). Follows the pattern of the upstream
 # opentelemetry-collector-releases base-package-tests.yaml; the test itself is
 # ported from the Dynatrace OTel Collector, which also covers arm64.
 
@@ -64,17 +64,41 @@ jobs:
             echo "expected exactly one ${TYPE} package for ${ARCH}, found: ${pkgs[*]}"
             exit 1
           fi
+          pkg_base="$(basename "${pkgs[0]}")"
           echo "path=${pkgs[0]}" >> "$GITHUB_OUTPUT"
+          echo "name=${pkg_base%%_v*}" >> "$GITHUB_OUTPUT"
         env:
           TYPE: ${{ matrix.type }}
           ARCH: ${{ matrix.arch }}
 
+      # The upgrade scenario starts from the newest non-RC release that ships this
+      # package; builds without one yet (slim) skip it.
+      - name: Download previous release package
+        id: previous
+        run: |
+          pattern="${PKG_NAME}_v*_linux_${ARCH}.${TYPE}"
+          for tag in $(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 20 --json tagName --jq '.[].tagName'); do
+            if gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$pattern" --dir previous-release; then
+              path="$(ls previous-release/*)"
+              echo "Upgrade from $tag: $path"
+              echo "path=$path" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "::notice::No release ships $pattern, skipping the upgrade scenario"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PKG_NAME: ${{ steps.package.outputs.name }}
+          TYPE: ${{ matrix.type }}
+          ARCH: ${{ matrix.arch }}
+
       - name: Test ${{ matrix.type }} package
-        run: make package-test DISTRO="${DISTRO}" ARCH="${ARCH}" PACKAGE_PATH="${PKG_PATH}"
+        run: make package-test DISTRO="${DISTRO}" ARCH="${ARCH}" PACKAGE_PATH="${PKG_PATH}" UPGRADE_FROM_PATH="${UPGRADE_FROM_PATH}"
         env:
           DISTRO: ${{ inputs.distro }}
           ARCH: ${{ matrix.arch }}
           PKG_PATH: ${{ steps.package.outputs.path }}
+          UPGRADE_FROM_PATH: ${{ steps.previous.outputs.path }}
 
       - name: Test ${{ matrix.type }} package installation during image build
         run: make package-build-test DISTRO="${DISTRO}" ARCH="${ARCH}" PACKAGE_PATH="${PKG_PATH}"
