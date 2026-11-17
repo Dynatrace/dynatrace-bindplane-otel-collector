@@ -7,7 +7,6 @@ require (
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.3.0
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.3.0
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.3.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version v1.3.0
 	github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.3.0
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
