@@ -237,9 +237,9 @@ signs:
       - "--yes"
 
 # Container images: a scratch image per architecture, pushed to GHCR, plus a
-# multi-arch manifest for the version tag. Both builds publish to the same image
+# multi-arch manifests for the version tag and for `latest`. Both builds publish to the same image
 # repository with the same naming scheme and OCI labels. The tags tell them
-# apart: full tags are `<version>` and `<version>-<arch>`, slim tags carry the
+# apart: full tags are `<version>`, `<version>-<arch>` and `latest`, slim tags carry the
 # `-slim` suffix (see the slim .goreleaser.yml).
 dockers:
   - id: scratch-amd64
@@ -326,6 +326,11 @@ dockers:
 
 docker_manifests:
   - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-amd64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-arm64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-ppc64le"
+  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:latest"
     image_templates:
       - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-amd64"
       - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-arm64"
