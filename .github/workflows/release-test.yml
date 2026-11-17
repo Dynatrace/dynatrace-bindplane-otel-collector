@@ -38,6 +38,6 @@ jobs:
       dry-run: true
       build-msi: ${{ inputs.distro == 'full' }}
       build-aix: ${{ inputs.distro == 'full' }}
-      containers: ${{ inputs.distro == 'slim' }}
+      containers: true
       sbom: ${{ inputs.distro == 'slim' }}
     secrets: inherit

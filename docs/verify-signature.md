@@ -39,7 +39,7 @@ cosign verify-blob \
 
 ### Artifacts from a release-test run
 
-A rehearsal with the `release-test` workflow is signed with the identity of the branch the workflow ran on, not of a tag. Only the full build is signed in a rehearsal.
+A rehearsal with the `release-test` workflow is signed with the identity of the branch the workflow ran on, not of a tag. Only the artifact bundles (`*-artifacts*.tar.gz`) are signed in a rehearsal. Goreleaser skips signing, because the container images are signed by digest, which needs them to be pushed.
 
 ```
 https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/.github/workflows/base-release.yml@refs/heads/<BRANCH>
@@ -57,7 +57,7 @@ cosign verify-blob \
 
 ## Container images
 
-The container images of the slim build are signed by digest as well. Verify one with:
+The container images of both builds are signed by digest as well. Verify a slim image with:
 
 ```bash
 cosign verify \
@@ -66,9 +66,18 @@ cosign verify \
   ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:<VERSION>-slim
 ```
 
+And an image of the full build with:
+
+```bash
+cosign verify \
+  --certificate-identity-regexp '^https://github.com/Dynatrace/dynatrace-bindplane-otel-collector/\.github/workflows/base-release\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:<VERSION>
+```
+
 ## Attestations
 
-The checksums files and the digests of the slim container images are also attested. The attestation of an artifact can be checked with the GitHub CLI:
+The checksums files and the digests of the container images are also attested. The attestation of an artifact can be checked with the GitHub CLI:
 
 ```bash
 gh attestation verify <ARTIFACT> --repo dynatrace/dynatrace-bindplane-otel-collector
