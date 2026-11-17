@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/collector"
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/cpuinfo"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/logging"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/service"
 	"github.com/open-telemetry/opamp-go/protobufs"
@@ -100,6 +101,9 @@ func Run(opts Options) {
 	if redirectErr != nil {
 		logger.Warn("Failed to redirect stderr to the error log", zap.Error(redirectErr))
 	}
+
+	// Startup only: the report is not refreshed if GOMAXPROCS changes later.
+	cpuinfo.Log(logger, cpuinfo.Inspect())
 
 	if err := collector.SetFeatureFlags(opts.FeatureGates, logger); err != nil {
 		logger.Fatal("Failed to set feature flags.", zap.Error(err))
