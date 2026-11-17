@@ -724,11 +724,13 @@ build-single:
 
 # Installs, checks and uninstalls a Linux package of the selected DISTRO in a
 # podman container (see scripts/package-tests/package-tests.sh). ARCH is the
-# package's architecture, other than the host's it runs through QEMU.
+# package's architecture, other than the host's it runs through QEMU. The
+# optional UPGRADE_FROM_PATH is a released package of the same build and type to
+# test the upgrade from.
 # Example: make package-test DISTRO=slim ARCH=amd64 PACKAGE_PATH=dist/linux_amd64_v1/<package>.deb
 .PHONY: package-test
 package-test:
-	./scripts/package-tests/package-tests.sh $(PACKAGE_PATH) $(ARCH) $(PRODUCT_NAME)
+	./scripts/package-tests/package-tests.sh $(PACKAGE_PATH) $(ARCH) $(PRODUCT_NAME) $(UPGRADE_FROM_PATH)
 
 .PHONY: release-test-single
 release-test-single:
