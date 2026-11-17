@@ -17,7 +17,7 @@ This describes the DBDOT Collector build as it stands today. The OTel Collector 
 |---|---|---|---|
 | `manifest.yaml` | `make agent` | `dist/collector_<os>_<arch>` | v1 — in-process managed runtime; `extension/opampconnectionextension/cmd/main/main.go` overlay. |
 
-`make verify-manifest` regenerates from `manifest.yaml` and compiles to `/dev/null` — the CI gate against manifest breakage.
+`make verify-manifest` regenerates from `manifest.yaml` and compiles it (keeping the binary as `build/verify-collector` for `make verify-go-runtime`) — the CI gate against manifest breakage.
 
 `make agent-clean` wipes `./build/` and `./builder/`.
 

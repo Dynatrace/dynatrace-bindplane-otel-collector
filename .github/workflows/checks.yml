@@ -90,6 +90,8 @@ jobs:
             manifest:
               - 'manifests/**'
               - 'scripts/check-aix-manifest.sh'
+              - 'scripts/go-runtime-fingerprint.sh'
+              - 'go-runtime-baseline.txt'
               - '**/go.mod'
               - '**/go.sum'
               - 'Makefile'
@@ -203,6 +205,14 @@ jobs:
         run: make install-ocb
       - name: Verify manifest
         run: make verify-manifest
+      # The fingerprint steps inspect the binary built by the preceding verify-manifest.
+      # Keep them before the AIX steps: those rebuild build/ with GOOS=aix.
+      - name: Verify Go runtime fingerprint
+        run: make verify-go-runtime
+      - name: Verify slim manifest
+        run: make verify-manifest DISTRO=slim
+      - name: Verify slim Go runtime fingerprint
+        run: make verify-go-runtime DISTRO=slim
       - name: Check AIX manifest is a subset of the main manifest
         run: make check-aix-manifest
       - name: Verify AIX manifest
