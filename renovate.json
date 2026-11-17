@@ -6,6 +6,7 @@
     "customManagers:githubActionsVersions",
     "customManagers:makefileVersions"
   ],
+  "ignorePresets": [":semanticPrefixFixDepsChoreOthers"],
   "labels": ["dependencies"],
   "semanticCommits": "enabled",
   "semanticCommitType": "deps",
@@ -14,11 +15,7 @@
   "minimumReleaseAge": "3 days",
   "minimumReleaseAgeBehaviour": "timestamp-optional",
   "timezone": "Europe/Vienna",
-  "rebaseWhen": "behind-base-branch",
-  "postUpdateOptions": [
-    "gomodTidy",
-    "gomodMassage"
-  ],
+  "postUpdateOptions": ["gomodTidyAll"],
   "packageRules": [
     {
       "matchPackageNames": [
@@ -29,7 +26,7 @@
         "/^github\\.com/dynatrace/dynatrace-bindplane-otel-(contrib|collector)//",
         "/^github\\.com/Dynatrace/dt-otelcol-edge-processing-components//"
       ],
-      "description": "OpenTelemetry updates are done manually via make update-otel",
+      "description": "OpenTelemetry and inter-module updates are done manually via make update-otel / make update-modules",
       "enabled": false
     },
     {
@@ -65,7 +62,15 @@
       "groupName": "github-actions deps"
     },
     {
+      "description": "One weekly PR for non-major Go updates",
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "go non-major deps"
+    },
+    {
+      "description": "goreleaser-action's version input is detected as goreleaser/goreleaser",
       "matchPackageNames": [
+        "goreleaser/goreleaser",
         "goreleaser-pro",
         "goreleaser/goreleaser-pro",
         "github.com/goreleaser/goreleaser-pro/v2",
