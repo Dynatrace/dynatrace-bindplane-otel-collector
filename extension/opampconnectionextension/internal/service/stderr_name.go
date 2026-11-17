@@ -14,10 +14,17 @@
 
 package service
 
+import "path/filepath"
+
 // stderrLogName is the file name used for the collector's stderr capture:
 // launchd's StandardErrorPath under /var/log on macOS, and
-// $BINDPLANE_COLLECTOR_HOME/log/<name> on Windows. Stamped at link time via -X
+// $BINDPLANE_COLLECTOR_HOME/log/<name> on Windows and AIX. Stamped at link time via -X
 // (see AGENT_LDFLAGS in the Makefile) and must match the file name the distro's
 // installer and support scripts reference. The default is a generic
 // placeholder so an unstamped build is obviously unstamped.
 var stderrLogName = "otelcol.err"
+
+// stderrFilePath returns the stderr capture file under the collector's home directory.
+func stderrFilePath(home string) string {
+	return filepath.Join(home, "log", stderrLogName)
+}
