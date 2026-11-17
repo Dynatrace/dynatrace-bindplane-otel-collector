@@ -17,7 +17,9 @@ package bindplane
 import (
 	"os"
 	"runtime"
+	"strconv"
 
+	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/cpuinfo"
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/opamp"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements"
 	"github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo"
@@ -38,6 +40,12 @@ type identity struct {
 	oSType      string
 	hostname    string
 	mac         string
+
+	// CPU settings at startup, reported so the server can show CPU
+	// misconfiguration.
+	gomaxprocs        int
+	gomaxprocsDefault int
+	exceedsCPU        bool
 }
 
 // newIdentity constructs a new identity for this collector
@@ -53,6 +61,8 @@ func newIdentity(logger *zap.Logger, config opamp.Config, buildInfo component.Bu
 		logger.Warn("Failed to retrieve host details on collector. Creating partial identity", zap.Error(err))
 	}
 
+	cpu := cpuinfo.Inspect()
+
 	return &identity{
 		agentID:     config.AgentID,
 		agentName:   config.AgentName,
@@ -64,6 +74,10 @@ func newIdentity(logger *zap.Logger, config opamp.Config, buildInfo component.Bu
 		oSType:      runtime.GOOS,
 		hostname:    hostname,
 		mac:         osinfo.MACAddress(),
+
+		gomaxprocs:        cpu.GOMAXPROCS,
+		gomaxprocsDefault: cpu.RuntimeDefault,
+		exceedsCPU:        cpu.ExceedsAvailableCPU(),
 	}
 }
 
@@ -78,6 +92,10 @@ func (i identity) Copy() *identity {
 		oSType:      i.oSType,
 		hostname:    i.hostname,
 		mac:         i.mac,
+
+		gomaxprocs:        i.gomaxprocs,
+		gomaxprocsDefault: i.gomaxprocsDefault,
+		exceedsCPU:        i.exceedsCPU,
 	}
 
 	if i.agentName != nil {
@@ -117,6 +135,9 @@ func (i *identity) ToAgentDescription() *protobufs.AgentDescription {
 		opamp.StringKeyValue("host.mac_address", i.mac),
 		// Maps to the session_id metric label on the server, the same way host.mac_address maps to mac_address.
 		opamp.StringKeyValue("bindplane.session_id", measurements.SessionID),
+		opamp.StringKeyValue("bindplane.gomaxprocs.effective", strconv.Itoa(i.gomaxprocs)),
+		opamp.StringKeyValue("bindplane.gomaxprocs.default", strconv.Itoa(i.gomaxprocsDefault)),
+		opamp.StringKeyValue("bindplane.gomaxprocs.exceeds_available_cpu", strconv.FormatBool(i.exceedsCPU)),
 	}
 
 	if i.labels != nil {

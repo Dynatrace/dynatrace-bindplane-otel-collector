@@ -17,6 +17,7 @@ package bindplane
 import (
 	"os"
 	"runtime"
+	"strconv"
 	"testing"
 
 	"github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension/internal/opamp"
@@ -70,6 +71,19 @@ func Test_newIdentity(t *testing.T) {
 	require.Equal(t, got.version, expectedVersion)
 	require.Equal(t, got.oSArch, runtime.GOARCH)
 	require.Equal(t, got.oSType, runtime.GOOS)
+
+	// The real values come from the runtime, so only their shape is checked.
+	attrs := map[string]string{}
+	for _, kv := range got.ToAgentDescription().NonIdentifyingAttributes {
+		attrs[kv.Key] = kv.Value.GetStringValue()
+	}
+	for _, key := range []string{"bindplane.gomaxprocs.effective", "bindplane.gomaxprocs.default"} {
+		n, err := strconv.Atoi(attrs[key])
+		require.NoError(t, err, key)
+		require.Positive(t, n, key)
+	}
+	_, err := strconv.ParseBool(attrs["bindplane.gomaxprocs.exceeds_available_cpu"])
+	require.NoError(t, err)
 }
 
 func TestToAgentDescription(t *testing.T) {
@@ -93,6 +107,10 @@ func TestToAgentDescription(t *testing.T) {
 				oSType:      "linux",
 				hostname:    "my-linux-box",
 				mac:         "68-C7-B4-EB-A8-D2",
+
+				gomaxprocs:        8,
+				gomaxprocsDefault: 2,
+				exceedsCPU:        true,
 			},
 			expected: &protobufs.AgentDescription{
 				IdentifyingAttributes: []*protobufs.KeyValue{
@@ -109,6 +127,9 @@ func TestToAgentDescription(t *testing.T) {
 					opamp.StringKeyValue("host.name", "my-linux-box"),
 					opamp.StringKeyValue("host.mac_address", "68-C7-B4-EB-A8-D2"),
 					opamp.StringKeyValue("bindplane.session_id", measurements.SessionID),
+					opamp.StringKeyValue("bindplane.gomaxprocs.effective", "8"),
+					opamp.StringKeyValue("bindplane.gomaxprocs.default", "2"),
+					opamp.StringKeyValue("bindplane.gomaxprocs.exceeds_available_cpu", "true"),
 					opamp.StringKeyValue("service.key", "test-key"),
 				},
 			},
@@ -126,6 +147,10 @@ func TestToAgentDescription(t *testing.T) {
 				oSType:      "linux",
 				hostname:    "my-linux-box",
 				mac:         "68-C7-B4-EB-A8-D2",
+
+				gomaxprocs:        8,
+				gomaxprocsDefault: 2,
+				exceedsCPU:        true,
 			},
 			expected: &protobufs.AgentDescription{
 				IdentifyingAttributes: []*protobufs.KeyValue{
@@ -142,6 +167,9 @@ func TestToAgentDescription(t *testing.T) {
 					opamp.StringKeyValue("host.name", "my-linux-box"),
 					opamp.StringKeyValue("host.mac_address", "68-C7-B4-EB-A8-D2"),
 					opamp.StringKeyValue("bindplane.session_id", measurements.SessionID),
+					opamp.StringKeyValue("bindplane.gomaxprocs.effective", "8"),
+					opamp.StringKeyValue("bindplane.gomaxprocs.default", "2"),
+					opamp.StringKeyValue("bindplane.gomaxprocs.exceeds_available_cpu", "true"),
 					opamp.StringKeyValue("service.labels", labelsContents),
 					opamp.StringKeyValue("service.key", "test-key"),
 				},
@@ -172,6 +200,10 @@ func Test_identityCopy(t *testing.T) {
 		oSType:      "linux",
 		hostname:    "my-linux-box",
 		mac:         "68-C7-B4-EB-A8-D2",
+
+		gomaxprocs:        8,
+		gomaxprocsDefault: 2,
+		exceedsCPU:        true,
 	}
 
 	copyIdent := ident.Copy()

@@ -72,6 +72,9 @@ jobs:
           load: true
           tags: dynatrace-bindplane-otel-collector:e2e-test
 
+      - name: Check GOMAXPROCS startup log
+        run: scripts/ci/check-gomaxprocs-startup.sh dynatrace-bindplane-otel-collector:e2e-test
+
       - name: export image to tar
         run: |
           docker save dynatrace-bindplane-otel-collector:e2e-test > /tmp/dynatrace-bindplane-otel-collector.tar
