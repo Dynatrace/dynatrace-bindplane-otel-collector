@@ -103,7 +103,9 @@ run_case "e cpus=0.5" "gomaxprocs=2 runtime_default=2" 0 --cpus=0.5
 run_case "f cpus=2 containermaxprocs=0" "gomaxprocs=${NCPU} cpu_limit_ignored=true" 1 --cpus=2 -e GODEBUG=containermaxprocs=0
 run_case "g cpus=2 GOMAXPROCS=abc" "gomaxprocs=2 runtime_default=2 cpu_limit_ignored=false" 0 --cpus=2 -e GOMAXPROCS=abc
 run_case "h cpus=3 containermaxprocs=0" "gomaxprocs=${NCPU} cpu_limit_ignored=true" 1 --cpus=3 -e GODEBUG=containermaxprocs=0
-run_case "i cpus=3 containermaxprocs=0 GOMAXPROCS=8" "gomaxprocs=8 source=environment cpu_limit_ignored=true" 1 --cpus=3 -e GODEBUG=containermaxprocs=0 -e GOMAXPROCS=8
+# With cgroup awareness off the runtime default is the host CPU count, so these two cases derive GOMAXPROCS from it.
+run_case "i cpus=3 containermaxprocs=0 GOMAXPROCS=${NCPU}" "gomaxprocs=${NCPU} runtime_default=${NCPU} source=environment cpu_limit_ignored=true" 1 --cpus=3 -e GODEBUG=containermaxprocs=0 -e "GOMAXPROCS=${NCPU}"
 run_case "j no limit containermaxprocs=0" "gomaxprocs=${NCPU} cpu_limit_ignored=false" 0 -e GODEBUG=containermaxprocs=0
+run_case "k cpus=3 containermaxprocs=0 GOMAXPROCS=$((NCPU * 2))" "gomaxprocs=$((NCPU * 2)) runtime_default=${NCPU} source=environment cpu_limit_ignored=true" 2 --cpus=3 -e GODEBUG=containermaxprocs=0 -e "GOMAXPROCS=$((NCPU * 2))"
 
 exit "${FAILED}"
