@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: bash .github/scripts/retry.sh make install-ocb
       - name: Install DigiCert Client tools from Github Custom Actions marketplace
-        uses: digicert/ssm-code-signing@b300bb7e8c2ab85257d660fe5b6c6374131ca2ef # v1.0.0
+        uses: digicert/ssm-code-signing@1d820463733701cf1484c7eb5d7d24a15ca2c454 # v1.2.1
       - name: Set up certificate
         run: |
           echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
@@ -151,7 +151,7 @@ jobs:
       # Handed to the release job so goreleaser packages these exact signed
       # bytes instead of the unsigned copies it builds on the Linux runner.
       - name: Upload Signed Windows Binaries
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: signed-windows-${{ matrix.arch }}
           path: |
@@ -181,7 +181,7 @@ jobs:
           Write-Host "$f signed by $($sig.SignerCertificate.Subject)"
       - name: Upload Signed Windows Install Script
         if: inputs.sign_install_script && matrix.arch == 'amd64'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: signed-install-script
           path: scripts/install/install_windows.ps1
@@ -220,7 +220,7 @@ jobs:
         env:
           KEYPAIR_ALIAS: ${{ secrets.DBDOT_DIGICERT_KEYPAIR_ALIAS }}
       - name: Upload MSI
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ matrix.msi_name }}
           path: C:/build/${{ matrix.msi_name }}

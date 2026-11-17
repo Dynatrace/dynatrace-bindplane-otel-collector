@@ -24,7 +24,7 @@ jobs:
       # Mint a short-lived token for the GitHub App, scoped to the BDOT repo.
       - name: Generate BDOT token
         id: bdot-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
           app-id: ${{ secrets.BDOT_ISSUE_APP_ID }}
           private-key: ${{ secrets.BDOT_ISSUE_APP_PRIVATE_KEY }}
