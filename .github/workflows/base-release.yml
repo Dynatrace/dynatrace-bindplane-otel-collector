@@ -228,7 +228,7 @@ jobs:
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser-pro
-          version: "v2.12.5"
+          version: "v2.20.2"
           # Container images are signed by digest, which needs them to be pushed, so a
           # rehearsal of a build with images skips signing.
           args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }}${{ inputs.dry-run && inputs.containers && ' --skip=sign' || '' }} --config manifests/${{ inputs.product }}/.goreleaser.yml
@@ -374,7 +374,7 @@ jobs:
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser-pro
-          version: "v2.12.5"
+          version: "v2.20.2"
           args: release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --skip=publish${{ inputs.dry-run && ',validate' || '' }} --clean
         env:
           GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
