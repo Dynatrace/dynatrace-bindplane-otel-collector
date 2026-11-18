@@ -117,7 +117,7 @@ To rehearse a release in GitHub Actions, run the `release-test` workflow and sel
 2. Run `make release version=slim/vX.Y.Z-rc.N`. Only the root tag is created and pushed, slim RC versions do not tag the Go modules.
 
 3. The `release-slim` workflow triggers on the tag push and, without user intervention:
-  - Builds the slim binaries (linux, darwin and windows/amd64; the updater is not packaged for the slim build yet) with the slim OpAMP agent identity (`com.dynatrace.bindplane.otel.collector-slim`)
+  - Builds the slim binaries (collector and updater for linux, darwin and windows/amd64) with the slim OpAMP agent identity (`com.dynatrace.bindplane.otel.collector-slim`)
   - Creates the archives (`dynatrace-bindplane-otel-collector-slim-*`), the `apk`, `deb` and `rpm` packages. The `deb` and `rpm` packages are signed with the GPG key, the `apk` is not signed.
   - Creates a CycloneDX SBOM per collector binary (`cyclonedx-gomod`), like the Dynatrace OTel Collector
   - Creates the checksums file and signs it and the archives keyless with cosign (`*.sigstore.json` bundles)
