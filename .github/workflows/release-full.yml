@@ -26,4 +26,5 @@ jobs:
       build-msi: true
       build-aix: true
       gcs: true
+      containers: true
     secrets: inherit

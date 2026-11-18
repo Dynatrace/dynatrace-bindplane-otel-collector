@@ -6,8 +6,8 @@ project_name: dynatrace-bindplane-otel-collector
 # `goreleaser release --nightly` against this config: no tag at HEAD is
 # required and no GitHub release is created — only docker images and
 # manifests are published, to ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-nightly*, a package
-# separate from the release images (ghcr.io/dynatrace/dynatrace-bindplane-otel-collector*, built by
-# .goreleaser-docker.yml — mirror image-content changes between the two).
+# separate from the release images (ghcr.io/dynatrace/dynatrace-bindplane-otel-collector, built by
+# .goreleaser.yml — mirror image-content changes between the two).
 # Nightlies ship amd64/arm64 only; no ppc64le.
 #
 # The workflow must set two env vars:

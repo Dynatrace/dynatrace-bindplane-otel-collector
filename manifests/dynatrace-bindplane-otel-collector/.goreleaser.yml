@@ -80,10 +80,27 @@ builds:
         goarch: ppc64le
     prebuilt:
       path: tmp/updater_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+  # Built by goreleaser itself, only the container images use it.
+  - id: container-init
+    dir: cmd/container-init
+    binary: container-init
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - ppc64le
 
 # https://goreleaser.com/customization/archive/
 archives:
-  - formats: [tar.gz]
+  - ids:
+      - collector
+      - updater
+    formats: [tar.gz]
     format_overrides:
       - goos: windows
         formats: [zip]
@@ -218,6 +235,120 @@ signs:
       - "--bundle=${signature}"
       - "${artifact}"
       - "--yes"
+
+# Container images: a scratch image per architecture, pushed to GHCR, plus a
+# multi-arch manifests for the version tag and for `latest`. Both builds publish to the same image
+# repository with the same naming scheme and OCI labels. The tags tell them
+# apart: full tags are `<version>`, `<version>-<arch>` and `latest`, slim tags carry the
+# `-slim` suffix (see the slim .goreleaser.yml).
+dockers:
+  - id: scratch-amd64
+    goos: linux
+    goarch: amd64
+    retry:
+      attempts: 10
+      delay: 30s
+      max_delay: 1m
+    ids:
+      - collector
+      - container-init
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-amd64"
+    dockerfile: ./docker/Dockerfile.scratch
+    use: buildx
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--platform=linux/amd64"
+    extra_files:
+      - release_deps/plugins
+      - release_deps/config.yaml
+      - config/logging.stdout.yaml
+      - LICENSE
+  - id: scratch-arm64
+    goos: linux
+    goarch: arm64
+    retry:
+      attempts: 10
+      delay: 30s
+      max_delay: 1m
+    ids:
+      - collector
+      - container-init
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-arm64"
+    dockerfile: ./docker/Dockerfile.scratch
+    use: buildx
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--platform=linux/arm64"
+    extra_files:
+      - release_deps/plugins
+      - release_deps/config.yaml
+      - config/logging.stdout.yaml
+      - LICENSE
+  - id: scratch-ppc64le
+    goos: linux
+    goarch: ppc64le
+    retry:
+      attempts: 10
+      delay: 30s
+      max_delay: 1m
+    ids:
+      - collector
+      - container-init
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-ppc64le"
+    dockerfile: ./docker/Dockerfile.scratch
+    use: buildx
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--platform=linux/ppc64le"
+    extra_files:
+      - release_deps/plugins
+      - release_deps/config.yaml
+      - config/logging.stdout.yaml
+      - LICENSE
+
+docker_manifests:
+  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-amd64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-arm64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-ppc64le"
+  - name_template: "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:latest"
+    image_templates:
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-amd64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-arm64"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-ppc64le"
+
+# Keyless signing of every image and manifest by digest.
+docker_signs:
+  - cmd: cosign
+    artifacts: all
+    output: true
+    args:
+      - sign
+      - "${artifact}@${digest}"
+      - "--yes"
+
+# Digests of all pushed images and manifests, attested by the release workflow.
+docker_digest:
+  name_template: "digests.txt"
 
 # https://goreleaser.com/customization/release/
 release:

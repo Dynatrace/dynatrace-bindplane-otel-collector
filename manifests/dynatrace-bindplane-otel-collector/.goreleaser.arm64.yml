@@ -51,17 +51,18 @@ dockers:
     ids:
       - collector
       - container-init
-    # GHCR only, matching .goreleaser-docker.yml. Docker Hub and GAR
-    # publishing should be added back under Dynatrace-owned orgs/registries.
+    # Same naming scheme as the release images in .goreleaser.yml.
     image_templates:
-      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector-arm64:{{ .Version }}"
+      - "ghcr.io/dynatrace/dynatrace-bindplane-otel-collector:{{ .Version }}-arm64"
     dockerfile: ./docker/Dockerfile.scratch
     use: buildx
     build_flag_templates:
-      - "--label=created={{.Date}}"
-      - "--label=title={{.ProjectName}}"
-      - "--label=revision={{.FullCommit}}"
-      - "--label=version={{.Version}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
       - "--platform=linux/arm64"
     extra_files:
       - release_deps/plugins

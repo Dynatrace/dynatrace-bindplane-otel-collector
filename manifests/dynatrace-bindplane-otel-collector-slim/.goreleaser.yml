@@ -279,8 +279,8 @@ signs:
 
 # Container images: a scratch image per architecture, pushed to GHCR, plus
 # multi-arch manifests for the version tag and for `latest-slim`. Both builds
-# publish to the same image repository and the tags tell them apart: slim tags
-# carry the `-slim` suffix (`<version>-slim`, `<version>-slim-<arch>`,
+# publish to the same image repository with the same naming scheme and OCI
+# labels, and the tags tell them apart: slim tags carry the `-slim` suffix (`<version>-slim`, `<version>-slim-<arch>`,
 # `latest-slim`), so the slim build never moves the `latest` tag of the full
 # build.
 dockers:

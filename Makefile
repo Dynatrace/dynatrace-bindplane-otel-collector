@@ -78,10 +78,10 @@ BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 #                      Goreleaser still runs from the repository root; only the
 #                      config files live there.
 #   RELEASE_TEST_SKIP  extra goreleaser --skip steps of the local `release-test`
-#                      snapshot. The slim build skips the container images and
-#                      SBOMs by default, they need docker buildx and
-#                      cyclonedx-gomod. Run
-#                      `make release-test DISTRO=slim RELEASE_TEST_SKIP=` for all.
+#                      snapshot. Both builds skip the container images by
+#                      default, they need docker buildx; the slim build also
+#                      skips its SBOMs, they need cyclonedx-gomod. Run
+#                      `make release-test RELEASE_TEST_SKIP=` for all.
 DISTRO ?= full
 ifeq ($(DISTRO),full)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector/manifest.yaml
@@ -93,7 +93,7 @@ PRODUCT_NAME = dynatrace-bindplane-otel-collector
 PLIST_SRC = service/com.dynatrace.bindplane.otel.collector.plist
 DISTRO_BUILD_TAGS =
 GORELEASER_DIR = manifests/dynatrace-bindplane-otel-collector
-RELEASE_TEST_SKIP ?=
+RELEASE_TEST_SKIP ?= docker
 else ifeq ($(DISTRO),slim)
 MANIFEST ?= manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml
 BUILD_DIR ?= ./build-slim
@@ -710,15 +710,6 @@ release-test:
 .PHONY: release-test-aix
 release-test-aix:
 	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot
-
-.PHONY: release-containers-test
-release-containers-test:
-	$(MAKE) -j3 agent-linux-amd64 agent-linux-arm64 agent-linux-ppc64le
-	mkdir -p tmp
-	mv ./dist/collector_linux_amd64 ./tmp/collector_linux_amd64
-	mv ./dist/collector_linux_arm64 ./tmp/collector_linux_arm64
-	mv ./dist/collector_linux_ppc64le ./tmp/collector_linux_ppc64le
-	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release --parallelism 4 --timeout $(GORELEASER_TIMEOUT) --skip=publish --skip=validate --skip=sign --clean --snapshot --config $(GORELEASER_DIR)/.goreleaser-docker.yml
 
 .PHONY: agent-linux-amd64 agent-linux-arm64 agent-linux-arm agent-linux-ppc64 agent-linux-ppc64le
 agent-linux-amd64:
