@@ -59,36 +59,27 @@ builds:
         goarch: ppc64le
     prebuilt:
       path: tmp/collector-slim_{{ .Os }}_{{ .Arch }}{{ .Ext }}
-  # TODO: re-enable the updater once it can handle updates of the slim build.
-  # It is hardcoded for the full build for now, so it is not packaged.
-  # - id: updater
-  #   builder: prebuilt
-  #   binary: updater
-  #   goos:
-  #     - linux
-  #     - darwin
-  #     - windows
-  #   goarch:
-  #     - amd64
-  #     - arm64
-  #     - arm
-  #     - ppc64
-  #     - ppc64le
-  #   ignore:
-  #     - goos: darwin
-  #       goarch: ppc64
-  #     - goos: darwin
-  #       goarch: ppc64le
-  #     - goos: windows
-  #       goarch: arm
-  #     - goos: windows
-  #       goarch: arm64
-  #     - goos: windows
-  #       goarch: ppc64
-  #     - goos: windows
-  #       goarch: ppc64le
-  #   prebuilt:
-  #     path: tmp/updater_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+  # No windows: the updater finds a Windows install through the registry key the
+  # MSI creates, and the slim build has no MSI.
+  - id: updater
+    builder: prebuilt
+    binary: updater
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - ppc64
+      - ppc64le
+    ignore:
+      - goos: darwin
+        goarch: ppc64
+      - goos: darwin
+        goarch: ppc64le
+    prebuilt:
+      path: tmp/updater_{{ .Os }}_{{ .Arch }}{{ .Ext }}
   # Built by goreleaser itself, only the container images use it.
   - id: container-init
     dir: cmd/container-init
@@ -108,8 +99,7 @@ builds:
 archives:
   - ids:
       - collector
-      # TODO: re-enable the updater, see the commented `updater` build.
-      # - updater
+      - updater
     formats: [tar.gz]
     format_overrides:
       - goos: windows
@@ -139,8 +129,7 @@ nfpms:
   - id: collector
     ids:
       - collector
-      # TODO: re-enable the updater, see the commented `updater` build.
-      # - updater
+      - updater
     file_name_template: "{{ .PackageName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     package_name: dynatrace-bindplane-otel-collector-slim
     vendor: Dynatrace LLC
