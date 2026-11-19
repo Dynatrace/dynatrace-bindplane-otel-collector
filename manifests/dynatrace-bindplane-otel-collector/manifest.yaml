@@ -295,8 +295,8 @@ replaces:
   - github.com/open-telemetry/opentelemetry-collector-contrib/receiver/googlecloudpubsubreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/googlecloudpubsubreceiver v0.0.0-20261119153247-0f6e7e87475e
 
   # Replace statements for the dt-edge components. Remove once a release contains v0.165.0 of OTel
-  - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.1.1-0.20261119162442-bdfd4a08eecf
-  - github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver => github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.1.1-0.20261119162442-bdfd4a08eecf
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.164.1-0.20261119162442-bdfd4a08eecf
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver => github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.164.1-0.20261119162442-bdfd4a08eecf
 
   # Replace statements for honeycomb s3 exporter. Remove once a release contains v0.165.0 of OTel
   - github.com/honeycombio/enhance-indexing-s3-exporter/enhanceindexings3exporter => github.com/honeycombio/enhance-indexing-s3-exporter/enhanceindexings3exporter v0.0.34-0.20261119145544-cda038e3bd6d
