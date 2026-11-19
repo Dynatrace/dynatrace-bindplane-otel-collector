@@ -71,7 +71,7 @@ exporters:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sumologicexporter v0.165.1
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/syslogexporter v0.165.1
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/zipkinexporter v0.165.1
-  - gomod: github.com/honeycombio/enhance-indexing-s3-exporter/enhanceindexings3exporter v0.0.33
+  - gomod: github.com/honeycombio/enhance-indexing-s3-exporter/enhanceindexings3exporter v0.0.34
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/awssecuritylakeexporter v1.3.0
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/azureblobexporter v1.3.0
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/azureloganalyticsexporter v1.3.0
@@ -297,3 +297,6 @@ replaces:
   # Replace statements for the dt-edge components. Remove once a release contains v0.165.0 of OTel
   - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.1.1-0.20261119162442-bdfd4a08eecf
   - github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver => github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.1.1-0.20261119162442-bdfd4a08eecf
+
+  # Replace statements for honeycomb s3 exporter. Remove once a release contains v0.165.0 of OTel
+  - github.com/honeycombio/enhance-indexing-s3-exporter/enhanceindexings3exporter => github.com/honeycombio/enhance-indexing-s3-exporter/enhanceindexings3exporter v0.0.34-0.20261119145544-cda038e3bd6d
