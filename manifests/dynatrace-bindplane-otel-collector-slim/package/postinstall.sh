@@ -92,7 +92,7 @@ install_systemd_service() {
 
   cat << EOF > "$config_file"
 [Unit]
-Description=Dynatrace Bindplane Distribution of OpenTelemetry Collector
+Description=Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
 After=network.target
 StartLimitIntervalSec=120
 StartLimitBurst=5
@@ -153,7 +153,7 @@ install_initd_service() {
 #!/bin/sh
 # DBDOT OTEL daemon
 # chkconfig: 2345 99 05
-# description: Dynatrace Bindplane Distribution of OpenTelemetry Collector
+# description: Dynatrace Bindplane Distribution of OpenTelemetry Collector (slim)
 # processname: dynatrace-bindplane-otel-collector-slim
 # pidfile: /var/run/dynatrace-bindplane-otel-collector-slim.pid
 
