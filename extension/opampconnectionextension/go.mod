@@ -16,10 +16,11 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.165.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.165.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.165.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/awslogsencodingextension v0.165.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampcustommessages v0.165.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.165.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.165.1
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azurelogs v0.165.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.165.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.165.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.165.1
 	github.com/spf13/pflag v1.1.0
@@ -58,6 +59,9 @@ require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/Microsoft/go-winio v0.6.4 // indirect
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
+	github.com/andybalholm/brotli v1.2.7 // indirect
+	github.com/apache/thrift v0.25.0 // indirect
+	github.com/aws/aws-lambda-go v1.55.1 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.47.1 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.33.6 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.6 // indirect
@@ -114,8 +118,9 @@ require (
 	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jaegertracing/jaeger-idl v0.14.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
-	github.com/jpillora/backoff v1.0.0 // indirect
+	github.com/jpillora/backoff v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.20.3 // indirect
 	github.com/knadh/koanf/maps v0.1.3 // indirect
@@ -135,6 +140,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.165.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.165.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.165.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.165.1 // indirect
@@ -143,7 +149,11 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.165.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.165.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.165.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xstreamencoding v0.165.1 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
+	github.com/parquet-go/bitpack v1.0.0 // indirect
+	github.com/parquet-go/jsonlite v1.0.0 // indirect
+	github.com/parquet-go/parquet-go v0.32.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -156,7 +166,6 @@ require (
 	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/prometheus/prometheus v0.315.1 // indirect
 	github.com/prometheus/sigv4 v0.5.0 // indirect
-	github.com/relvacode/iso8601 v1.8.3 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.10 // indirect
@@ -169,6 +178,7 @@ require (
 	github.com/tidwall/wal v1.2.1 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
 	github.com/tklauser/numcpus v0.12.0 // indirect
+	github.com/twpayne/go-geom v1.6.1 // indirect
 	github.com/valyala/fastjson v1.6.10 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
@@ -285,7 +295,8 @@ replace github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report => ..
 
 // Replace statements to pull in changes from this PR: https://github.com/observIQ/opentelemetry-collector-contrib/pull/4729
 // Remove once the above PR is merged, released, and the relevant components are updated to that version.
-// The commits being replaced to are built on the OTel v0.165.1 tag. 
+// The commits being replaced to are built on the OTel v0.165.1 tag.
 // https://github.com/observIQ/opentelemetry-collector-contrib/tree/otel-v0.165.1
 replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.0.0-20261119153247-0f6e7e87475e
+
 replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza => github.com/observiq/opentelemetry-collector-contrib/pkg/stanza v0.0.0-20261119153247-0f6e7e87475e

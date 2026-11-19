@@ -35,10 +35,10 @@ var hardcodedFeatureGates = []string{
 	"exporter.prometheusremotewritexporter.enableSendingRW2",
 	"connector.spanmetrics.includeCollectorInstanceID",
 	"-exporter.prometheusexporter.DisableAddMetricSuffixes",
-	// Added in 1.3.0. Remove in 1.4.0.
-	"-pkg.translator.azurelogs.DontEmitV0LogConventions",
-	"-pkg.translator.zipkin.DontEmitV0ScopeConventions",
-	"-pkg.translator.zipkin.DontEmitV0HttpConventions",
+	// Added in 1.4.0. Remove in 1.5.0.
+	"-pkg.translator.jaeger.DontEmitV0HttpConventions",
+	"-pkg.translator.zipkin.DontEmitV0CloudResourceConventions",
+	"-extension.encoding.awslogsencoding.DontEmitV0RPCConventions",
 }
 
 // SetFeatureFlags sets hardcoded collector feature flags
