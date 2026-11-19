@@ -4,10 +4,10 @@ go 1.26.10
 
 require (
 	github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report v1.3.1
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.3.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.3.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.3.0
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.3.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/extension/pebbleextension v1.4.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/measurements v1.4.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/osinfo v1.4.0
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/processor/topologyprocessor v1.4.0
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/oklog/ulid/v2 v2.1.2
@@ -91,7 +91,7 @@ require (
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
-	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/snapshot v1.3.1-0.20261116155315-80fc01d0d900 // indirect
+	github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/snapshot v1.4.0 // indirect
 	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/elastic/lunes v0.2.2 // indirect
 	github.com/elastic/proxy-connect-dialer-go v0.1.1 // indirect
@@ -220,7 +220,7 @@ require (
 	go.opentelemetry.io/collector/pipeline v1.71.0 // indirect
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.165.0 // indirect
 	go.opentelemetry.io/collector/processor v1.71.0 // indirect
-	go.opentelemetry.io/collector/processor/processorhelper v0.164.0 // indirect
+	go.opentelemetry.io/collector/processor/processorhelper v0.165.0 // indirect
 	go.opentelemetry.io/collector/processor/processortest v0.165.0 // indirect
 	go.opentelemetry.io/collector/processor/xprocessor v0.165.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverhelper v0.165.0 // indirect
