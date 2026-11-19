@@ -59,13 +59,14 @@ builds:
         goarch: ppc64le
     prebuilt:
       path: tmp/collector-slim_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+  # No windows: the updater finds a Windows install through the registry key the
+  # MSI creates, and the slim build has no MSI.
   - id: updater
     builder: prebuilt
     binary: updater
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
       - arm64
@@ -76,14 +77,6 @@ builds:
       - goos: darwin
         goarch: ppc64
       - goos: darwin
-        goarch: ppc64le
-      - goos: windows
-        goarch: arm
-      - goos: windows
-        goarch: arm64
-      - goos: windows
-        goarch: ppc64
-      - goos: windows
         goarch: ppc64le
     prebuilt:
       path: tmp/updater_{{ .Os }}_{{ .Arch }}{{ .Ext }}
