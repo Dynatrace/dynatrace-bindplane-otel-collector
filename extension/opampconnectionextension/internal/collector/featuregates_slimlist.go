@@ -22,6 +22,6 @@ package collector
 var SlimSkippedFeatureGates = []string{
 	"exporter.prometheusremotewritexporter.enableSendingRW2", // prometheusremotewriteexporter
 	"-exporter.prometheusexporter.DisableAddMetricSuffixes",  // prometheusexporter
-	// Added in 1.3.0. Remove in 1.4.0.
-	"-pkg.translator.azurelogs.DontEmitV0LogConventions", // azure* components
+	// Added in 1.4.0. Remove in 1.5.0.
+	"-extension.encoding.awslogsencoding.DontEmitV0RPCConventions", // awslogsencodingextension
 }

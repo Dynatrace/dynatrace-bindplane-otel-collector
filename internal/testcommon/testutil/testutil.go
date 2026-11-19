@@ -17,7 +17,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/testbed/testbed"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/pdata/xpdata/xhash"
 )
 
 type portpair struct {
@@ -374,10 +374,10 @@ func MergeResources(metrics pmetric.Metrics) pmetric.Metrics {
 	metrics.CopyTo(m)
 	merged := pmetric.NewMetrics()
 	for i := 0; i < m.ResourceMetrics().Len(); i++ {
-		attrsHash := pdatautil.MapHash(m.ResourceMetrics().At(i).Resource().Attributes())
+		attrsHash := xhash.MapHash(m.ResourceMetrics().At(i).Resource().Attributes())
 		found := false
 		for j := 0; j < merged.ResourceMetrics().Len(); j++ {
-			if pdatautil.MapHash(merged.ResourceMetrics().At(j).Resource().Attributes()) == attrsHash {
+			if xhash.MapHash(merged.ResourceMetrics().At(j).Resource().Attributes()) == attrsHash {
 				m.ResourceMetrics().At(i).ScopeMetrics().MoveAndAppendTo(merged.ResourceMetrics().At(j).ScopeMetrics())
 				found = true
 				break

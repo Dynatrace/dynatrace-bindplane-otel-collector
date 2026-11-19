@@ -11,10 +11,10 @@ require (
 	golang.org/x/sys v0.50.0
 )
 
-require go.yaml.in/yaml/v3 v3.0.5 // indirect
+require go.yaml.in/yaml/v3 v3.0.6 // indirect
 
 require (
-	github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension v1.3.1
+	github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension v1.4.0
 	github.com/stretchr/objx v0.5.3 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
