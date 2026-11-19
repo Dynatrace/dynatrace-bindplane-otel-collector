@@ -8,8 +8,8 @@ ALL_MODULES := $(shell find . -type f -name "go.mod" -not -path "./build/*" -not
 # suites, Docker or a kind cluster), so the unit-test targets skip them. They are
 # run by .github/workflows/e2e.yaml.
 E2E_MODULES := ./internal/testbed/integration
-# Internal-only modules that are never published, so `make release` doesn't tag them.
-UNRELEASED_MODULES := ./internal/testbed/integration ./internal/testcommon
+# Modules that are published: `make release` tags them and `make update-modules` bumps them.
+RELEASED_MODULES := ./updater ./pkg/report ./extension/opampconnectionextension ./cmd/plugindocgen ./cmd/container-init
 ALL_MDATAGEN_MODULES := $(shell find . -type f -name "metadata.yaml" -exec dirname {} \; | sort )
 
 # All source code files
@@ -640,7 +640,7 @@ update-otel:
 # Usage: make update-modules NEW_VERSION=vx.x.x
 .PHONY: update-modules
 update-modules:
-	./scripts/update-module-version.sh "$(NEW_VERSION)"
+	./scripts/update-module-version.sh "$(NEW_VERSION)" $(RELEASED_MODULES)
 	MODULE_VERSION="$(NEW_VERSION)" ./scripts/update-manifest.sh
 	$(MAKE) tidy
 
@@ -779,7 +779,7 @@ for-all-modules:
 	    $${CMD} ); \
 	done
 
-# Release a new version of the agent. This will also tag all submodules, except for
+# Release a new version of the agent. This will also tag RELEASED_MODULES, except for
 # slim RC versions (slim/vX.Y.Z-rc.N) which only tag the root.
 .PHONY: release
 release:
@@ -791,15 +791,13 @@ release:
 		echo "version $(version) is invalid semver (expected vX.Y.Z or slim/vX.Y.Z-rc.N)"; \
 		exit 1; \
 	fi
-	# Tag the root and every module, then push only those tags. A checkout of
+	# Tag the root and RELEASED_MODULES, then push only those tags. A checkout of
 	# this fork carries thousands of tags inherited from upstream; `git push
 	# --tags` would push all of them. Slim RC versions release the slim build only,
 	# which needs no module tags, so only the root is tagged for them.
 	@set -e; tags="$(version)"; git tag "$(version)"; \
-	for dir in $(ALL_MODULES); do \
+	for dir in $(RELEASED_MODULES); do \
 		case "$(version)" in slim/*) break ;; esac; \
-		if [ "$${dir}" = "." ]; then continue; fi; \
-		case " $(UNRELEASED_MODULES) " in *" $${dir} "*) continue ;; esac; \
 		tag="$${dir#./}/$(version)"; \
 		git tag "$${tag}"; \
 		tags="$${tags} $${tag}"; \

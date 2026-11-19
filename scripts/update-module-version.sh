@@ -13,27 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Usage: update-module-version.sh <version> <module dir>...
+# The module dirs come from RELEASED_MODULES in the Makefile.
+set -e
+
 TARGET_VERSION=$1
-if [ -z "$TARGET_VERSION" ]; then
-    echo "Must specify a target version"
+if [ -z "$TARGET_VERSION" ] || [ $# -lt 2 ]; then
+    echo "Usage: $0 <version> <module dir>..."
     exit 1
 fi
+shift
 
-LOCAL_MODULES=$(find . -type f -name "go.mod" -exec dirname {} \; | sort)
-for local_mod in $LOCAL_MODULES; do
-    # Skip gitignored modules (e.g. the generated ./build and ./builder trees);
-    # they are local artifacts, not source, and must not be rewritten here.
-    if git check-ignore -q "$local_mod" 2>/dev/null; then
-        echo "Skipping gitignored module $local_mod"
-        continue
-    fi
+for local_mod in "$@"; do
     # Run in a subshell so that the CD doesn't change this shell's current directory
     (
         echo "Updating version in $local_mod"
-        cd "$local_mod" || exit 1
+        cd "$local_mod"
         go mod tidy
         OTEL_MODULES=$(go list -m -f '{{if not (or .Indirect .Main)}}{{.Path}}{{end}}' all |
-            grep -E -e '^github.com/dynatrace/dynatrace-bindplane-otel-collector')
+            grep -E -e '^github.com/dynatrace/dynatrace-bindplane-otel-collector' || true)
 
         for mod in $OTEL_MODULES; do
             echo "$local_mod: $mod@$TARGET_VERSION"
