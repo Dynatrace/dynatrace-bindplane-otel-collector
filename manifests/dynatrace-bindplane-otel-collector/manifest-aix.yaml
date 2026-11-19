@@ -124,13 +124,14 @@ replaces:
 
   # Replace statements to pull in changes from this PR: https://github.com/observIQ/opentelemetry-collector-contrib/pull/4729
   # Remove once the above PR is merged, released, and the relevant components are updated to that version.
-  # The commits being replaced to are built on the OTel v0.164.1 tag. 
-  # https://github.com/observIQ/opentelemetry-collector-contrib/tree/bdot-1.112.0
-  - github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza => github.com/observiq/opentelemetry-collector-contrib/pkg/stanza v0.0.0-20261102211310-a87cc5aaaf37
+  # The commits being replaced to are built on the OTel v0.165.1 tag. 
+  # https://github.com/observIQ/opentelemetry-collector-contrib/tree/otel-v0.165.1
+  - github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza => github.com/observiq/opentelemetry-collector-contrib/pkg/stanza v0.0.0-20261119153247-0f6e7e87475e
+
   # The JMX receiver was removed in OTel v0.157.0. Pinned to a fork that we must maintain until we can migrate users to a new solution.
   # The commit being replaced to is built on the OTel v0.164.1 tag. 
   # https://github.com/observIQ/opentelemetry-collector-contrib/tree/bdot-1.112.0
-  - github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/jmxreceiver v0.0.0-20261102211310-a87cc5aaaf37
+  - github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/jmxreceiver v0.0.0-20261119153247-0f6e7e87475e
 
   # AIX host metrics come from the Bindplane gopsutil fork, which is maintained permanently.
   - github.com/shirou/gopsutil/v4 => github.com/observIQ/gopsutil/v4 e2df4e3a6834128af75def2c9b66737e59c4b974
