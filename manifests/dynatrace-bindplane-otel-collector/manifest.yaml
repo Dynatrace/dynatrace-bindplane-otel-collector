@@ -87,7 +87,7 @@ exporters:
   # Need `GOPRIVATE=github.com/Dynatrace/*` set in order to access this component.
   # Component does not have official releases yet. The version reported is mapped to the OTel version it is built on.
   # Component replace statement below.
-  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.164.0
+  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.165.0
 
 processors:
   - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.165.0
@@ -240,7 +240,7 @@ receivers:
   # Need `GOPRIVATE=github.com/Dynatrace/*` set in order to access this component.
   # Component does not have official releases yet. The version reported is mapped to the OTel version it is built on.
   # Component replace statement below.
-  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.164.0
+  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.165.0
 
 connectors:
   - gomod: go.opentelemetry.io/collector/connector/forwardconnector v0.165.0
@@ -293,3 +293,7 @@ replaces:
   # The commits being replaced to is built on the OTel v0.165.1 tag.
   # https://github.com/observIQ/opentelemetry-collector-contrib/tree/otel-v0.165.1
   - github.com/open-telemetry/opentelemetry-collector-contrib/receiver/googlecloudpubsubreceiver => github.com/observiq/opentelemetry-collector-contrib/receiver/googlecloudpubsubreceiver v0.0.0-20261119153247-0f6e7e87475e
+
+  # Replace statements for the dt-edge components. Remove once a release contains v0.165.0 of OTel
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.1.1-0.20261119162442-bdfd4a08eecf
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver => github.com/Dynatrace/dt-otelcol-edge-processing-components/receiver/dtedgeprocessingreceiver v0.1.1-0.20261119162442-bdfd4a08eecf
