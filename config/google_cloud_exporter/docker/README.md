@@ -12,11 +12,7 @@ See the [prerequisites](../prerequisites.md) doc for Google Cloud prerequisites.
 
 The provided configuration assumes the agent is running on the Docker system. By default, the `endpoint` collected from is `unix:///var/run/docker.sock`.
 
-The user running the agent must have permission to read the [docker socket](https://docs.docker.com/engine/install/linux-postinstall/).
-
-```bash
-sudo usermod -aG docker dynatrace-bindplane-otel-collector
-```
+The user running the agent must have permission to read the [docker socket](https://docs.docker.com/engine/install/linux-postinstall/). Access to the Docker socket is equivalent to root, so run the agent as root rather than adding the unprivileged `dbdot` user to the `docker` group: set `DBDOT_UNPRIVILEGED=false` before you install the package. See the [package configuration documentation](https://github.com/dynatrace/dynatrace-bindplane-otel-collector/blob/main/docs/installation-linux.md#package-configuration).
 
 ## Deployment
 

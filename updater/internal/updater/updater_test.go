@@ -394,6 +394,40 @@ func TestGenerateLinuxServiceFiles(t *testing.T) {
 		checkFilePermissions(t, filepath.Join(installDir, "install", distro.Name()+".service"), 0640)
 		checkFilePermissions(t, filepath.Join(installDir, "install", distro.Name()), 0755)
 	})
+
+	golden, err := os.ReadFile(filepath.Join("testdata", "otelcol.service.golden"))
+	require.NoError(t, err)
+
+	// The package's unit names the runtime user, and the updater keeps it. A
+	// root install's drop-in runs the service as root.
+	t.Run("Keeps the installed unit's user", func(t *testing.T) {
+		installDir := t.TempDir()
+		installedUnit := filepath.Join(t.TempDir(), "installed.service")
+		require.NoError(t, os.WriteFile(installedUnit, bytes.Replace(golden, []byte("\nUser=root\n"), []byte("\nUser=dbdot\n"), 1), 0600))
+
+		u := &Updater{
+			installDir:               installDir,
+			logger:                   zaptest.NewLogger(t),
+			installedSystemdUnitPath: installedUnit,
+		}
+		require.NoError(t, u.generateLinuxServiceFiles())
+		compareFiles(t, filepath.Join(installDir, "install", distro.Name()+".service"), installedUnit, installDir)
+	})
+
+	// systemd runs a unit without User= as root.
+	t.Run("Unit without User runs as root", func(t *testing.T) {
+		installDir := t.TempDir()
+		installedUnit := filepath.Join(t.TempDir(), "installed.service")
+		require.NoError(t, os.WriteFile(installedUnit, bytes.Replace(golden, []byte("\nUser=root\n"), []byte("\n"), 1), 0600))
+
+		u := &Updater{
+			installDir:               installDir,
+			logger:                   zaptest.NewLogger(t),
+			installedSystemdUnitPath: installedUnit,
+		}
+		require.NoError(t, u.generateLinuxServiceFiles())
+		compareFiles(t, filepath.Join(installDir, "install", distro.Name()+".service"), filepath.Join("testdata", "otelcol.service.golden"), installDir)
+	})
 }
 
 func compareFiles(t *testing.T, generatedFile, goldenFile, installDir string) {
@@ -421,14 +455,26 @@ func checkFilePermissions(t *testing.T, filePath string, expectedPerm os.FileMod
 	require.Equal(t, expectedPerm, info.Mode().Perm())
 }
 
-func TestReadGroupFromSystemdFile(t *testing.T) {
-	t.Run("Extract Group from systemd unit file", func(t *testing.T) {
-		u := &Updater{
-			installedSystemdUnitPath: "testdata/otelcol.service.golden",
-		}
+func TestReadFromSystemdFile(t *testing.T) {
+	u := &Updater{
+		installedSystemdUnitPath: "testdata/otelcol.service.golden",
+	}
 
-		group, err := u.readGroupFromSystemdFile()
+	t.Run("Extract Group from systemd unit file", func(t *testing.T) {
+		group, err := u.readFromSystemdFile("Group")
 		require.NoError(t, err)
 		require.Equal(t, "dbdot", group)
+	})
+
+	t.Run("Extract User from systemd unit file", func(t *testing.T) {
+		user, err := u.readFromSystemdFile("User")
+		require.NoError(t, err)
+		require.Equal(t, "root", user)
+	})
+
+	t.Run("Missing key", func(t *testing.T) {
+		value, err := u.readFromSystemdFile("DynamicUser")
+		require.NoError(t, err)
+		require.Empty(t, value)
 	})
 }

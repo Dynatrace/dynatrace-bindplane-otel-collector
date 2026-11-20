@@ -47,10 +47,9 @@ is_uninstall() {
 # Only stop and disable service on uninstall, not on upgrade
 if is_uninstall "$1"; then
     # Revoke the runtime user's sudo grant first. Until the service is
-    # stopped and the User= drop-in is removed, the runtime user could
-    # otherwise start the service through sudo, and after the drop-in is
-    # removed the service starts as root. The stop below cancels any start
-    # the runtime user queued before the grant was removed.
+    # stopped and its unit is removed, the runtime user could otherwise start
+    # it through sudo. The stop below cancels any start the runtime user
+    # queued before the grant was removed.
     sudoers_file="/etc/sudoers.d/dynatrace-bindplane-otel-collector"
     if [ -f "$sudoers_file" ]; then
         echo "Removing sudoers drop-in: $sudoers_file"
@@ -68,8 +67,9 @@ if is_uninstall "$1"; then
             systemctl disable "$service_name" || true
         fi
         
-        # Remove the package's User= drop-in. postremove.sh removes the rest
-        # of the drop-in directory, including drop-ins the admin wrote.
+        # Remove the package's User= drop-in, which root installs have.
+        # postremove.sh removes the rest of the drop-in directory, including
+        # drop-ins the admin wrote.
         dropin_dir="/etc/systemd/system/${service_name}.service.d"
         user_dropin="${dropin_dir}/10-package-customizations-username.conf"
         if [ -f "$user_dropin" ]; then

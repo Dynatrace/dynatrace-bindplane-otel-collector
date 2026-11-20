@@ -230,6 +230,12 @@ func (b *box) assertUnit(user string) {
 	}
 	got := b.unitProps(props...)
 	assert.Equal(b.t, user, got["User"], "unit property User")
+	// The unit runs the service as the runtime user, and a root install's
+	// drop-in runs it as root.
+	assert.Equal(b.t, "User="+runtimeUser, b.mustRun("grep '^User=' "+unitPath), "unit file User=")
+	if user == "root" {
+		assert.Equal(b.t, "[Service]\nUser=root", b.mustRun("cat "+userDropIn), "User= drop-in contents")
+	}
 	for p, want := range installUnitProps {
 		assert.Equal(b.t, want, got[p], "unit property %s", p)
 	}

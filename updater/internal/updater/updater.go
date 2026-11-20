@@ -75,8 +75,9 @@ func NewUpdater(logger *zap.Logger, installDir string) (*Updater, error) {
 	}, nil
 }
 
-// readGroupFromSystemdFile reads the systemd unit file and extracts the Group value.
-func (u *Updater) readGroupFromSystemdFile() (string, error) {
+// readFromSystemdFile reads the systemd unit file and extracts the value of
+// key. It returns "" when the unit file doesn't set key.
+func (u *Updater) readFromSystemdFile(key string) (string, error) {
 	// #nosec G304 - systemdUnitFilePath is not user configurable, and comes
 	// from path.SystemdFilePath. Unit tests will override
 	// this path to a test file.
@@ -85,14 +86,15 @@ func (u *Updater) readGroupFromSystemdFile() (string, error) {
 		return "", fmt.Errorf("failed to read systemd unit file: %w", err)
 	}
 
+	prefix := []byte(key + "=")
 	lines := bytes.Split(fileContent, []byte("\n"))
 	for _, line := range lines {
-		if bytes.HasPrefix(line, []byte("Group=")) {
-			return string(bytes.TrimSpace(bytes.TrimPrefix(line, []byte("Group=")))), nil
+		if bytes.HasPrefix(line, prefix) {
+			return string(bytes.TrimSpace(bytes.TrimPrefix(line, prefix))), nil
 		}
 	}
 
-	return "", fmt.Errorf("Group not found in systemd unit file %s", u.installedSystemdUnitPath)
+	return "", nil
 }
 
 // generateLinuxServiceFiles writes necessary service files to the install directory
@@ -107,9 +109,25 @@ func (u *Updater) generateLinuxServiceFiles() error {
 	}
 
 	// Read the Group value from the systemd unit file
-	group, err := u.readGroupFromSystemdFile()
+	group, err := u.readFromSystemdFile("Group")
 	if err != nil {
 		return fmt.Errorf("read group from systemd file %s: %w", u.installedSystemdUnitPath, err)
+	}
+	if group == "" {
+		return fmt.Errorf("read group from systemd file %s: Group not found", u.installedSystemdUnitPath)
+	}
+
+	// Keep the user the unit runs the service as. The package's unit names
+	// the runtime user, and root installs have a drop-in that runs the
+	// service as root, which the updater doesn't change. Units from releases
+	// that ran the collector as root by default say User=root. systemd runs
+	// a unit without User= as root.
+	user, err := u.readFromSystemdFile("User")
+	if err != nil {
+		return fmt.Errorf("read user from systemd file %s: %w", u.installedSystemdUnitPath, err)
+	}
+	if user == "" {
+		user = "root"
 	}
 
 	// Use the updater's install directory directly. This was already resolved
@@ -117,6 +135,7 @@ func (u *Updater) generateLinuxServiceFiles() error {
 	installDir := u.installDir
 
 	params := map[string]string{
+		"User":        user,
 		"Group":       group,
 		"InstallDir":  installDir,
 		"Name":        distro.Name(),
