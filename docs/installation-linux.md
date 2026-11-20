@@ -77,21 +77,47 @@ By default, the `dynatrace-bindplane-otel-collector` service runs as the "root" 
 
 It may be desirable to run the agent as an unprivileged user. For example, a metrics only agent does not require root access.
 
-To run the agent as the `dynatrace-bindplane-otel-collector` user, you may create a systemd override.
+To run the agent as the `dbdot` user, set `DBDOT_UNPRIVILEGED=true` in the package override file before you install the package. See [Package configuration](#package-configuration).
 
-Run `sudo systemctl edit dynatrace-bindplane-otel-collector` and paste the following config:
+## Package configuration
+
+The deb and rpm packages read optional settings from a package override file:
+`/etc/default/dynatrace-bindplane-otel-collector` on deb systems, or
+`/etc/sysconfig/dynatrace-bindplane-otel-collector` on rpm systems. The package
+scripts and the install script read both files, `/etc/sysconfig` last, so it
+wins. Create the file before you install the package for the first time.
+
+| Variable | Default | Description |
+|---|---|---|
+| `DBDOT_CONFIG_HOME` | `/opt/dynatrace-bindplane-otel-collector` | The install directory. |
+| `DBDOT_USER` | `dbdot` | The user that owns the install directory. When `DBDOT_UNPRIVILEGED` is `true`, the collector runs as this user. |
+| `DBDOT_GROUP` | `dbdot` | The group of `DBDOT_USER`. The collector service always runs with this group. |
+| `DBDOT_UNPRIVILEGED` | `false` | When `true`, the collector runs as `DBDOT_USER` instead of root. Requires systemd. |
+| `DBDOT_SKIP_RUNTIME_USER_CREATION` | `false` | When `true`, the package does not create `DBDOT_USER` and `DBDOT_GROUP`, and the install fails if the user does not exist. |
+
+For example, to run the collector as the `dbdot` user on a deb system:
+
+```sh
+echo 'DBDOT_UNPRIVILEGED=true' | sudo tee /etc/default/dynatrace-bindplane-otel-collector
 ```
-[Service]
-User=dynatrace-bindplane-otel-collector
-```
 
-Reload Systemd:
+### Changing the runtime user
 
-```shell
-sudo systemctl daemon-reload
-```
+An existing install that runs the collector as `DBDOT_USER` can't be changed
+to run it as root or as another user, and an existing install that runs the
+collector as root can't be made unprivileged. When the runtime user owns the
+install directory, it can replace any file in it with a symbolic link, which a
+later install as another user would follow, and a collector that starts as the
+runtime user can't use the files that root created. The package refuses such an
+install or upgrade before it changes anything, and prints the values to restore.
 
-Restart the agent for these changes to take effect.
+To change them:
+
+1. Uninstall the package.
+2. Back up the files you want to keep, such as `manager.yaml`, and remove
+   `/opt/dynatrace-bindplane-otel-collector`.
+3. Change the values in the package override file.
+4. Install the package again.
 
 ## Restarting the Agent
 On systemd systems, the agent may be restarted with the following command:
