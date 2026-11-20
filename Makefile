@@ -7,7 +7,7 @@ ALL_MODULES := $(shell find . -type f -name "go.mod" -not -path "./build/*" -not
 # End-to-end test modules. They need a built collector binary (and, for some
 # suites, Docker or a kind cluster), so the unit-test targets skip them. They are
 # run by .github/workflows/e2e.yaml.
-E2E_MODULES := ./internal/testbed/integration
+E2E_MODULES := ./internal/testbed/integration ./internal/testbed/load
 # Modules that are published: `make release` tags them and `make update-modules` bumps them.
 RELEASED_MODULES := ./updater ./pkg/report ./extension/opampconnectionextension ./cmd/plugindocgen ./cmd/container-init
 ALL_MDATAGEN_MODULES := $(shell find . -type f -name "metadata.yaml" -exec dirname {} \; | sort )
@@ -495,6 +495,12 @@ e2e-images:
 test-updater-integration:
 	cd updater; gotestsum --rerun-fails --packages="./..." -- \
 		$(INTEGRATION_TEST_ARGS) -race
+
+# Runs the load tests against the collector built by `make agent`
+# (dist/collector_$(GOOS)_$(GOARCH), or $$DBDOT_COLLECTOR_BIN).
+.PHONY: run-load-tests
+run-load-tests:
+	$(MAKE) -C internal/testbed/load run-tests
 
 .PHONY: bench
 bench:
