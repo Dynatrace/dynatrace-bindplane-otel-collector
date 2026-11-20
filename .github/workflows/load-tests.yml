@@ -1,0 +1,132 @@
+name: load-tests
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  schedule:
+    - cron: "30 2 * * *" # Nightly, after the combined load test.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache-dependency-path: |
+            extension/opampconnectionextension/go.sum
+            internal/testbed/load/go.sum
+
+      - name: Grant access to private Dynatrace Go modules
+        uses: ./.github/actions/private-go-modules
+        with:
+          app-id: ${{ vars.PRIVATE_GO_MODULES_APP_ID }}
+          private-key: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+
+      - name: Install ocb
+        run: make install-ocb
+
+      - name: Build collector artifact
+        run: GOOS=linux GOARCH=amd64 make agent
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dynatrace-bindplane-otel-collector-bin
+          path: dist/collector_linux_amd64
+
+  loadtest:
+    runs-on:
+      group: bindplane-large
+      labels: ubuntu-latest-8-cores
+    needs: [build]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: extension/opampconnectionextension/go.mod
+          cache-dependency-path: |
+            extension/opampconnectionextension/go.sum
+            internal/testbed/load/go.sum
+
+      - name: Install gotestsum
+        run: cd internal/tools && go install gotest.tools/gotestsum
+
+      - name: Download collector binary
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dynatrace-bindplane-otel-collector-bin
+          path: dist/
+
+      - name: Make collector binary executable
+        run: chmod +x dist/collector_linux_amd64
+
+      - name: Loadtest
+        env:
+          DBDOT_COLLECTOR_BIN: ${{ github.workspace }}/dist/collector_linux_amd64
+        run: make run-load-tests
+
+      - name: Create Test Result Archive
+        if: ${{ failure() || success() }}
+        continue-on-error: true
+        run: tar -cvf test_results_load-tests.tar internal/testbed/load/tests/results
+
+      - name: Upload Test Results
+        if: ${{ failure() || success() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-result-archive-load-tests
+          path: ./*.tar
+
+      - name: Copy Benchmarks
+        run: cp internal/testbed/load/tests/results/benchmarks.json internal/testbed/load/tests/results/load-tests.json
+
+      - name: Upload benchmarks.json
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: benchmark-results-load-tests
+          path: internal/testbed/load/tests/results/load-tests.json
+
+  update-benchmarks:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # push results to the benchmarks branch
+    needs: [loadtest]
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download Benchmark results
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: benchmark-results-*
+          merge-multiple: true
+          path: results
+
+      - name: Normalize results
+        run: jq -s 'map(.[])' results/*.json > output.json
+
+      - name: Benchmark
+        uses: benchmark-action/github-action-benchmark@4322e5726e6334590d251fc4f92bec0efafc45dc # v1.22.2
+        with:
+          tool: "customSmallerIsBetter"
+          output-file-path: output.json
+          gh-pages-branch: benchmarks
+          max-items-in-chart: 100
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          benchmark-data-dir-path: "docs/benchmarks/loadtests"
+          auto-push: true
