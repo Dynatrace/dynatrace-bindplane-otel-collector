@@ -1,0 +1,52 @@
+name: Checks - DBDOT
+
+on:
+  # GitHub ignores paths filters for merge_group, so the merge queue always
+  # runs this workflow.
+  merge_group:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    # Shared with pull_request below via a YAML anchor.
+    paths: &paths
+      - "manifests/dynatrace-bindplane-otel-collector/**"
+      - "extension/**"
+      - "pkg/**"
+      - "Makefile"
+      - "scripts/check-version-consistency.sh"
+      - "scripts/check-aix-manifest.sh"
+      - ".github/actions/private-go-modules/**"
+      - ".github/workflows/base-checks.yaml"
+      - ".github/workflows/checks-full.yaml"
+      # Docs-only changes do not need checking.
+      - "!**/*.md"
+  pull_request:
+    branches:
+      - main
+    paths: *paths
+
+# Cancel a PR's previous run when it gets a new push. Runs on main are never
+# cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks - DBDOT
+    # Dependabot PRs get no access to the private Go modules secret, so the
+    # full checks are skipped for them, as in checks.yml and ci-full.yaml.
+    if: github.actor != 'dependabot[bot]'
+    uses: ./.github/workflows/base-checks.yaml
+    with:
+      distro: full
+      # The AIX manifest is part of the full distro.
+      extra_checks: check-aix-manifest verify-manifest-aix check-aix-feature-gates
+      private_go_modules: true
+    secrets:
+      PRIVATE_GO_MODULES_APP_PRIVATE_KEY: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
+      GRAPHITE_CI_OPTIMIZER_TOKEN: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
