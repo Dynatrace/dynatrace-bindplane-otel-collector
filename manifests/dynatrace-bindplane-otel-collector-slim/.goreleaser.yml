@@ -19,8 +19,8 @@ monorepo:
 # checksums and their signatures. Mirrors the layout of the OpenTelemetry
 # Collector Releases configs and the Dynatrace OTel Collector config, with two
 # deliberate differences from the full build's .goreleaser.yml:
-#   - no Windows MSI and no install scripts, the Windows artifact is a zip of the
-#     amd64 binary only
+#   - no Windows MSI and no install scripts, the Windows artifacts are zips of
+#     the amd64 and arm64 binaries only
 #   - keyless cosign signing (sigstore bundles) instead of a key file
 before:
   hooks:
@@ -58,8 +58,6 @@ builds:
       - goos: windows
         goarch: arm
       - goos: windows
-        goarch: arm64
-      - goos: windows
         goarch: ppc64
       - goos: windows
         goarch: ppc64le
@@ -87,8 +85,6 @@ builds:
   #       goarch: ppc64le
   #     - goos: windows
   #       goarch: arm
-  #     - goos: windows
-  #       goarch: arm64
   #     - goos: windows
   #       goarch: ppc64
   #     - goos: windows
