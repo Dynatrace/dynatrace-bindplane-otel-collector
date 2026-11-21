@@ -118,7 +118,7 @@ To rehearse a release in GitHub Actions, run the `release-test` workflow and sel
 
 3. The `release-slim` workflow triggers on the tag push and, without user intervention:
   - Builds the slim binaries (linux, darwin and windows/amd64; the updater is not packaged for the slim build yet) with the slim OpAMP agent identity (`com.dynatrace.bindplane.otel.collector-slim`)
-  - Creates the archives (`dynatrace-bindplane-otel-collector-slim-*`), the `apk`, `deb` and `rpm` packages. The `deb` and `rpm` packages are signed with the GPG key, the `apk` is not signed.
+  - Creates the archives (`dynatrace-bindplane-otel-collector-slim-*`), the `deb` and `rpm` packages. The `deb` and `rpm` packages are signed with the GPG key.
   - Creates a CycloneDX SBOM per collector binary (`cyclonedx-gomod`), like the Dynatrace OTel Collector
   - Creates the checksums file and signs it and the archives keyless with cosign (`*.sigstore.json` bundles)
   - Builds and pushes the container images for amd64, arm64 and ppc64le with a multi-arch manifest to GHCR (`ghcr.io/dynatrace/dynatrace-bindplane-otel-collector`, the same repository as the full build), signs them keyless and writes `digests.txt`. The slim images are told apart by the `-slim` tag suffix: `<version>-slim` for the multi-arch manifest, `<version>-slim-<arch>` for the per-architecture images and `latest-slim` as the latest tag of the slim build. Docker Hub and AWS ECR are not published to yet.
