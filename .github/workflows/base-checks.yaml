@@ -64,8 +64,6 @@ jobs:
           fi
 
   check:
-    # The calling workflow's name prefixes this (e.g. "Checks - DBDOT slim / ..."),
-    # so the distro is not repeated here.
     name: Check manifest
     needs: optimize_ci
     if: ${{ needs.optimize_ci.outputs.skip != 'true' }}
