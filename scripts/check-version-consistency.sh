@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Fails if the OpenTelemetry core or contrib components, or the Dynatrace
-# bindplane-otel-contrib components, across all manifests (full, slim, AIX) do
-# not share one version per group. Adapted from the upstream
-# opentelemetry-collector-releases scripts/validate-version-consistency.sh,
-# which checks core and contrib only.
-# bindplane-otel-contrib is released as one set and `make update-contrib` bumps
-# it in all manifests, so it is checked as well.
+# Fails if the OpenTelemetry core or contrib components across all manifests
+# (full, slim, AIX) do not share one version per group, or if a Dynatrace
+# bindplane-otel-contrib module has different versions in different manifests.
+# Adapted from the upstream opentelemetry-collector-releases
+# scripts/validate-version-consistency.sh, which checks core and contrib only.
 #
 # Groups, each of which must have exactly one version:
 #   core v0.x, core v1+, contrib v0.x, contrib v1+,
-#   bindplane-otel-contrib v0.x, bindplane-otel-contrib v1+
+#   each bindplane-otel-contrib module on its own
+# bindplane-otel-contrib modules can be bumped one at a time (e.g. a bugfix
+# release of a single exporter), so they are compared per module, not as a set.
 # v1+ modules have graduated and are versioned separately from the v0.x ones.
 # Only the component sections are checked; replaces: and dist: are not components.
 # Versions pinned through replaces: are therefore not checked here.
@@ -57,7 +57,7 @@ components() {
 				if (ver == "" || ver == "#") { print "missing version: " file ": " mod > "/dev/stderr"; exit 2 }
 				if (mod ~ /^go\.opentelemetry\.io\/collector\//) ns = "core"
 				else if (mod ~ /^github\.com\/open-telemetry\/opentelemetry-collector-contrib\//) ns = "contrib"
-				else if (mod ~ /^github\.com\/dynatrace\/dynatrace-bindplane-otel-contrib\//) ns = "bindplane-otel-contrib"
+				else if (mod ~ /^github\.com\/dynatrace\/dynatrace-bindplane-otel-contrib\//) { print mod, ver, file, mod; next }
 				else next
 				major = (ver ~ /^v0\./) ? "v0" : "v1+"
 				print ns "-" major, ver, file, mod
