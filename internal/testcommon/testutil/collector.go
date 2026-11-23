@@ -61,13 +61,15 @@ func StandaloneEnv(t testing.TB) map[string]string {
 }
 
 // NewChildProcessCollector returns a child process runner for the Collector binary under test,
-// configured with StandaloneEnv. Use it instead of testbed.NewChildProcessCollector.
-func NewChildProcessCollector(t testing.TB) testbed.OtelcolRunner {
+// configured with StandaloneEnv. Use it instead of testbed.NewChildProcessCollector. Any opts are
+// applied after the exec path and the standalone environment.
+func NewChildProcessCollector(t testing.TB, extra ...testbed.ChildProcessOption) testbed.OtelcolRunner {
 	t.Helper()
 	opts := []testbed.ChildProcessOption{testbed.WithAgentExePath(CollectorExecPath())}
 	for k, v := range StandaloneEnv(t) {
 		opts = append(opts, testbed.WithEnvVar(k, v))
 	}
+	opts = append(opts, extra...)
 	return testbed.NewChildProcessCollector(opts...)
 }
 
