@@ -40,6 +40,6 @@ jobs:
     uses: ./.github/workflows/base-checks.yaml
     with:
       distro: slim
-      extra_checks: check-slim-feature-gates
+      extra_checks: verify-go-runtime check-slim-feature-gates
     secrets:
       GRAPHITE_CI_OPTIMIZER_TOKEN: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
