@@ -30,6 +30,8 @@ permissions:
   contents: read
 
 env:
+  # renovate: datasource=github-releases depName=goreleaser/goreleaser-pro
+  GORELEASER_PRO_VERSION: v2.20.2
   # Scheduled runs have no inputs, so they always build against edge main.
   EDGE_REF: ${{ inputs.edge_components_ref || 'main' }}
   # Only the default main build moves :latest; explicit-ref builds can't
@@ -155,7 +157,7 @@ jobs:
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser-pro
-          version: "v2.20.2"
+          version: ${{ env.GORELEASER_PRO_VERSION }}
           # --skip=publish: build the images but push nothing when
           # push_images is unchecked on a manual dispatch.
           args: release --clean --nightly --timeout 120m --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-docker-nightly.yml ${{ (github.event_name == 'workflow_dispatch' && !inputs.push_images) && '--skip=publish' || '' }}

@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # renovate: datasource=go depName=github.com/uw-labs/lichen
+  LICHEN_VERSION: v0.1.7
+
 jobs:
   build_linux:
     if: github.actor != 'dependabot[bot]'
@@ -36,7 +40,7 @@ jobs:
         run: make build-linux
       - name: Install lichen
         timeout-minutes: 10
-        run: bash .github/scripts/retry.sh go install github.com/uw-labs/lichen@v0.1.7
+        run: bash .github/scripts/retry.sh go install github.com/uw-labs/lichen@${{ env.LICHEN_VERSION }}
       - name: Scan Third Party Dependency Licenses
         run: lichen --config=./license.yaml $(find dist/collector_* dist/updater_*)
   build_darwin:
@@ -64,7 +68,7 @@ jobs:
         run: make build-darwin
       - name: Install lichen
         timeout-minutes: 10
-        run: bash .github/scripts/retry.sh go install github.com/uw-labs/lichen@v0.1.7
+        run: bash .github/scripts/retry.sh go install github.com/uw-labs/lichen@${{ env.LICHEN_VERSION }}
       - name: Scan Third Party Dependency Licenses
         run: lichen --config=./license.yaml $(find dist/collector_* dist/updater_*)
   build_windows:
@@ -94,7 +98,7 @@ jobs:
         run: make build-windows
       - name: Install lichen
         timeout-minutes: 10
-        run: bash .github/scripts/retry.sh go install github.com/uw-labs/lichen@v0.1.7
+        run: bash .github/scripts/retry.sh go install github.com/uw-labs/lichen@${{ env.LICHEN_VERSION }}
       - name: Scan Third Party Dependency Licenses
         run: lichen --config=./license.yaml dist/collector_windows_amd64.exe dist/updater_windows_amd64.exe dist/collector_windows_arm64.exe dist/updater_windows_arm64.exe
   # No license scan for AIX: lichen can't read XCOFF binaries, and

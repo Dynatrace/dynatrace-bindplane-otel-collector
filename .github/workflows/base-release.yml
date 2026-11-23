@@ -57,6 +57,14 @@ on:
 permissions:
   contents: read
 
+env:
+  # renovate: datasource=github-releases depName=sigstore/cosign
+  COSIGN_VERSION: v3.1.4
+  # renovate: datasource=go depName=github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod
+  CYCLONEDX_VERSION: v1.12.0
+  # renovate: datasource=github-releases depName=goreleaser/goreleaser-pro
+  GORELEASER_PRO_VERSION: v2.20.2
+
 jobs:
   build-msi:
     if: ${{ inputs.build-msi }}
@@ -156,7 +164,7 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
         with:
-          cosign-release: v3.1.4
+          cosign-release: ${{ env.COSIGN_VERSION }}
       - name: Cache Goreleaser Build
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -202,7 +210,7 @@ jobs:
       - name: Install cyclonedx-gomod
         if: ${{ inputs.sbom }}
         timeout-minutes: 10
-        run: bash .github/scripts/retry.sh go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.12.0
+        run: bash .github/scripts/retry.sh go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@${{ env.CYCLONEDX_VERSION }}
       - name: Set up QEMU
         if: ${{ inputs.containers }}
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
@@ -228,7 +236,7 @@ jobs:
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser-pro
-          version: "v2.20.2"
+          version: ${{ env.GORELEASER_PRO_VERSION }}
           # Container images are signed by digest, which needs them to be pushed, so a
           # rehearsal of a build with images skips signing.
           args: release --clean --timeout 120m${{ inputs.dry-run && ' --skip=publish --skip=validate' || '' }}${{ inputs.dry-run && inputs.containers && ' --skip=sign' || '' }} --config manifests/${{ inputs.product }}/.goreleaser.yml
@@ -358,7 +366,7 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
         with:
-          cosign-release: v3.1.4
+          cosign-release: ${{ env.COSIGN_VERSION }}
 
       # The AIX install path verifies a detached GPG signature, so goreleaser
       # signs with gpg as well as cosign.
@@ -374,7 +382,7 @@ jobs:
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser-pro
-          version: "v2.20.2"
+          version: ${{ env.GORELEASER_PRO_VERSION }}
           args: release --config manifests/dynatrace-bindplane-otel-collector/.goreleaser-aix.yml --skip=publish${{ inputs.dry-run && ',validate' || '' }} --clean
         env:
           GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
