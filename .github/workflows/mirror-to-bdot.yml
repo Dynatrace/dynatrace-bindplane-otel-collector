@@ -2,7 +2,7 @@ name: Mirror merged PR to BDOT
 
 # When a PR merges, open a tracking issue on observIQ/bindplane-otel-collector
 # asking the author to mirror the change over to BDOT. Skipped for the
-# `dbdot-only` label and for PRs authored by dependabot.
+# `dbdot-only` label and for PRs authored by dependabot or renovate.
 on:
   pull_request_target:
     types: [closed]
@@ -19,6 +19,7 @@ jobs:
     if: >-
       github.event.pull_request.merged == true &&
       github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.event.pull_request.user.login != 'renovate[bot]' &&
       !contains(github.event.pull_request.labels.*.name, 'dbdot-only')
     steps:
       # Mint a short-lived token for the GitHub App, scoped to the BDOT repo.
