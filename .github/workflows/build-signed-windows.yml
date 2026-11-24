@@ -60,7 +60,7 @@ jobs:
 
   build-msi:
     needs: setup
-    runs-on: windows-2025
+    runs-on: windows-2022
     strategy:
       matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
     steps:
