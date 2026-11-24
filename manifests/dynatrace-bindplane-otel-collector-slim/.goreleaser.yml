@@ -20,8 +20,10 @@ before:
   hooks:
     - make release-prep-gpg DISTRO=slim CURR_VERSION={{ .Version }}
     # Build collector + updater binaries via ocb-driven `make`. Goreleaser picks
-    # them up below via `builder: prebuilt`.
-    - make build-all-slim OUTDIR="tmp"
+    # them up below via `builder: prebuilt`. VERSION is passed because the
+    # Makefile only derives it from plain vX.Y.Z tags, so it would stamp
+    # `<previous full tag>-SNAPSHOT-<sha>` for a slim/vX.Y.Z-rc.N tag.
+    - make build-all-slim OUTDIR="tmp" VERSION=v{{ .Version }}
 
 after:
   hooks:
