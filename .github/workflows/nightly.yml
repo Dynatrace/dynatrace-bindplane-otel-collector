@@ -31,7 +31,7 @@ permissions:
 
 env:
   # renovate: datasource=github-releases depName=goreleaser/goreleaser-pro
-  GORELEASER_PRO_VERSION: v2.20.2
+  GORELEASER_PRO_VERSION: v2.20.3
   # Scheduled runs have no inputs, so they always build against edge main.
   EDGE_REF: ${{ inputs.edge_components_ref || 'main' }}
   # Only the default main build moves :latest; explicit-ref builds can't
