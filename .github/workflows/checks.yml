@@ -107,7 +107,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -144,7 +144,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -183,7 +183,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -233,7 +233,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -272,7 +272,7 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -311,7 +311,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -350,7 +350,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -389,7 +389,7 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: extension/opampconnectionextension/go.mod
           cache: false # Caching handled by the actions/cache step below
@@ -405,7 +405,7 @@ jobs:
       - name: Plugin Doc Generation
         run: make create-plugin-docs
       - name: Check Changed Plugin Docs
-        uses: tj-actions/verify-changed-files@2acec78834cc690f70b3445712363fc314224127 # v17.1.0
+        uses: tj-actions/verify-changed-files@a1c6acee9df209257a246f2cc6ae8cb6581c1edf # v20.0.4
         id: verify-changed-files
         with:
           files: |
