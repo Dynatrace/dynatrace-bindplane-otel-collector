@@ -133,18 +133,10 @@ AIX_SRC_GROUP = dbdotcollector
 # main package (extension/opampconnectionextension/cmd/main/main.go), plus the
 # DBDOT identity values into the opamp connection extension. Components read
 # the version from component.BuildInfo.Version, which main.go passes through.
-#
-# TODO(BP-1667): drop the contrib pkg/version stamps once the manifest pins a
-# dynatrace-bindplane-otel-contrib release whose googlecloud and
-# googlemanagedprometheus exporters take the version from BuildInfo. Until then
-# they still read it from pkg/version for their User-Agent.
 AGENT_LDFLAGS = -s -w \
 	-X main.version=$(VERSION) \
 	-X main.gitHash=$(GIT_HASH) \
 	-X main.date=$(BUILD_DATE) \
-	-X github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version.version=$(VERSION) \
-	-X github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version.gitHash=$(GIT_HASH) \
-	-X github.com/dynatrace/dynatrace-bindplane-otel-contrib/pkg/version.date=$(BUILD_DATE) \
 	-X $(OPAMP_EXT_COLLECTOR_PKG).buildName=$(AGENT_NAME) \
 	-X '$(OPAMP_EXT_COLLECTOR_PKG).buildDescription=$(AGENT_DESCRIPTION)' \
 	-X $(OPAMP_EXT_PACKAGESTATE_PKG).collectorPackageName=$(PRODUCT_NAME) \
