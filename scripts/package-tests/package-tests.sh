@@ -96,8 +96,8 @@ BINARY="$HOME_DIR/$PKG_NAME"
 # Defaults of the package scripts (DBDOT_USER, DBDOT_GROUP).
 RUNTIME_USER="dbdot"
 OWNER="$RUNTIME_USER:$RUNTIME_USER"
-# Only the full build ships the plugins and the updater (see the nfpms section
-# of each build's .goreleaser.yml).
+# Only the full build ships the plugins (see the nfpms section of each build's
+# .goreleaser.yml). Both builds ship the updater.
 FULL_BUILD=false
 if [[ "$PKG_NAME" != *-slim ]]; then
     FULL_BUILD=true
@@ -167,14 +167,13 @@ check_installed() {
     assert_stat "$container_name" "$HOME_DIR/storage" "$OWNER 750"
     assert_stat "$container_name" "$HOME_DIR/log" "$OWNER 750"
     assert_stat "$container_name" "$HOME_DIR/log/collector.log" "$OWNER -"
+    assert_stat "$container_name" "$HOME_DIR/updater" "root:root 755"
     if [[ "$FULL_BUILD" == "true" ]]; then
-        assert_stat "$container_name" "$HOME_DIR/updater" "root:root 755"
         assert_stat "$container_name" "$HOME_DIR/plugins" "$OWNER 750"
         local plugin
         plugin="$( $container_exec sh -c "ls $HOME_DIR/plugins/* | head -n 1" )"
         assert_stat "$container_name" "$plugin" "$OWNER 640"
     else
-        assert_absent "$container_name" "$HOME_DIR/updater"
         assert_absent "$container_name" "$HOME_DIR/plugins"
     fi
     # postinstall.sh copies the staged files to $HOME_DIR and removes them.
