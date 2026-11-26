@@ -29,7 +29,7 @@ run_case() {
   name=$1 stop_rc=$2 active_polls=$3
   log="$WORK/log-$name"; : > "$log"; echo "$active_polls" > "$WORK/polls-$name"
   sh -c ". '$WORK/lib.sh'
-    OS_TYPE=AIX; SVC_PRE=mkssys; AIX_SRC_GROUP=dbdotcollector; AIX_SRC_SUBSYSTEM=dbdot-otel-collector; MANAGEMENT_YML_PATH='$WORK/manager.yaml'; AIX_SRC_WAIT_SECONDS=120
+    set_build; OS_TYPE=AIX; SVC_PRE=mkssys; AIX_SRC_GROUP=dbdotcollector; AIX_SRC_SUBSYSTEM=dbdot-otel-collector; MANAGEMENT_YML_PATH='$WORK/manager.yaml'; AIX_SRC_WAIT_SECONDS=120
     id() { echo root; }
     sleep() { :; }
     stopsrc() { echo stopsrc >> '$log'; return $stop_rc; }

@@ -540,7 +540,7 @@ case "$out" in *"'--require-gpg-check' is no longer valid"*REACHED_END*) report 
 # Return code 3 never installs, even on yes; other failures can be overridden
 # override_case <name> <verify_package return code> <expect> <message>
 override_case() {
-  out=$(cd "$WORK" && printf 'y\n' | sh -c ". '$WORK/lib.sh'; verify_package() { return $2; }; unpack_package() { echo UNPACKED; exit 0; }; non_interactive=false; offline_installation=true; install_package" 2>&1); rc=$?
+  out=$(cd "$WORK" && printf 'y\n' | sh -c ". '$WORK/lib.sh'; set_build; verify_package() { return $2; }; unpack_package() { echo UNPACKED; exit 0; }; non_interactive=false; offline_installation=true; install_package" 2>&1); rc=$?
   case "$3:$out" in ok:*UNPACKED*) rc=0 ;; ok:*) rc=1 ;; esac
   report "$1" $rc "$3" "$4" "$out"
 }
@@ -550,7 +550,7 @@ override_case override-soft-failure 1 ok
 # Quiet mode hides ordinary output, but a verification failure must still say why
 # quiet_case <name> <verify_package return code>
 quiet_case() {
-  out=$(cd "$WORK" && sh -c ". '$WORK/lib.sh'; verify_package() { error 'the real reason'; return $2; }; unpack_package() { exit 0; }; non_interactive=true; offline_installation=true; install_package" 2>&1); rc=$?
+  out=$(cd "$WORK" && sh -c ". '$WORK/lib.sh'; set_build; verify_package() { error 'the real reason'; return $2; }; unpack_package() { exit 0; }; non_interactive=true; offline_installation=true; install_package" 2>&1); rc=$?
   report "$1" $rc abort "the real reason" "$out"
 }
 quiet_case quiet-hard-failure 3
@@ -559,7 +559,7 @@ quiet_case quiet-soft-failure 1
 # Interactive mode says why once, whether the user continues or declines
 # once_case <name> <answer>
 once_case() {
-  out=$(cd "$WORK" && printf '%s\n' "$2" | sh -c ". '$WORK/lib.sh'; verify_package() { error 'the real reason'; return 1; }; unpack_package() { exit 0; }; non_interactive=false; offline_installation=true; install_package" 2>&1)
+  out=$(cd "$WORK" && printf '%s\n' "$2" | sh -c ". '$WORK/lib.sh'; set_build; verify_package() { error 'the real reason'; return 1; }; unpack_package() { exit 0; }; non_interactive=false; offline_installation=true; install_package" 2>&1)
   n=$(printf '%s\n' "$out" | grep -c 'the real reason')
   if [ "$n" -eq 1 ]; then report "$1" 0 ok "" ""; else report "$1" 1 ok "" "printed $n times"; fi
 }

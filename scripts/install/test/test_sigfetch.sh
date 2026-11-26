@@ -40,7 +40,7 @@ exit 0
 EOF
   chmod +x "$bin/uname" "$bin/curl"
   PATH="$bin" "$bin/sh" -c ". '$WORK/lib.sh'
-    verify_package() { echo VERIFY_REACHED; return 1; }
+    set_build; verify_package() { echo VERIFY_REACHED; return 1; }
     non_interactive=true; offline_installation=false; package_type=$ptype
     collector_download_url=$URL; package_out_file_path=$WORK/pkg-$name.tar.gz
     gpg_tar_download_url=https://dbdot.example/v1.2.0/gpg-keys.tar.gz; gpg_tar_out_file_path=$WORK/keys-$name.tar.gz
