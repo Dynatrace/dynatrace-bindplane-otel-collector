@@ -72,20 +72,26 @@ jobs:
           ARCH: ${{ matrix.arch }}
 
       # The upgrade scenario starts from the newest non-RC release that ships this
-      # package; builds without one yet (slim) skip it.
+      # package; builds without one yet (slim) skip it. The release assets are
+      # looked up first, so a failing lookup or download fails the job instead of
+      # skipping the scenario.
       - name: Download previous release package
         id: previous
         run: |
-          pattern="${PKG_NAME}_v*_linux_${ARCH}.${TYPE}"
-          for tag in $(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 20 --json tagName --jq '.[].tagName'); do
-            if gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$pattern" --dir previous-release; then
-              path="$(ls previous-release/*)"
+          export PREFIX="${PKG_NAME}_v" SUFFIX="_linux_${ARCH}.${TYPE}"
+          tags="$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 20 --json tagName --jq '.[].tagName')"
+          for tag in $tags; do
+            asset="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets \
+              --jq '[.assets[].name | select(startswith(env.PREFIX) and endswith(env.SUFFIX))] | first // empty')"
+            if [[ -n "$asset" ]]; then
+              gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir previous-release
+              path="previous-release/$asset"
               echo "Upgrade from $tag: $path"
               echo "path=$path" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           done
-          echo "::notice::No release ships $pattern, skipping the upgrade scenario"
+          echo "::notice::No release ships ${PREFIX}*${SUFFIX}, skipping the upgrade scenario"
         env:
           GH_TOKEN: ${{ github.token }}
           PKG_NAME: ${{ steps.package.outputs.name }}
