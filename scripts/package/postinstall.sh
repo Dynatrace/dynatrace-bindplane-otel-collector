@@ -416,7 +416,11 @@ manage_systemd_service() {
     rm -f /etc/init.d/dynatrace-bindplane-otel-collector
   fi
 
-  systemctl daemon-reload
+  # systemd isn't running during e.g. a container image build, and
+  # daemon-reload would fail the install. The unit is loaded when it boots.
+  if [ -d /run/systemd/system ]; then
+    systemctl daemon-reload
+  fi
 
   echo "configured systemd service"
 
