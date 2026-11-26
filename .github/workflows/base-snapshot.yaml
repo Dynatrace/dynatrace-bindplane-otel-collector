@@ -67,8 +67,6 @@ permissions:
 
 jobs:
   snapshot:
-    # The calling workflow's name prefixes this (e.g. "Snapshot - DBDOT slim / ..."),
-    # so the distro is not repeated here.
     name: Snapshot (${{ matrix.GOOS }}/${{ matrix.GOARCH }})
     strategy:
       fail-fast: false
