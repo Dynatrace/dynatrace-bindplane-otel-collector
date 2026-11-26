@@ -15,7 +15,8 @@
 
 # Installs a Linux package of a DBDOT build in a container, checks the
 # installed collector and uninstalls it again. Ported from the Dynatrace OTel
-# Collector's internal/testbed/linux-services/package-tests.sh.
+# Collector's internal/testbed/linux-services/package-tests.sh, which is based
+# on the OpenTelemetry Collector Releases scripts/package-tests/package-tests.sh.
 #
 # deb and rpm run in a systemd container: the service must be installed but
 # neither enabled nor started (postinstall.sh only configures it), must stay up
@@ -34,6 +35,25 @@ PKG_NAME="${3:-}"
 
 # shellcheck source=scripts/package-tests/common.sh
 source "$SCRIPT_DIR"/common.sh
+
+# Global array for trap functions
+TRAP_FUNCS=()
+
+# Helper to add functions to the trap list
+add_trap_func() {
+	TRAP_FUNCS+=("$1")
+}
+
+# Wrapper that calls each trap'ed function.
+# It uses LIFO order, like Go's `defer`.
+run_traps() {
+	if [ "${#TRAP_FUNCS[@]}" -gt 0 ]; then
+		for ((i = ${#TRAP_FUNCS[@]} - 1; i >= 0; i--)); do
+			"${TRAP_FUNCS[i]}"
+		done
+	fi
+}
+trap 'run_traps' EXIT
 
 if [[ -z "$PKG_PATH" || -z "$ARCH" || -z "$PKG_NAME" ]]; then
     echo "usage: ${BASH_SOURCE[0]} PACKAGE_PATH ARCH PACKAGE_NAME" >&2
@@ -59,12 +79,21 @@ image_name="$PKG_NAME-$pkg_type-test"
 container_name="$image_name"
 container_exec="podman exec $container_name"
 
-trap 'podman rm -fv $container_name >/dev/null 2>&1 || true' EXIT
+podman_cleanup() {
+	podman rm -fv "$container_name" >/dev/null 2>&1 || true
+}
+add_trap_func podman_cleanup
+
+podman_logs() {
+    echo "Container logs:"
+    podman logs "$container_name" || true
+}
+add_trap_func podman_logs
 
 podman build -t "$image_name" --arch "$ARCH" -f "$SCRIPT_DIR/Dockerfile.test.$pkg_type" "$SCRIPT_DIR"
 podman rm -fv "$container_name" >/dev/null 2>&1 || true
 
-podman run --name "$container_name" --arch "$ARCH" -d "$image_name"
+podman run --name "$container_name" --arch "$ARCH" --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -d "$image_name"
 install_pkg "$container_name" "$PKG_PATH"
 
 echo "Checking $BINARY ..."
@@ -82,6 +111,15 @@ if $container_exec systemctl is-enabled "$SERVICE_NAME"; then
     exit 1
 fi
 echo "$SERVICE_NAME service correctly not enabled after install"
+
+# If we got to this point, we might need to check the logs of the systemd service
+# when it's not properly active. This is added as a trap because the check
+# for service status below will return an error exitcode if the service is
+# not active, triggering the end of this script because of the shell option `-e`
+journalctl_logs() {
+	$container_exec journalctl -u "$SERVICE_NAME" || true
+}
+add_trap_func journalctl_logs
 
 $container_exec systemctl start "$SERVICE_NAME"
 

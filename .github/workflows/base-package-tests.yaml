@@ -54,7 +54,8 @@ jobs:
           name: linux-packages-${{ inputs.distro }}-${{ matrix.arch }}
           path: linux-packages
 
-      - name: Test ${{ matrix.type }} package
+      - name: Find ${{ matrix.type }} package
+        id: package
         run: |
           shopt -s globstar nullglob
           # nfpm file_name_template: <package_name>_v<version>_<os>_<arch>
@@ -63,8 +64,21 @@ jobs:
             echo "expected exactly one ${TYPE} package for ${ARCH}, found: ${pkgs[*]}"
             exit 1
           fi
-          make package-test DISTRO="${DISTRO}" ARCH="${ARCH}" PACKAGE_PATH="${pkgs[0]}"
+          echo "path=${pkgs[0]}" >> "$GITHUB_OUTPUT"
         env:
-          DISTRO: ${{ inputs.distro }}
           TYPE: ${{ matrix.type }}
           ARCH: ${{ matrix.arch }}
+
+      - name: Test ${{ matrix.type }} package
+        run: make package-test DISTRO="${DISTRO}" ARCH="${ARCH}" PACKAGE_PATH="${PKG_PATH}"
+        env:
+          DISTRO: ${{ inputs.distro }}
+          ARCH: ${{ matrix.arch }}
+          PKG_PATH: ${{ steps.package.outputs.path }}
+
+      - name: Test ${{ matrix.type }} package installation during image build
+        run: make package-build-test DISTRO="${DISTRO}" ARCH="${ARCH}" PACKAGE_PATH="${PKG_PATH}"
+        env:
+          DISTRO: ${{ inputs.distro }}
+          ARCH: ${{ matrix.arch }}
+          PKG_PATH: ${{ steps.package.outputs.path }}

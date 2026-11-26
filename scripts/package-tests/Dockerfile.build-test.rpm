@@ -1,0 +1,23 @@
+# Installs, reinstalls and removes an rpm package as part of an image build,
+# where systemd is installed but not running as PID 1. Based on the
+# OpenTelemetry Collector Releases scripts/package-tests/Dockerfile.build-test.rpm.
+# rpm only warns when a scriptlet fails, so the output is checked.
+FROM rockylinux/rockylinux:10.3@sha256:d24beedc58f79b9e0e9289fedaa4fcbcbe692b1438883a86f177fd7c51053ca8
+
+ARG PKG
+ARG PKG_NAME
+
+RUN dnf install -y systemd && \
+    dnf clean all
+
+COPY ${PKG} /tmp/
+
+# Snapshot packages are not signed.
+RUN set -o pipefail; rpm -ivh --nosignature /tmp/${PKG} 2>&1 | tee /tmp/rpm.log && \
+    ! grep 'scriptlet failed' /tmp/rpm.log && \
+    test -f /usr/lib/systemd/system/${PKG_NAME}.service
+RUN set -o pipefail; rpm -Uvh --nosignature --replacepkgs /tmp/${PKG} 2>&1 | tee /tmp/rpm.log && \
+    ! grep 'scriptlet failed' /tmp/rpm.log
+RUN set -o pipefail; rpm -e ${PKG_NAME} 2>&1 | tee /tmp/rpm.log && \
+    ! grep 'scriptlet failed' /tmp/rpm.log && \
+    ! test -e /usr/lib/systemd/system/${PKG_NAME}.service

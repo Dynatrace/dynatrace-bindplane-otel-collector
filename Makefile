@@ -764,6 +764,14 @@ build-single:
 package-test:
 	./scripts/package-tests/package-tests.sh $(PACKAGE_PATH) $(ARCH) $(PRODUCT_NAME)
 
+# Installs, reinstalls and removes a Linux package of the selected DISTRO during
+# a podman image build, where systemd isn't running (see
+# scripts/package-tests/docker-build-test.sh). Takes the same variables as
+# package-test.
+.PHONY: package-build-test
+package-build-test:
+	./scripts/package-tests/docker-build-test.sh $(PACKAGE_PATH) $(ARCH) $(PRODUCT_NAME)
+
 .PHONY: release-test-single
 release-test-single:
 	GORELEASER_CURRENT_TAG=$(SNAPSHOT_TAG) goreleaser release -f $(GORELEASER_DIR)/.goreleaser.arm64.yml --timeout $(GORELEASER_TIMEOUT) --skip=publish --clean --skip=validate --snapshot

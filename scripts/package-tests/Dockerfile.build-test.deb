@@ -1,0 +1,25 @@
+# Installs, reinstalls and removes a deb package as part of an image build,
+# where systemd is installed but not running as PID 1. Based on the
+# OpenTelemetry Collector Releases scripts/package-tests/Dockerfile.build-test.deb.
+# Unlike the upstream packages, ours configure the service but don't enable it.
+FROM debian:13@sha256:9c6e381421d0f48d1b8133e573f33c185ee16cbf505eda9c4a8a4791b25ea8a6
+
+ARG PKG
+ARG PKG_NAME
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y systemd && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/tmp/*
+
+COPY ${PKG} /tmp/
+
+RUN dpkg -i /tmp/${PKG} && \
+    test -f /usr/lib/systemd/system/${PKG_NAME}.service && \
+    ! test -L /etc/systemd/system/multi-user.target.wants/${PKG_NAME}.service
+RUN dpkg -i /tmp/${PKG} && \
+    test -f /usr/lib/systemd/system/${PKG_NAME}.service
+RUN dpkg -r ${PKG_NAME} && \
+    ! test -e /usr/lib/systemd/system/${PKG_NAME}.service
