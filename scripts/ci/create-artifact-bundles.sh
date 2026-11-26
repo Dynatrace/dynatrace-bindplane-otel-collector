@@ -37,7 +37,7 @@
 #
 # BUNDLE_INSTALLERS (default true) controls whether the install scripts and the
 # MSIs are bundled. Builds that ship neither, like the slim build, set it to
-# false. apk packages are bundled when goreleaser produced any.
+# false.
 
 set -euo pipefail
 
@@ -74,7 +74,6 @@ common=(
 # are collected with failglob off and nullglob on.
 shopt -u failglob
 shopt -s nullglob
-apks=(./dist/*.apk)
 aix=(./aix-dist/*)
 shopt -u nullglob
 shopt -s failglob
@@ -102,8 +101,7 @@ bundle artifacts-linux \
   ${installers_unix[@]+"${installers_unix[@]}"} \
   ./dist/*-linux-*.tar.gz \
   ./dist/*.rpm \
-  ./dist/*.deb \
-  ${apks[@]+"${apks[@]}"}
+  ./dist/*.deb
 
 bundle artifacts-darwin \
   "${common[@]}" \

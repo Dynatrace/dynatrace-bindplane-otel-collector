@@ -125,8 +125,7 @@ archives:
         dst: "."
         strip_parent: true
 
-# Linux packages. Only deb and rpm are signed, with the same GPG key as the full
-# build. The apk is shipped unsigned, like the Dynatrace OTel Collector's.
+# Linux packages, signed with the same GPG key as the full build.
 nfpms:
   - id: collector
     ids:
@@ -140,7 +139,6 @@ nfpms:
     homepage: https://github.com/dynatrace/dynatrace-bindplane-otel-collector
     license: Apache 2.0
     formats:
-      - apk
       - deb
       - rpm
     bindir: /usr/share/dynatrace-bindplane-otel-collector-slim/stage/dynatrace-bindplane-otel-collector-slim
