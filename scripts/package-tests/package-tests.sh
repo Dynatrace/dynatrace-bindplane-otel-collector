@@ -21,7 +21,8 @@
 #
 # Scenarios, each in a fresh container and ending with an uninstall:
 #   install: installs the package and checks the installed files, their owner
-#            and mode, the dbdot user and the service.
+#            and mode, the dbdot (system) user and the service, which must
+#            stay up without restarts.
 #   upgrade: only with UPGRADE_FROM_PATH. Installs that released package,
 #            starts it and edits the user files, upgrades to the package under
 #            test and checks that the edits survived and the service runs.
@@ -156,6 +157,14 @@ check_installed() {
         echo "$RUNTIME_USER user: expected shell /sbin/nologin, got $shell" >&2
         exit 1
     fi
+    # useradd --system allocates a UID below the distro's UID_MIN.
+    local uid uid_min
+    uid="$( $container_exec id -u "$RUNTIME_USER" )"
+    uid_min="$( $container_exec awk '$1 == "UID_MIN" {print $2; exit}' /etc/login.defs )"
+    if [[ -z "$uid_min" || "$uid" -ge "$uid_min" ]]; then
+        echo "$RUNTIME_USER user: expected a system user (UID below UID_MIN $uid_min), got UID $uid" >&2
+        exit 1
+    fi
 
     echo "Checking installed files ..."
     assert_stat "$container_name" "$HOME_DIR" "$OWNER 755"
@@ -209,6 +218,15 @@ check_service_runs() {
     sleep 5
     echo "Checking $SERVICE_NAME service status ..."
     $container_exec systemctl --no-pager status "$SERVICE_NAME"
+
+    # Outlast RestartSec=5s once more: a crash loop shows up as restarts.
+    sleep 6
+    local restarts
+    restarts="$( $container_exec systemctl show -p NRestarts --value "$SERVICE_NAME" )"
+    if [[ "$restarts" != "0" ]]; then
+        echo "$SERVICE_NAME service: expected no restarts, got $restarts" >&2
+        exit 1
+    fi
 
     echo "Checking $BINARY process ..."
     $container_exec pgrep -f -a "$BINARY"
