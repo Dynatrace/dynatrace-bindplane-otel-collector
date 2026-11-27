@@ -30,6 +30,7 @@ exporters:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.165.1
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.165.1
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/opampexporter v1.4.1
+  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.165.0
 
 processors:
   - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.165.0
@@ -88,3 +89,6 @@ replaces:
   # Internal Go modules — point ocb at the local checkouts.
   - github.com/dynatrace/dynatrace-bindplane-otel-collector/extension/opampconnectionextension => ../extension/opampconnectionextension
   - github.com/dynatrace/dynatrace-bindplane-otel-collector/pkg/report => ../pkg/report
+
+  # Replace statement for the dt-edge exporter. Keep in sync with the full manifest. Remove once a release contains v0.165.0 of OTel
+  - github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter => github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.164.1-0.20261119162442-bdfd4a08eecf
