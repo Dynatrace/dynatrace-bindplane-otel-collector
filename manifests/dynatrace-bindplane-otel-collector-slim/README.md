@@ -7,9 +7,10 @@
 The slim build contains:
 
 - the components of the Dynatrace OpenTelemetry Collector distribution (`dynatrace-otel-collector`)
-- the minimum set of components needed to be compatible with Bindplane.
+- the minimum set of components needed to be compatible with Bindplane
+- the `dtedgeprocessingexporter` (component type `dynatrace`) for the Operator ingest path.
 
-All component versions are the ones used by the full manifest. The slim manifest only has its own `dist` section, a smaller component list, and the local `replaces` for the internal modules (`opampconnectionextension`, `snapshotprocessor`, `report`).
+All component versions are the ones used by the full manifest. The slim manifest only has its own `dist` section, a smaller component list, the local `replaces` for the internal modules (`opampconnectionextension`, `snapshotprocessor`, `report`), and the same temporary `replaces` pin for the `dtedgeprocessingexporter` as the full manifest.
 
 ## Identity
 
