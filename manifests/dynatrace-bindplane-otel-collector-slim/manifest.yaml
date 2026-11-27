@@ -30,6 +30,7 @@ exporters:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.165.1
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.165.1
   - gomod: github.com/dynatrace/dynatrace-bindplane-otel-contrib/exporter/opampexporter v1.4.1
+  - gomod: github.com/Dynatrace/dt-otelcol-edge-processing-components/exporter/dtedgeprocessingexporter v0.165.0
 
 processors:
   - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.165.0

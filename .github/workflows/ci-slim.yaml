@@ -18,6 +18,7 @@ on:
       - "config/logging.stdout.yaml"
       - ".github/workflows/base-ci.yaml"
       - ".github/workflows/ci-slim.yaml"
+      - ".github/actions/private-go-modules/**"
       # Docs-only changes do not need a build.
       - "!**/*.md"
   pull_request:
@@ -37,9 +38,13 @@ permissions:
 jobs:
   ci:
     name: CI - DBDOT slim
-    # The slim manifest has no private Go modules.
+    # Dependabot PRs get no access to the private Go modules secret, so the
+    # slim build is skipped for them, as in ci-full.yaml.
+    if: github.actor != 'dependabot[bot]'
     uses: ./.github/workflows/base-ci.yaml
     with:
       distro: slim
+      private_go_modules: true
     secrets:
+      PRIVATE_GO_MODULES_APP_PRIVATE_KEY: ${{ secrets.PRIVATE_GO_MODULES_APP_PRIVATE_KEY }}
       GRAPHITE_CI_OPTIMIZER_TOKEN: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}

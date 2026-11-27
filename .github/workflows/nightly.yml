@@ -81,26 +81,31 @@ jobs:
           # The Makefile exports GOPRIVATE, but this step calls go directly.
           GOPRIVATE: github.com/Dynatrace/*
         run: |
-          # Pin every module the manifest pulls from the edge components repo,
+          # Pin every module each manifest pulls from the edge components repo,
           # so new components are covered without touching this step.
-          # Only gomod entries should be matched.
-          MODS=$(awk '$1 == "-" && $2 == "gomod:" && $3 ~ /^github.com\/Dynatrace\/dt-otelcol-edge-processing-components\//{print $3}' manifests/dynatrace-bindplane-otel-collector/manifest.yaml | sort -u)
+          # Only gomod entries should be matched. The slim manifest is pinned
+          # too, so both distros stay on the same edge ref.
           # go list needs a module context; resolve refs from a throwaway module.
           RESOLVE_DIR=$(mktemp -d)
           (cd "${RESOLVE_DIR}" && go mod init resolve >/dev/null)
-          for MOD in ${MODS}; do
-            VERSION=$(cd "${RESOLVE_DIR}" && go list -m "${MOD}@${EDGE_REF}" | awk '{print $2}')
-            if [ -z "${VERSION}" ]; then
-              echo "Failed to resolve ${MOD}@${EDGE_REF}" >&2
-              exit 1
-            fi
-            echo "Resolved ${MOD}@${EDGE_REF} -> ${VERSION}"
-            # pseudo-version suffix is the short commit; a plain tag has no dash
-            echo "NIGHTLY_TAG=edge-${VERSION##*-}" >> "$GITHUB_ENV"
-            # Drop any standing pin for this module before adding ours —
-            # duplicate replaces for one module are a go.mod error.
-            MOD="${MOD}" PIN="${MOD} => ${MOD} ${VERSION}" \
-              yq -i '.replaces |= map(select((split(" ") | .[0]) != env(MOD))) + [env(PIN)]' manifests/dynatrace-bindplane-otel-collector/manifest.yaml
+          for MANIFEST in \
+            manifests/dynatrace-bindplane-otel-collector/manifest.yaml \
+            manifests/dynatrace-bindplane-otel-collector-slim/manifest.yaml; do
+            MODS=$(awk '$1 == "-" && $2 == "gomod:" && $3 ~ /^github.com\/Dynatrace\/dt-otelcol-edge-processing-components\//{print $3}' "${MANIFEST}" | sort -u)
+            for MOD in ${MODS}; do
+              VERSION=$(cd "${RESOLVE_DIR}" && go list -m "${MOD}@${EDGE_REF}" | awk '{print $2}')
+              if [ -z "${VERSION}" ]; then
+                echo "Failed to resolve ${MOD}@${EDGE_REF}" >&2
+                exit 1
+              fi
+              echo "Resolved ${MOD}@${EDGE_REF} -> ${VERSION} (${MANIFEST})"
+              # pseudo-version suffix is the short commit; a plain tag has no dash
+              echo "NIGHTLY_TAG=edge-${VERSION##*-}" >> "$GITHUB_ENV"
+              # Drop any standing pin for this module before adding ours —
+              # duplicate replaces for one module are a go.mod error.
+              MOD="${MOD}" PIN="${MOD} => ${MOD} ${VERSION}" \
+                yq -i '.replaces |= map(select((split(" ") | .[0]) != env(MOD))) + [env(PIN)]' "${MANIFEST}"
+            done
           done
 
       - name: Install ocb

@@ -212,6 +212,9 @@ exporters:
         service: metrics-receiver.default
         ports:
           - 4317
+  dynatrace:
+    tenant_uuid: syn00001
+    endpoint: http://127.0.0.1:1
 
 
 connectors:

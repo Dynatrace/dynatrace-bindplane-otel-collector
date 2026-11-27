@@ -7,7 +7,8 @@
 The slim build contains:
 
 - the components of the Dynatrace OpenTelemetry Collector distribution (`dynatrace-otel-collector`)
-- the minimum set of components needed to be compatible with Bindplane.
+- the minimum set of components needed to be compatible with Bindplane
+- the `dtedgeprocessingexporter` (component type `dynatrace`) for the Operator ingest path.
 
 All component versions are the ones used by the full manifest. The slim manifest only has its own `dist` section, a smaller component list, and the local `replaces` for the internal modules (`opampconnectionextension`, `snapshotprocessor`, `report`).
 
@@ -26,7 +27,7 @@ make verify-manifest DISTRO=slim
 
 The binary is `./dist/collector-slim_<os>_<arch>`. ocb writes its sources to `./build-slim/` (gitignored); `make agent-clean DISTRO=slim` removes it. See [Choosing a distro](../dynatrace-bindplane-otel-collector/README.md#choosing-a-distro) for how `DISTRO` works.
 
-The slim build does not depend on the private `dt-otelcol-edge-processing-components` module, so it builds without `GOPRIVATE` or Dynatrace org git credentials.
+The slim build pulls the `dtedgeprocessingexporter` from the private `dt-otelcol-edge-processing-components` module. Building it needs `GOPRIVATE=github.com/Dynatrace/*` (the Makefile exports it) and git credentials with read access to the Dynatrace GitHub org.
 
 ## Feature gates
 
